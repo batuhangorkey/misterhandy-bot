@@ -1,4 +1,1 @@
-os
-random
-discord
-dotenv
+git+https://github.com/Rapptz/discord.py
