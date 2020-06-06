@@ -93,7 +93,7 @@ async def func2(ctx):
 
 @bot.command(name='del_all', help='Deletes all messages sent by the bot.')
 async def func3(ctx):
-    await ctx.delete_messages(messages)
+    await ctx.channel.delete_messages(messages)
 
 
 @bot.command(name='send_msg')
