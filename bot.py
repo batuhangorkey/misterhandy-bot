@@ -12,6 +12,7 @@ GUILD = os.getenv('DISCORD_GUILD')
 
 client = discord.Client()
 bot = commands.Bot(command_prefix='!')
+messages = []
 
 
 class Scene:
@@ -43,7 +44,7 @@ async def roll(ctx, number_of_dice: int, number_of_sides: int):
     await ctx.send(', '.join(dice))
 
 
-@bot.command(name='start', help='Start the mini game.')
+@bot.command(name='start', help='Starts the mini game.')
 async def start_scene(ctx, difficulty: int):
     global scene
     words = ""
@@ -88,4 +89,14 @@ async def func2(ctx):
         await ctx.send('Tecrüben: ' + str(user_exp.get(user.id)))
     else:
         await ctx.send('Daha oynamamışsın.')
+
+
+@bot.command(name='del_all', help='Deletes all messages sent by the bot.')
+async def func3(ctx):
+    await ctx.delete_messages(messages)
+
+
+@bot.command(name='send_msg')
+async def func4(ctx):
+    messages.append(await ctx.send('Message'))
 bot.run(TOKEN)
