@@ -51,8 +51,8 @@ async def start_scene(ctx, difficulty: int):
     if type(game_list) == list:
         scene = Scene(game_list, difficulty)
         for i in range(0, 10):
-            words += ('\n ' + str(i + 1) + ' - ' + scene.list[i][0])
-        await ctx.send('Terminal:' + words)
+            words += f'\n  {i + 1} - {scene.list[i][0]}'
+        await ctx.send(f'Terminal: {words}')
     else:
         await ctx.send('Hoppala bir daha dene uşağım')
 
