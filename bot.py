@@ -54,6 +54,7 @@ async def start_scene(ctx, difficulty: int):
         for i in range(0, 10):
             words += f'\n  {i + 1} - {scene.list[i][0]}'
         await ctx.channel.delete_messages(messages)
+        print(f'Mesaj sayısı: {len(messages)}')
         await ctx.send(f'Terminal: {words}')
     else:
         messages.append(await ctx.send('Hoppala bir daha dene uşağım'))
@@ -94,8 +95,8 @@ async def func2(ctx):
 
 @bot.command(name='del_all', help='Tries to purge messages sent by the bot.')
 async def func3(ctx):
-    def is_bot(m):
+    def is_me(m):
         return m.author == bot.user
-    deleted = await ctx.channel.purge(limit=50, check=is_bot, bulk=False)
+    deleted = await ctx.channel.purge(limit=50, bulk=False)
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 bot.run(TOKEN)
