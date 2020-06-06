@@ -95,7 +95,7 @@ async def func2(ctx):
 async def func3(ctx):
     def is_bot(m):
         return m.author == bot.user
-    deleted = await ctx.channel.purge(limit=50, check=is_bot)
+    deleted = await ctx.channel.purge(limit=50, check=is_bot, bulk=False)
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
