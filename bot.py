@@ -83,7 +83,7 @@ async def func(ctx, index: int):
         scene.attempts -= 1
         if scene.attempts > 0:
             messages.append(await ctx.send('Benzerlik: ' + str(scene.list[index - 1][1]) +
-                           '\nKalan deneme sayısı: ' + str(scene.attempts)))
+                                           '\nKalan deneme sayısı: ' + str(scene.attempts)))
         else:
             messages.append(await ctx.send('Sistem kitlendi.'))
 
@@ -101,6 +101,9 @@ async def func2(ctx):
 async def func3(ctx):
     def is_me(m):
         return m.author == bot.user
+
     deleted = await ctx.channel.purge(limit=50, check=is_me, bulk=False)
     await ctx.send(f'Deleted {len(deleted)} message(s).')
+
+
 bot.run(TOKEN)
