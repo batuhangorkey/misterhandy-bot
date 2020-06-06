@@ -56,7 +56,7 @@ async def start_scene(ctx, difficulty: int):
         if len(messages) > 0:
             await ctx.channel.delete_messages(messages)
             messages.clear()
-        await ctx.send(f'Terminal: {words}')
+        messages.append(await ctx.send(f'Terminal: {words}'))
     else:
         messages.append(await ctx.send('Hoppala bir daha dene uşağım'))
 
@@ -74,15 +74,18 @@ async def func(ctx, index: int):
             for i, j in user_exp.items():
                 f.write(str(i) + ' ' + str(j) + '\n')
         await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} XP ({user_exp.get(user.id)})')
+        if len(messages) > 0:
+            await ctx.channel.delete_messages(messages)
+            messages.clear()
     elif scene.state == 1:
-        await ctx.send('Sistem hacklendi.')
+        messages.append(await ctx.send('Sistem hacklendi.'))
     else:
         scene.attempts -= 1
         if scene.attempts > 0:
-            await ctx.send('Benzerlik: ' + str(scene.list[index - 1][1]) +
-                           '\nKalan deneme sayısı: ' + str(scene.attempts))
+            messages.append(await ctx.send('Benzerlik: ' + str(scene.list[index - 1][1]) +
+                           '\nKalan deneme sayısı: ' + str(scene.attempts)))
         else:
-            await ctx.send('Sistem kitlendi.')
+            messages.append(await ctx.send('Sistem kitlendi.'))
 
 
 @bot.command(name='myxp', help='Shows your xp.')
