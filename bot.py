@@ -91,9 +91,12 @@ async def func2(ctx):
         await ctx.send('Daha oynamamışsın.')
 
 
-@bot.command(name='del_all', help='Deletes all messages sent by the bot.')
+@bot.command(name='del_all', help='Tries to purge messages sent by the bot.')
 async def func3(ctx):
-    await ctx.channel.delete_messages(messages)
+    def is_bot(m):
+        return m.author == bot.user
+    deleted = await ctx.channel.purge(limit=50, check=is_bot)
+    await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
 @bot.command(name='send_msg')
