@@ -15,7 +15,7 @@ client = discord.Client()
 bot = commands.Bot(command_prefix='!')
 messages = []
 
-conn = pyodbc.connect('Driver={SQL Server};Server=CURIOUSOWL\SQLEXPRESS;Database=botDB;Trusted_Connection=yes;')
+conn = pyodbc.connect('DRIVER={SQL Server};SERVER=CURIOUSOWL\SQLEXPRESS;DATABASE=botDB;Trusted_Connection=yes;')
 
 cursor = conn.cursor()
 cursor.execute('SELECT * FROM botDB.dbo.Person')
