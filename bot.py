@@ -1,6 +1,7 @@
 import os
 import random
 import discord
+import pyodbc
 
 from dotenv import load_dotenv
 from discord.ext import commands
@@ -13,6 +14,12 @@ GUILD = os.getenv('DISCORD_GUILD')
 client = discord.Client()
 bot = commands.Bot(command_prefix='!')
 messages = []
+
+conn = pyodbc.connect('Driver={SQL Server};Server=CURIOUSOWL\SQLEXPRESS;Database=botDB;Trusted_Connection=yes;')
+
+cursor = conn.cursor()
+cursor.execute('SELECT * FROM botDB.dbo.Person')
+print([row for row in cursor])
 
 
 class Scene:
@@ -69,11 +76,15 @@ async def func(ctx, index: int):
         if user.id in user_exp:
             user_exp[user.id] += scene.reward
         else:
-            user_exp.update({user.id: 20})
+            user_exp.update({user.id: scene.reward})
+
         with open("exp_table.txt", 'w') as f:
             for i, j in user_exp.items():
                 f.write(str(i) + ' ' + str(j) + '\n')
-        await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} XP ({user_exp.get(user.id)})')
+
+        cursor.execute(f"INSERT INTO botDB.dbo.Users VALUES ('{user.id}', '{user_exp}'")
+
+        await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({user_exp.get(user.id)})')
         if len(messages) > 0:
             await ctx.channel.delete_messages(messages)
             messages.clear()
@@ -92,7 +103,7 @@ async def func(ctx, index: int):
 async def func2(ctx):
     user = ctx.message.author
     if user.id in user_exp:
-        await ctx.send('Tecrüben: ' + str(user_exp.get(user.id)))
+        await ctx.send(f'Tecrüben: {user_exp.get(user.id)} Lirabit')
     else:
         await ctx.send('Daha oynamamışsın.')
 
@@ -110,4 +121,6 @@ async def func3(ctx):
 async def func4(ctx):
     deleted = await ctx.channel.purge(limit=50)
     await ctx.send(f'Deleted {len(deleted)} message(s).')
+
+
 bot.run(TOKEN)
