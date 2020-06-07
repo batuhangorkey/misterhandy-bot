@@ -1,3 +1,4 @@
 git+https://github.com/Rapptz/discord.py
 python-dotenv==0.13.0
 pyodbc==4.0.30
+unixODBC-devel
