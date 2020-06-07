@@ -1,7 +1,6 @@
 import os
 import random
 import discord
-import pyodbc
 
 from dotenv import load_dotenv
 from discord.ext import commands
@@ -14,12 +13,6 @@ GUILD = os.getenv('DISCORD_GUILD')
 client = discord.Client()
 bot = commands.Bot(command_prefix='!')
 messages = []
-
-conn = pyodbc.connect('DRIVER={SQL Server};SERVER=CURIOUSOWL\SQLEXPRESS;DATABASE=botDB;Trusted_Connection=yes;')
-
-cursor = conn.cursor()
-cursor.execute('SELECT * FROM botDB.dbo.Person')
-print([row for row in cursor])
 
 
 class Scene:
@@ -77,7 +70,6 @@ async def func(ctx, index: int):
             user_exp[user.id] += scene.reward
         else:
             user_exp.update({user.id: scene.reward})
-            cursor.execute(f"INSERT INTO botDB.dbo.Users VALUES ('{user.id}', '{user_exp}'")
 
         with open("exp_table.txt", 'w') as f:
             for i, j in user_exp.items():
@@ -116,13 +108,10 @@ async def func3(ctx):
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
-<<<<<<< HEAD
 @bot.command(name='del_all', help='Tries to purge messages. (limit 50)')
 async def func4(ctx):
     deleted = await ctx.channel.purge(limit=50)
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
-=======
->>>>>>> parent of 3c08fb7... Update bot.py
 bot.run(TOKEN)
