@@ -4,15 +4,11 @@ import discord
 
 from dotenv import load_dotenv
 from discord.ext import commands
-from pyngrok import ngrok
 from minigame import initialize
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
-AUTHTOKEN = os.getenv('NGROK_TOKEN')
-
-ngrok.set_auth_token(AUTHTOKEN)
 
 client = discord.Client()
 bot = commands.Bot(command_prefix='!')
@@ -109,16 +105,5 @@ async def func3(ctx):
     deleted = await ctx.channel.purge(limit=50, check=is_me, bulk=False)
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
-
-@bot.command(name='start_mc_server', help='Opens a tunnel with ngrok.')
-async def ngrok_func(ctx):
-    url = ngrok.connect(25565, 'tcp', region='eu')
-    await ctx.send(f'Server açıldı. Url: {url}')
-
-
-@bot.command(name='close_mc_server', help='Closes the ngrok tunnel.')
-async def ngrok_func2(ctx):
-    ngrok.kill()
-    await ctx.send('Server kapatıdı.')
 
 bot.run(TOKEN)
