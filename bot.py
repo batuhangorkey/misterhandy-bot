@@ -77,12 +77,11 @@ async def func(ctx, index: int):
             user_exp[user.id] += scene.reward
         else:
             user_exp.update({user.id: scene.reward})
+            cursor.execute(f"INSERT INTO botDB.dbo.Users VALUES ('{user.id}', '{user_exp}'")
 
         with open("exp_table.txt", 'w') as f:
             for i, j in user_exp.items():
                 f.write(str(i) + ' ' + str(j) + '\n')
-
-        cursor.execute(f"INSERT INTO botDB.dbo.Users VALUES ('{user.id}', '{user_exp}'")
 
         await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({user_exp.get(user.id)})')
         if len(messages) > 0:
