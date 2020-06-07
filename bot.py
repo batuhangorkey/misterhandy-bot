@@ -106,4 +106,8 @@ async def func3(ctx):
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
+@bot.command(name='del_all', help='Tries to purge messages. (limit 50)')
+async def func4(ctx):
+    deleted = await ctx.channel.purge(limit=50)
+    await ctx.send(f'Deleted {len(deleted)} message(s).')
 bot.run(TOKEN)
