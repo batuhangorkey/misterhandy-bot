@@ -45,8 +45,8 @@ async def on_ready():
 
     cursor.execute("SELECT * FROM main")
     data = cursor.fetchall()
-    for a, b in data:
-        user_table[a] = b
+    for row in data:
+        user_table[row[0]] = row[1]
 
 
 @bot.command(name='d', help='Roll dice.')
