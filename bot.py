@@ -1,6 +1,7 @@
 import os
 import random
 import discord
+import pymysql
 
 from dotenv import load_dotenv
 from discord.ext import commands
@@ -13,6 +14,13 @@ GUILD = os.getenv('DISCORD_GUILD')
 client = discord.Client()
 bot = commands.Bot(command_prefix='!')
 messages = []
+
+conn = pymysql.connect('eu-cdbr-west-03.cleardb.net', 'b6b5ef43e35530', '2671ab3d', 'heroku_b59451981400453')
+cursor = conn.cursor()
+cursor.execute('SELECT VERSION()')
+data = cursor.fetchone()
+print(f'Database version: {data}')
+conn.close()
 
 
 class Scene:
