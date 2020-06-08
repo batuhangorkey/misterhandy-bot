@@ -106,7 +106,7 @@ async def func(ctx, index: int):
 async def func2(ctx):
     user = ctx.message.author
     if str(user.id) in user_table:
-        await ctx.send(f'Tecrüben: {user_table.get(user.id)} Lirabit')
+        await ctx.send(f'Tecrüben: {user_table.get(str(user.id))} Lirabit')
     else:
         await ctx.send('Daha oynamamışsın.')
 
