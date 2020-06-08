@@ -24,7 +24,6 @@ cursor = conn.cursor()
 cursor.execute('SELECT VERSION()')
 data = cursor.fetchone()
 print(f'Database version: {data}')
-conn.close()
 
 
 class Scene:
@@ -39,12 +38,15 @@ class Scene:
 @bot.event
 async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
-    global user_exp
-    user_exp = {}
-    with open("exp_table.txt", 'r') as f:
-        for line in f:
-            (key, val) = line.split()
-            user_exp[int(key)] = int(val)
+    global user_table
+    global data
+
+    user_table = {}
+
+    cursor.execute("SELECT * FROM 'MAIN'")
+    data = cursor.fetchall()
+    for a, b in data:
+        user_table[a] = b
 
 
 @bot.command(name='d', help='Roll dice.')
@@ -78,16 +80,14 @@ async def func(ctx, index: int):
     user = ctx.message.author
     if scene.list[index - 1][1] == scene.diff and scene.state == 0 and scene.attempts > 0:
         scene.state = 1
-        if user.id in user_exp:
-            user_exp[user.id] += scene.reward
+        if user.id in user_table:
+            user_table[user.id] += scene.reward
+            cursor.execute(f"INSERT INTO 'MAIN' VALUES ('{user.id}', '{user_table[user.id]}')")
         else:
-            user_exp.update({user.id: scene.reward})
-
-        with open("exp_table.txt", 'w') as f:
-            for i, j in user_exp.items():
-                f.write(str(i) + ' ' + str(j) + '\n')
-
-        await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({user_exp.get(user.id)})')
+            user_table.update({user.id: scene.reward})
+            cursor.execute(f"INSERT INTO 'MAIN' VALUES ('{user.id}', '{scene.reward}')")
+        conn.commit()
+        await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({user_table.get(user.id)})')
         if len(messages) > 0:
             await ctx.channel.delete_messages(messages)
             messages.clear()
@@ -105,8 +105,8 @@ async def func(ctx, index: int):
 @bot.command(name='myxp', help='Shows your xp.')
 async def func2(ctx):
     user = ctx.message.author
-    if user.id in user_exp:
-        await ctx.send(f'Tecrüben: {user_exp.get(user.id)} Lirabit')
+    if user.id in user_table:
+        await ctx.send(f'Tecrüben: {user_table.get(user.id)} Lirabit')
     else:
         await ctx.send('Daha oynamamışsın.')
 
