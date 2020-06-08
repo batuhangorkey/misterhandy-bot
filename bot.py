@@ -85,7 +85,7 @@ async def func(ctx, index: int):
             cursor.execute(f"UPDATE main SET Unit = Unit + {scene.reward} WHERE UserID = {user.id}")
         else:
             user_table.update({user.id: scene.reward})
-            cursor.execute(f"INSERT INTO 'MAIN' VALUES ('{user.id}', '{scene.reward}')")
+            cursor.execute(f"INSERT INTO main VALUES ('{user.id}', '{scene.reward}')")
         conn.commit()
         await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({user_table.get(user.id)})')
         if len(messages) > 0:
