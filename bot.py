@@ -36,6 +36,8 @@ async def on_ready():
     global user_table
     user_table = {}
     global data
+    global conn
+    global cursor
 
     conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
     cursor = conn.cursor()
@@ -80,7 +82,7 @@ async def func(ctx, index: int):
     user = ctx.message.author
     if scene.list[index - 1][1] == scene.diff and scene.state == 0 and scene.attempts > 0:
         scene.state = 1
-        if user.id in user_table:
+        if str(user.id) in user_table:
             user_table[user.id] += scene.reward
             cursor.execute(f"UPDATE main SET Unit = Unit + {scene.reward} WHERE UserID = {user.id}")
         else:
