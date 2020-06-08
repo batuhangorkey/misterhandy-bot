@@ -105,7 +105,7 @@ async def func(ctx, index: int):
 @bot.command(name='myxp', help='Shows your xp.')
 async def func2(ctx):
     user = ctx.message.author
-    if user.id in user_table:
+    if str(user.id) in user_table:
         await ctx.send(f'Tecrüben: {user_table.get(user.id)} Lirabit')
     else:
         await ctx.send('Daha oynamamışsın.')
