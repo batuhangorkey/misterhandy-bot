@@ -43,7 +43,7 @@ async def on_ready():
 
     user_table = {}
 
-    cursor.execute("SELECT * FROM 'MAIN'")
+    cursor.execute("SELECT * FROM main")
     data = cursor.fetchall()
     for a, b in data:
         user_table[a] = b
@@ -82,7 +82,7 @@ async def func(ctx, index: int):
         scene.state = 1
         if user.id in user_table:
             user_table[user.id] += scene.reward
-            cursor.execute(f"INSERT INTO 'MAIN' VALUES ('{user.id}', '{user_table[user.id]}')")
+            cursor.execute(f"UPDATE main SET Unit = Unit + {scene.reward} WHERE UserID = {user.id}")
         else:
             user_table.update({user.id: scene.reward})
             cursor.execute(f"INSERT INTO 'MAIN' VALUES ('{user.id}', '{scene.reward}')")
