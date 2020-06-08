@@ -21,9 +21,6 @@ messages = []
 
 conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
 cursor = conn.cursor()
-cursor.execute('SELECT VERSION()')
-data = cursor.fetchone()
-print(f'Database version: {data}')
 
 
 class Scene:
@@ -38,10 +35,14 @@ class Scene:
 @bot.event
 async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
+
     global user_table
+    user_table = {}
     global data
 
-    user_table = {}
+    cursor.execute('SELECT VERSION()')
+    data = cursor.fetchone()
+    print(f'Database version: {data}')
 
     cursor.execute("SELECT * FROM main")
     data = cursor.fetchall()
