@@ -10,12 +10,16 @@ from minigame import initialize
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
+HOST = os.getenv('HOST')
+USER_ID = os.getenv('USER_ID')
+PASSWORD = os.getenv('PASSWORD')
+DATABASE_NAME = os.getenv('DATABASE_NAME')
 
 client = discord.Client()
 bot = commands.Bot(command_prefix='!')
 messages = []
 
-conn = pymysql.connect('eu-cdbr-west-03.cleardb.net', 'b6b5ef43e35530', '2671ab3d', 'heroku_b59451981400453')
+conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
 cursor = conn.cursor()
 cursor.execute('SELECT VERSION()')
 data = cursor.fetchone()
