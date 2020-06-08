@@ -19,9 +19,6 @@ client = discord.Client()
 bot = commands.Bot(command_prefix='!')
 messages = []
 
-conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
-cursor = conn.cursor()
-
 
 class Scene:
     def __init__(self, filtered_list, difficulty):
@@ -40,6 +37,8 @@ async def on_ready():
     user_table = {}
     global data
 
+    conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
+    cursor = conn.cursor()
     cursor.execute('SELECT VERSION()')
     data = cursor.fetchone()
     print(f'Database version: {data}')
