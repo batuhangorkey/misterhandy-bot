@@ -46,7 +46,7 @@ async def on_ready():
     cursor.execute("SELECT * FROM main")
     data = cursor.fetchall()
     for row in data:
-        user_table[row[0]] = row[1]
+        user_table[str(row[0])] = int(row[1])
 
 
 @bot.command(name='d', help='Roll dice.')
