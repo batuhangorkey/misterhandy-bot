@@ -48,7 +48,7 @@ async def on_ready():
     cursor.execute("SELECT * FROM main")
     data = cursor.fetchall()
     for row in data:
-        user_table[str(row[0])] = int(row[1])
+        user_table[int(row[0])] = int(row[1])
 
 
 @bot.command(name='d', help='Roll dice.')
@@ -82,7 +82,7 @@ async def func(ctx, index: int):
     user = ctx.message.author
     if scene.list[index - 1][1] == scene.diff and scene.state == 0 and scene.attempts > 0:
         scene.state = 1
-        if str(user.id) in user_table:
+        if user.id in user_table:
             user_table[user.id] += scene.reward
             cursor.execute(f"UPDATE main SET Unit = Unit + {scene.reward} WHERE UserID = {user.id}")
         else:
@@ -107,8 +107,8 @@ async def func(ctx, index: int):
 @bot.command(name='myxp', help='Shows your xp.')
 async def func2(ctx):
     user = ctx.message.author
-    if str(user.id) in user_table:
-        await ctx.send(f'Tecrüben: {user_table.get(str(user.id))} Lirabit')
+    if user.id in user_table:
+        await ctx.send(f'Tecrüben: {user_table.get(user.id)} Lirabit')
     else:
         await ctx.send('Daha oynamamışsın.')
 
