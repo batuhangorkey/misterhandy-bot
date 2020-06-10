@@ -70,7 +70,7 @@ async def start_scene(ctx, difficulty: int):
         if len(messages) > 0:
             await ctx.channel.delete_messages(messages)
             messages.clear()
-        messages.append(await ctx.send(f'Terminal: {words}'))
+        messages.append(await ctx.send(f"Terminal: {words}"))
     else:
         messages.append(await ctx.send('Hoppala bir daha dene uşağım'))
 
