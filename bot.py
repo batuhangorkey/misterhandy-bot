@@ -62,12 +62,11 @@ async def roll(ctx, number_of_dice: int, number_of_sides: int):
 @bot.command(name='start', help='Starts the mini game.')
 async def start_scene(ctx, difficulty: int):
     global scene
-    words = ""
     game_list = initialize(difficulty)
-    if type(game_list) == list:
+    messages.append(ctx.message)
+    if game_list is not None:
         scene = Scene(game_list, difficulty)
-        for i in range(0, 10):
-            words += f'\n  {i + 1} - {scene.list[i][0]}'
+        words = [f'\n  {i + 1} - {scene.list[i][0]}' for i in range(0, 10)]
         if len(messages) > 0:
             await ctx.channel.delete_messages(messages)
             messages.clear()
