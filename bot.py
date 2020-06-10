@@ -96,7 +96,8 @@ async def func(ctx, index: int):
 
         await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({user_table.get(user.id)})')
         if len(messages) > 0:
-            await ctx.channel.delete_messages(messages)
+            if ctx.channel is not ctx.DMChannel:
+                await ctx.channel.delete_messages(messages)
             messages.clear()
     elif scene.state == 1:
         messages.append(await ctx.send('Sistem hacklendi.'))
@@ -107,6 +108,11 @@ async def func(ctx, index: int):
                                            '\nKalan deneme sayısı: ' + str(scene.attempts)))
         else:
             messages.append(await ctx.send('Sistem kitlendi.'))
+
+
+@bot.command(name='e', help='Get another attempt. Cost: 50')
+async def e(ctx):
+    user = ctx.message.author
 
 
 @bot.command(name='myxp', help='Shows your xp.')
