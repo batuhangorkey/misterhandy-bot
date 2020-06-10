@@ -96,7 +96,7 @@ async def func(ctx, index: int):
 
         await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({user_table.get(user.id)})')
         if len(messages) > 0:
-            if ctx.channel is not ctx.DMChannel:
+            if ctx.channel is not discord.DMChannel:
                 await ctx.channel.delete_messages(messages)
             messages.clear()
     elif scene.state == 1:
@@ -112,7 +112,7 @@ async def func(ctx, index: int):
 
 @bot.command(name='e', help='Get another attempt. Cost: 50')
 async def e(ctx):
-    user = ctx.message.author
+    await ctx.send(f'Kalan deneme sayısı: {scene.attempts}')
 
 
 @bot.command(name='myxp', help='Shows your xp.')
