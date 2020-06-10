@@ -35,15 +35,13 @@ async def on_ready():
 
     global user_table
     user_table = {}
-    global data
-    global conn
-    global cursor
 
     conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
-    cursor = conn.cursor()
-    cursor.execute('SELECT VERSION()')
-    data = cursor.fetchone()
-    print(f'Database version: {data}')
+    with conn.cursor() as cursor:
+        cursor.execute('SELECT VERSION()')
+        data = cursor.fetchone()
+        print(f'Database version: {data}')
+    conn.close()
 
     cursor.execute("SELECT * FROM main")
     data = cursor.fetchall()
@@ -82,13 +80,24 @@ async def func(ctx, index: int):
     user = ctx.message.author
     if scene.list[index - 1][1] == scene.diff and scene.state == 0 and scene.attempts > 0:
         scene.state = 1
+
+        conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
+
         if user.id in user_table:
             user_table[user.id] += scene.reward
-            cursor.execute(f"UPDATE main SET Unit = Unit + {scene.reward} WHERE UserID = {user.id}")
+
+            with conn.connect() as cursor:
+                cursor.execute(f"UPDATE main SET Unit = Unit + {scene.reward} WHERE UserID = {user.id}")
+
         else:
             user_table.update({user.id: scene.reward})
-            cursor.execute(f"INSERT INTO main VALUES ('{user.id}', '{scene.reward}')")
+
+            with conn.connect() as cursor:
+                cursor.execute(f"INSERT INTO main VALUES ('{user.id}', '{scene.reward}')")
+
         conn.commit()
+        conn.close()
+
         await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({user_table.get(user.id)})')
         if len(messages) > 0:
             await ctx.channel.delete_messages(messages)
