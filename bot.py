@@ -118,11 +118,11 @@ async def e(ctx):
         if user_table.get(user) > 50:
             user_table[user] -= cost
             scene.attempts += 1
-            with pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME)) as conn:
-                cursor = conn.cursor()
+            conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
+            with conn.cursor() as cursor:
                 cursor.execute(f"UPDATE main SET Unit = Unit - {cost} WHERE UserID = {user}")
-                conn.commit()
-                cursor.close()
+            conn.commit()
+            conn.close()
             await ctx.send(f'Kalan deneme sayısı: {scene.attempts}')
         else:
             await ctx.send('Yeterli lirabitin yok.')
