@@ -41,10 +41,10 @@ async def on_ready():
     cursor.execute('SELECT VERSION()')
     data = cursor.fetchone()
     print(f'Database version: {data}')
-    conn.close()
-
     cursor.execute("SELECT * FROM main")
     data = cursor.fetchall()
+    conn.close()
+    
     for row in data:
         user_table[int(row[0])] = int(row[1])
 
