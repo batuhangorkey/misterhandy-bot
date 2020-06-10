@@ -66,11 +66,11 @@ async def start_scene(ctx, difficulty: int):
     messages.append(ctx.message)
     if game_list is not None:
         scene = Scene(game_list, difficulty)
-        words = [f'\n  {i + 1} - {scene.list[i][0]}' for i in range(0, 10)]
+        words = [f'{i + 1} - {scene.list[i][0]}' for i in range(0, 10)]
         if len(messages) > 0:
             await ctx.channel.delete_messages(messages)
             messages.clear()
-        messages.append(await ctx.send(f"Terminal: {words}"))
+        messages.append(await ctx.send('Terminal: \n' + '\n '.join(words)))
     else:
         messages.append(await ctx.send('Hoppala bir daha dene uşağım'))
 
