@@ -79,6 +79,7 @@ async def start_scene(ctx, difficulty: int):
 @bot.command(name='enter', help='Enter key to the terminal.')
 async def func(ctx, index: int):
     user = ctx.message.author
+    messages.append(ctx.message)
     if scene.list[index - 1][1] == scene.diff and scene.state == 0 and scene.attempts > 0:
         scene.state = 1
 
