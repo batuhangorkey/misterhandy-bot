@@ -96,7 +96,7 @@ async def func(ctx, index: int):
 
         await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({user_table.get(user.id)})')
         if len(messages) > 0:
-            if ctx.channel is not discord.DMChannel:
+            if type(ctx.channel) != discord.DMChannel:
                 await ctx.channel.delete_messages(messages)
             messages.clear()
     elif scene.state == 1:
