@@ -68,9 +68,10 @@ async def start_scene(ctx, difficulty: int):
         scene = Scene(game_list, difficulty)
         words = [f'{i + 1} - {scene.list[i][0]}' for i in range(0, 10)]
         if len(messages) > 0:
-            await ctx.channel.delete_messages(messages)
+            if type(ctx.channel) != discord.DMChannel:
+                await ctx.channel.delete_messages(messages)
             messages.clear()
-        messages.append(await ctx.send('Terminal: \n' + '\n '.join(words)))
+        messages.append(await ctx.send('Terminal: \n ' + '\n '.join(words)))
     else:
         messages.append(await ctx.send('Hoppala bir daha dene uşağım'))
 
@@ -111,7 +112,22 @@ async def func(ctx, index: int):
 
 @bot.command(name='e', help='Get another attempt. Cost: 50')
 async def e(ctx):
-    await ctx.send(f'Kalan deneme sayısı: {scene.attempts}')
+    cost = 50
+    user = ctx.message.author.id
+    if user in user_table:
+        if user_table.get(user) > 50:
+            user_table[user] -= cost
+            scene.attempts += 1
+            with pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME)) as conn:
+                cursor = conn.cursor()
+                cursor.execute(f"UPDATE main SET Unit = Unit - {cost} WHERE UserID = {user}")
+                conn.commit()
+                cursor.close()
+            await ctx.send(f'Kalan deneme sayısı: {scene.attempts}')
+        else:
+            await ctx.send('Yeterli lirabitin yok.')
+    else:
+        await ctx.send('Hiç lirabitin yok.')
 
 
 @bot.command(name='myxp', help='Shows your xp.')
