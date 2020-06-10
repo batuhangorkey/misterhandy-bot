@@ -30,4 +30,4 @@ def initialize(word_length):
             final_list.append((var, counter))
         return final_list
     else:
-        return 0
+        return None
