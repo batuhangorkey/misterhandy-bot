@@ -131,7 +131,7 @@ async def e(ctx):
         await ctx.send('Hiç lirabitin yok.')
 
 
-@bot.command(name='myxp', help='Shows your xp.')
+@bot.command(name='mybit', help='Shows your bits.')
 async def func2(ctx):
     user = ctx.message.author
     if user.id in user_table:
