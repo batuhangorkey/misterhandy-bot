@@ -37,10 +37,10 @@ async def on_ready():
     user_table = {}
 
     conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
-    with conn.cursor() as cursor:
-        cursor.execute('SELECT VERSION()')
-        data = cursor.fetchone()
-        print(f'Database version: {data}')
+    cursor = conn.cursor()
+    cursor.execute('SELECT VERSION()')
+    data = cursor.fetchone()
+    print(f'Database version: {data}')
     conn.close()
 
     cursor.execute("SELECT * FROM main")
@@ -82,18 +82,17 @@ async def func(ctx, index: int):
         scene.state = 1
 
         conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
+        cursor = conn.connect()
 
         if user.id in user_table:
             user_table[user.id] += scene.reward
 
-            with conn.connect() as cursor:
-                cursor.execute(f"UPDATE main SET Unit = Unit + {scene.reward} WHERE UserID = {user.id}")
+            cursor.execute(f"UPDATE main SET Unit = Unit + {scene.reward} WHERE UserID = {user.id}")
 
         else:
             user_table.update({user.id: scene.reward})
 
-            with conn.connect() as cursor:
-                cursor.execute(f"INSERT INTO main VALUES ('{user.id}', '{scene.reward}')")
+            cursor.execute(f"INSERT INTO main VALUES ('{user.id}', '{scene.reward}')")
 
         conn.commit()
         conn.close()
