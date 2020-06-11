@@ -113,22 +113,25 @@ async def func(ctx, index: int):
 
 @bot.command(name='e', help='Get another attempt. Cost: 50')
 async def e(ctx):
-    cost = 50
-    user = ctx.message.author.id
-    if user in user_table:
-        if user_table.get(user) > 50:
-            user_table[user] -= cost
-            scene.attempts += 1
-            conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
-            with conn.cursor() as cursor:
-                cursor.execute(f"UPDATE main SET Unit = Unit - {cost} WHERE UserID = {user}")
-            conn.commit()
-            conn.close()
-            await ctx.send(f'Kalan deneme sayısı: {scene.attempts}')
+    if scene.state == 1:
+        cost = 50
+        user = ctx.message.author.id
+        if user in user_table:
+            if user_table.get(user) > 50:
+                user_table[user] -= cost
+                scene.attempts += 1
+                conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
+                with conn.cursor() as cursor:
+                    cursor.execute(f"UPDATE main SET Unit = Unit - {cost} WHERE UserID = {user}")
+                conn.commit()
+                conn.close()
+                await ctx.send(f'Kalan deneme sayısı: {scene.attempts}')
+            else:
+                await ctx.send('Yeterli lirabitin yok.')
         else:
-            await ctx.send('Yeterli lirabitin yok.')
+            await ctx.send('Hiç lirabitin yok.')
     else:
-        await ctx.send('Hiç lirabitin yok.')
+        await ctx.send('Mevcutta oyun yok.')
 
 
 @bot.command(name='mybit', help='Shows your bits.')
