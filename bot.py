@@ -59,8 +59,8 @@ async def roll(ctx, number_of_dice: int, number_of_sides: int):
     await ctx.send(', '.join(dice))
 
 
-@bot.command(name='start', help='Starts the mini game.')
-async def start_scene(ctx, difficulty: int):
+@bot.command(help='Starts the mini game.')
+async def start(ctx, difficulty: int):
     global scene
     game_list = initialize(difficulty)
     messages.append(ctx.message)
