@@ -59,103 +59,104 @@ async def roll(ctx, number_of_dice: int, number_of_sides: int):
     await ctx.send(', '.join(dice))
 
 
-@bot.command(help='Starts the mini game.')
-async def start(ctx, difficulty: int):
-    global scene
-    game_list = initialize(difficulty)
-    messages.append(ctx.message)
-    if game_list is not None:
-        scene = Scene(game_list, difficulty)
-        words = [f'{i + 1} - {scene.list[i][0]}' for i in range(0, 10)]
-        if len(messages) > 0:
-            if type(ctx.channel) != discord.DMChannel:
-                await ctx.channel.delete_messages(messages)
-            messages.clear()
-        messages.append(await ctx.send('Terminal: \n ' + '\n '.join(words)))
-    else:
-        messages.append(await ctx.send('Hoppala bir daha dene uşağım'))
+class Minigame(commands.Cog):
+    def __init__(self, _bot):
+        self.bot = _bot
+        self._last_member = None
 
-
-@bot.command(name='enter', help='Enter key to the terminal.')
-async def func(ctx, index: int):
-    user = ctx.message.author
-    messages.append(ctx.message)
-    if scene.list[index - 1][1] == scene.diff and scene.state == 0 and scene.attempts > 0:
-        scene.state = 1
-
-        conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
-        cursor = conn.cursor()
-        if user.id in user_table:
-            user_table[user.id] += scene.reward
-            cursor.execute(f"UPDATE main SET Unit = Unit + {scene.reward} WHERE UserID = {user.id}")
+    @commands.command(help='Starts the mini game.')
+    async def start(self, ctx, difficulty: int):
+        global scene
+        game_list = initialize(difficulty)
+        messages.append(ctx.message)
+        if game_list is not None:
+            scene = Scene(game_list, difficulty)
+            words = [f'{i + 1} - {scene.list[i][0]}' for i in range(0, 10)]
+            if len(messages) > 0:
+                if type(ctx.channel) != discord.DMChannel:
+                    await ctx.channel.delete_messages(messages)
+                messages.clear()
+            messages.append(await ctx.send('Terminal: \n ' + '\n '.join(words)))
         else:
-            user_table.update({user.id: scene.reward})
-            cursor.execute(f"INSERT INTO main VALUES ('{user.id}', '{scene.reward}')")
-        cursor.close()
-        conn.commit()
-        conn.close()
+            messages.append(await ctx.send('Hoppala bir daha dene uşağım'))
 
-        await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({user_table.get(user.id)})')
-        if len(messages) > 0:
-            if type(ctx.channel) != discord.DMChannel:
-                await ctx.channel.delete_messages(messages)
-            messages.clear()
-    elif scene.state == 1:
-        messages.append(await ctx.send('Sistem hacklendi.'))
-    else:
-        scene.attempts -= 1
-        if scene.attempts > 0:
-            messages.append(await ctx.send('Benzerlik: ' + str(scene.list[index - 1][1]) +
-                                           '\nKalan deneme sayısı: ' + str(scene.attempts)))
-        else:
-            messages.append(await ctx.send('Sistem kitlendi.'))
+    @commands.command(name='enter', help='Enter key to the terminal.')
+    async def func(self, ctx, index: int):
+        user = ctx.message.author
+        messages.append(ctx.message)
+        if scene.list[index - 1][1] == scene.diff and scene.state == 0 and scene.attempts > 0:
+            scene.state = 1
 
-
-@bot.command(name='e', help='Get another attempt. Cost: 50')
-async def e(ctx):
-    if scene.state == 1:
-        cost = 50
-        user = ctx.message.author.id
-        if user in user_table:
-            if user_table.get(user) > 50:
-                user_table[user] -= cost
-                scene.attempts += 1
-                conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
-                with conn.cursor() as cursor:
-                    cursor.execute(f"UPDATE main SET Unit = Unit - {cost} WHERE UserID = {user}")
-                conn.commit()
-                conn.close()
-                await ctx.send(f'Kalan deneme sayısı: {scene.attempts}')
+            conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
+            cursor = conn.cursor()
+            if user.id in user_table:
+                user_table[user.id] += scene.reward
+                cursor.execute(f"UPDATE main SET Unit = Unit + {scene.reward} WHERE UserID = {user.id}")
             else:
-                await ctx.send('Yeterli lirabitin yok.')
+                user_table.update({user.id: scene.reward})
+                cursor.execute(f"INSERT INTO main VALUES ('{user.id}', '{scene.reward}')")
+            cursor.close()
+            conn.commit()
+            conn.close()
+
+            await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({user_table.get(user.id)})')
+            if len(messages) > 0:
+                if type(ctx.channel) != discord.DMChannel:
+                    await ctx.channel.delete_messages(messages)
+                messages.clear()
+        elif scene.state == 1:
+            messages.append(await ctx.send('Sistem hacklendi.'))
         else:
-            await ctx.send('Hiç lirabitin yok.')
-    else:
-        await ctx.send('Mevcutta oyun yok.')
+            scene.attempts -= 1
+            if scene.attempts > 0:
+                messages.append(await ctx.send('Benzerlik: ' + str(scene.list[index - 1][1]) +
+                                               '\nKalan deneme sayısı: ' + str(scene.attempts)))
+            else:
+                messages.append(await ctx.send('Sistem kitlendi.'))
+
+    @commands.command(name='e', help='Get another attempt. Cost: 50')
+    async def e(self, ctx):
+        if scene.state == 1:
+            cost = 50
+            user = ctx.message.author.id
+            if user in user_table:
+                if user_table.get(user) > 50:
+                    user_table[user] -= cost
+                    scene.attempts += 1
+                    conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
+                    with conn.cursor() as cursor:
+                        cursor.execute(f"UPDATE main SET Unit = Unit - {cost} WHERE UserID = {user}")
+                    conn.commit()
+                    conn.close()
+                    await ctx.send(f'Kalan deneme sayısı: {scene.attempts}')
+                else:
+                    await ctx.send('Yeterli lirabitin yok.')
+            else:
+                await ctx.send('Hiç lirabitin yok.')
+        else:
+            await ctx.send('Mevcutta oyun yok.')
+
+    @commands.command(help='Shows your bits.')
+    async def mybit(self, ctx):
+        user = ctx.message.author
+        if user.id in user_table:
+            await ctx.send(f'Tecrüben: {user_table.get(user.id)} Lirabit')
+        else:
+            await ctx.send('Daha oynamamışsın.')
+
+    @commands.command(name='del_all_own', help='Tries to purge messages sent by the bot.')
+    async def func3(self, ctx):
+        def is_me(m):
+            return m.author == bot.user
+
+        deleted = await ctx.channel.purge(limit=50, check=is_me, bulk=False)
+        await ctx.send(f'Deleted {len(deleted)} message(s).')
+
+    @commands.command(name='del_all', help='Tries to purge messages. (limit 50)')
+    async def func4(self, ctx):
+        deleted = await ctx.channel.purge(limit=50)
+        await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
-@bot.command(name='mybit', help='Shows your bits.')
-async def func2(ctx):
-    user = ctx.message.author
-    if user.id in user_table:
-        await ctx.send(f'Tecrüben: {user_table.get(user.id)} Lirabit')
-    else:
-        await ctx.send('Daha oynamamışsın.')
-
-
-@bot.command(name='del_all_own', help='Tries to purge messages sent by the bot.')
-async def func3(ctx):
-    def is_me(m):
-        return m.author == bot.user
-
-    deleted = await ctx.channel.purge(limit=50, check=is_me, bulk=False)
-    await ctx.send(f'Deleted {len(deleted)} message(s).')
-
-
-@bot.command(name='del_all', help='Tries to purge messages. (limit 50)')
-async def func4(ctx):
-    deleted = await ctx.channel.purge(limit=50)
-    await ctx.send(f'Deleted {len(deleted)} message(s).')
-
-
+bot.add_cog(Minigame(bot))
 bot.run(TOKEN)
