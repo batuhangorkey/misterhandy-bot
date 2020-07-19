@@ -17,16 +17,6 @@ DATABASE_NAME = os.getenv('DATABASE_NAME')
 
 client = discord.Client()
 bot = commands.Bot(command_prefix='!')
-messages = []
-
-
-class Scene:
-    def __init__(self, filtered_list, difficulty):
-        self.list = filtered_list
-        self.attempts = 5
-        self.diff = difficulty
-        self.state = 0
-        self.reward = difficulty * 10
 
 
 def fetch_user_table():
