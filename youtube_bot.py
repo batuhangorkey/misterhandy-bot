@@ -58,6 +58,14 @@ class Music(commands.Cog):
 
         await channel.connect()
 
+    @commands.command(help="Plays from a url.")
+    async def yt(self, ctx, *, url):
+        async with ctx.typing():
+            player = await YTDLSource.from_url(url, loop=self.bot.loop)
+            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+
+        await ctx.send('Now playing: {}'.format(player.title))
+
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
         async with ctx.typing():
@@ -79,6 +87,7 @@ class Music(commands.Cog):
 
         await ctx.voice_client.disconnect()
 
+    @yt.before_invoke
     @stream.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
