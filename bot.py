@@ -3,8 +3,10 @@ import random
 import discord
 import pymysql
 
-from minigame import Minigame
-from youtube_bot import Music
+import minigame
+import youtube_bot
+# from minigame import Minigame
+# from youtube_bot import Music
 from dotenv import load_dotenv
 from discord.ext import commands
 
@@ -67,6 +69,6 @@ async def func4(ctx):
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
-bot.add_cog(Minigame(bot, user_table=fetch_user_table()))
-bot.add_cog(Music(bot))
+bot.add_cog(minigame.Minigame(bot, user_table=fetch_user_table()))
+bot.add_cog(youtube_bot.Music(bot))
 bot.run(TOKEN)
