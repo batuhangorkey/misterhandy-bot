@@ -37,6 +37,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
+        # Bura çalışmıyor
+        # ffmpeg not found hatası ve youtube could not extract data hatası alıyorum
         loop = loop or asyncio.get_event_loop()
         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
 
