@@ -76,8 +76,8 @@ class Minigame(commands.Cog):
         else:
             messages.append(await ctx.send('Hoppala bir daha dene uşağım'))
 
-    @commands.command(name='enter', help='Enter key to the terminal.')
-    async def func(self, ctx, index: int):
+    @commands.command(help='Enter key to the terminal.')
+    async def enter(self, ctx, index: int):
         user = ctx.message.author
         messages.append(ctx.message)
         if scene.list[index - 1][1] == scene.diff and scene.state == 0 and scene.attempts > 0:
@@ -110,8 +110,8 @@ class Minigame(commands.Cog):
             else:
                 messages.append(await ctx.send('Sistem kitlendi.'))
 
-    @commands.command(name='e', help='Get another attempt. Cost: 50')
-    async def e(self, ctx):
+    @commands.command(help='Get another attempt. Cost: 50')
+    async def rebank(self, ctx):
         if scene.state == 1:
             cost = 50
             user = ctx.message.author.id
