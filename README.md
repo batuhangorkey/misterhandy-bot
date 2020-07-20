@@ -1,1 +1,1 @@
-# fallout hacking minigame bot for discord 
+# fallout hacking minigame and general purpose bot for discord 
