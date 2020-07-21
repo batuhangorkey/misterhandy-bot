@@ -32,6 +32,8 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 # if not discord.opus.is_loaded():
 #     discord.opus.load_opus('opus')
 
+default_presence = discord.Activity(type=discord.ActivityType.watching, name='wasteland')
+
 
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
@@ -80,6 +82,9 @@ class Music(commands.Cog):
             ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
 
         await ctx.send('Now playing: {}'.format(player.title))
+        # Durumu değiştir
+        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
+                                                                 name='{}'.format(player.title)))
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
@@ -93,6 +98,7 @@ class Music(commands.Cog):
     async def stop(self, ctx):
 
         await ctx.voice_client.disconnect()
+        await self.bot.change_presence(activity=default_presence)
 
     @commands.command(help='Pauses')
     async def pause(self, ctx):
