@@ -41,8 +41,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.url = data.get('url')
 
     @classmethod
+    # Artık çalışıyor ama incelenmesi gerek
     async def from_url(cls, url, *, loop=None, stream=False):
-        # Artık çalışıyor ama incelenmesi gerek
         loop = loop or asyncio.get_event_loop()
         # download=not stream den False a değiştirdim
         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
