@@ -61,7 +61,7 @@ class Music(commands.Cog):
         self.bot = bot
 
     @staticmethod
-    async def finished_playing(ctx):
+    def finished_playing(ctx):
         await ctx.send('Finished playing.')
 
     @commands.command(help='Joins authors voice channel.')
