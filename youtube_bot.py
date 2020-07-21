@@ -44,8 +44,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
     async def from_url(cls, url, *, loop=None, stream=False):
         # Artık çalışıyor ama incelenmesi gerek
         loop = loop or asyncio.get_event_loop()
-        # not stream den False a değiştirdim
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
+        # download=not stream den False a değiştirdim
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
 
         if 'entries' in data:
             data = data['entries'][0]
@@ -98,11 +98,15 @@ class Music(commands.Cog):
     async def pause(self, ctx):
         if ctx.voice_client is not None:
             ctx.voice_client.pause()
+        else:
+            await ctx.send('Birşey çalmıyor.')
 
     @commands.command(help='Resumes')
     async def resume(self, ctx):
         if ctx.voice_client is not None:
             ctx.voice_client.resume()
+        else:
+            await ctx.send('Birşey çalmıyor.')
 
     @yt.before_invoke
     @stream.before_invoke
