@@ -32,7 +32,7 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 # if not discord.opus.is_loaded():
 #     discord.opus.load_opus('opus')
 
-default_presence = discord.Activity(type=discord.ActivityType.watching, name='wasteland')
+default_presence = discord.Activity(type=discord.ActivityType.listening, name='wasteland with sensors offline')
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -54,6 +54,10 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
         filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
+
+
+async def finished_playing(ctx):
+    await ctx.send('Finished playing.')
 
 
 class Music(commands.Cog):
@@ -79,7 +83,7 @@ class Music(commands.Cog):
     async def stream(self, ctx, *, url):
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+            ctx.voice_client.play(player, after=finished_playing(ctx))
 
         await ctx.send('Now playing: {}'.format(player.title))
         # Durumu değiştir
