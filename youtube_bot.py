@@ -25,7 +25,8 @@ ffmpeg_options = {
 }
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
-discord.opus.load_opus('opus')
+if not discord.opus.is_loaded():
+    discord.opus.load_opus('opus')
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
