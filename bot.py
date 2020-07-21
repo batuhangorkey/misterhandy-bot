@@ -41,10 +41,10 @@ def fetch_user_table():
 @bot.event
 async def on_ready():
     print('{0.name} with ID: {0.id} has connected to Discord!'.format(bot.user))
-    await bot.change_presence(activity=discord.Activity(state='Wandering wasteland'))
+    await bot.change_presence(activity=discord.Activity(details='Wandering wasteland'))
 
 
-@bot.command(name='d', help='Roll dice.')
+@bot.command(help='Roll dice.')
 async def roll(ctx, number_of_dice: int, number_of_sides: int):
     dice = [
         str(random.choice(range(1, number_of_sides + 1)))
