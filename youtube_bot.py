@@ -1,5 +1,4 @@
 import asyncio
-import ffmpeg
 import discord
 import youtube_dl
 from discord.ext import commands
@@ -26,6 +25,7 @@ ffmpeg_options = {
 }
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
+discord.opus.load_opus()
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
