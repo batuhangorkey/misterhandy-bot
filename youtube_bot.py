@@ -18,7 +18,8 @@ ytdl_format_options = {
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
-    'source_address': '0.0.0.0'
+    # Çıkarttım çünkü ne anlamı var?
+    # 'source_address': '0.0.0.0'
 }
 
 ffmpeg_options = {
@@ -40,7 +41,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
         # Bura çalışmıyor
         # ffmpeg not found hatası ve youtube could not extract data hatası alıyorum
         loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+        # not stream den False a değiştirdim
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
 
         if 'entries' in data:
             data = data['entries'][0]
