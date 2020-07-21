@@ -60,10 +60,6 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @staticmethod
-    def finished_playing(ctx):
-        await ctx.send('Finished playing.')
-
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel):
         if ctx.voice_client is not None:
@@ -83,8 +79,7 @@ class Music(commands.Cog):
     async def stream(self, ctx, *, url):
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-            ctx.voice_client.play(player,
-                                  after=lambda e: print('Player error: %s' % e) if e else self.finished_playing(ctx))
+            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
 
         await ctx.send('Now playing: {}'.format(player.title))
         # Durumu değiştir
