@@ -1,3 +1,6 @@
+# Buildpackler
+# https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git
+# https://github.com/xrisk/heroku-opus.git
 import asyncio
 import discord
 import youtube_dl
@@ -25,8 +28,9 @@ ffmpeg_options = {
 }
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
-if not discord.opus.is_loaded():
-    discord.opus.load_opus('libopus')
+# Çalışmıyor
+# if not discord.opus.is_loaded():
+#     discord.opus.load_opus('opus')
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
