@@ -45,7 +45,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         # Artık çalışıyor ama incelenmesi gerek
         loop = loop or asyncio.get_event_loop()
         # download=not stream den False a değiştirdim
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
 
         if 'entries' in data:
             data = data['entries'][0]
@@ -58,7 +58,7 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel):
         if ctx.voice_client is not None:
             return await ctx.voice_client.move_to(channel)

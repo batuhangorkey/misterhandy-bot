@@ -52,7 +52,7 @@ async def roll(ctx, number_of_dice: int, number_of_sides: int):
     await ctx.send(', '.join(dice))
 
 
-@bot.command(help='Tries to purge max 50 messages sent by the bot.')
+@bot.command(help='Tries to purge max 50 messages by the bot.')
 async def del_bot(ctx):
     def is_me(m):
         return m.author == bot.user
