@@ -4,13 +4,14 @@ import pymysql
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-messages = []
 
 load_dotenv()
 HOST = os.getenv('HOST')
 USER_ID = os.getenv('USER_ID')
 PASSWORD = os.getenv('PASSWORD')
 DATABASE_NAME = os.getenv('DATABASE_NAME')
+
+messages = []
 
 
 def initialize(word_length):

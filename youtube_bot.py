@@ -42,8 +42,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
-        # Bura çalışmıyor
-        # ffmpeg not found hatası ve youtube could not extract data hatası alıyorum
+        # Artık çalışıyor ama incelenmesi gerek
         loop = loop or asyncio.get_event_loop()
         # not stream den False a değiştirdim
         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
@@ -94,6 +93,16 @@ class Music(commands.Cog):
     async def stop(self, ctx):
 
         await ctx.voice_client.disconnect()
+
+    @commands.command(help='Pauses')
+    async def pause(self, ctx):
+        if ctx.voice_client is not None:
+            ctx.voice_client.pause()
+
+    @commands.command(help='Resumes')
+    async def resume(self, ctx):
+        if ctx.voice_client is not None:
+            ctx.voice_client.resume()
 
     @yt.before_invoke
     @stream.before_invoke

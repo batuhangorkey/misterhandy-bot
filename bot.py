@@ -52,8 +52,8 @@ async def roll(ctx, number_of_dice: int, number_of_sides: int):
     await ctx.send(', '.join(dice))
 
 
-@commands.command(name='del_all_own', help='Tries to purge messages sent by the bot.')
-async def func3(ctx):
+@bot.command(help='Tries to purge max 50 messages sent by the bot.')
+async def del_bot(ctx):
     def is_me(m):
         return m.author == bot.user
 
@@ -61,8 +61,8 @@ async def func3(ctx):
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
-@commands.command(name='del_all', help='Tries to purge messages. (limit 50)')
-async def func4(ctx):
+@bot.command(help='Tries to purge messages. Max limit 50')
+async def delete(ctx):
     deleted = await ctx.channel.purge(limit=50)
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
