@@ -56,7 +56,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
-async def finished_playing(ctx):
+def finished_playing(ctx):
     await ctx.send('Finished playing.')
 
 
@@ -83,7 +83,7 @@ class Music(commands.Cog):
     async def stream(self, ctx, *, url):
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-            ctx.voice_client.play(player, after=finished_playing(ctx))
+            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else finished_playing(ctx))
 
         await ctx.send('Now playing: {}'.format(player.title))
         # Durumu değiştir
