@@ -96,6 +96,7 @@ class Minigame(commands.Cog):
             conn.commit()
             conn.close()
 
+            await ctx.message.add_reaction('\N{WHITE HEAVY CHECK MARK}')
             await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({self.user_table.get(user.id)})')
             if len(messages) > 0:
                 if type(ctx.channel) != discord.DMChannel:
@@ -106,9 +107,11 @@ class Minigame(commands.Cog):
         else:
             scene.attempts -= 1
             if scene.attempts > 0:
+                await ctx.message.add_reaction('\N{CROSS MARK}')
                 messages.append(await ctx.send('Benzerlik: ' + str(scene.list[index - 1][1]) +
                                                '\nKalan deneme sayısı: ' + str(scene.attempts)))
             else:
+                await ctx.message.add_reaction('\N{CROSS MARK}')
                 messages.append(await ctx.send('Sistem kitlendi.'))
 
     @commands.command(help='Get another attempt. Cost: 50')
