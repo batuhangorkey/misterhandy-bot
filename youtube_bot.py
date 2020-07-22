@@ -62,7 +62,8 @@ class Music(commands.Cog):
     async def after_voice(self, ctx):
         await self.bot.wait_until_ready()
         while ctx.voice_client.is_playing():
-            await ctx.send('Finished playing.')
+            await asyncio.sleep(1)
+        await ctx.send('Finished playing.')
 
     def toggle_next(self, ctx, loop=None):
         loop.create_task(self.after_voice(ctx))
