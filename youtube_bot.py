@@ -56,13 +56,13 @@ class YTDLSource(discord.PCMVolumeTransformer):
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
-async def after_voice(ctx):
-    await ctx.send('Finished playing.')
-
-
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    async def after_voice(self, ctx):
+        await self.bot.wait_until_ready()
+        await ctx.send('Finished playing.')
 
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel):
@@ -84,7 +84,7 @@ class Music(commands.Cog):
         loop = self.bot.loop
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
-            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else after_voice(ctx))
+            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else loop.call_soon_threadsafe(self.after_voice(ctx)))
 
         await ctx.send('Now playing: {}'.format(player.title))
         # Durumu değiştir
