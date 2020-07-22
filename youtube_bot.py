@@ -46,7 +46,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
     # Artık çalışıyor ama incelenmesi gerek
     async def from_url(cls, url, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
-        # download=not stream den False a değiştirdim
         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
 
         if 'entries' in data:
@@ -62,7 +61,8 @@ class Music(commands.Cog):
 
     async def after_voice(self, ctx):
         await self.bot.wait_until_ready()
-        await ctx.send('Finished playing.')
+        while ctx.voice_client.is_playing():
+            await ctx.send('Finished playing.')
 
     def toggle_next(self, ctx, loop=None):
         loop.create_task(self.after_voice(ctx))
