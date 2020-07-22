@@ -76,9 +76,11 @@ class Music(commands.Cog):
 
     @commands.command(help="Plays from a url.")
     async def yt(self, ctx, *, url):
+        loop = self.bot.loop
         async with ctx.typing():
-            player = await YTDLSource.from_url(url, loop=self.bot.loop)
-            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+            player = await YTDLSource.from_url(url, loop=loop)
+            # lambda e: print('Player error: %s' % e) if e else None
+            ctx.voice_client.play(player, after=self.toggle_next(ctx, loop=loop))
 
         await ctx.send('Now playing: {}'.format(player.title))
 
