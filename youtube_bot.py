@@ -84,7 +84,7 @@ class Music(commands.Cog):
         loop = self.bot.loop
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
-            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else loop.call_soon_threadsafe(self.after_voice(ctx)))
+            ctx.voice_client.play(player, after=self.bot.loop.create_task(self.after_voice(ctx)))
 
         await ctx.send('Now playing: {}'.format(player.title))
         # Durumu değiştir
