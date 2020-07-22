@@ -75,7 +75,7 @@ class Minigame(commands.Cog):
                 messages.clear()
             messages.append(await ctx.send('Terminal: \n ' + '\n '.join(words)))
         else:
-            messages.append(await ctx.send('Hoppala bir daha dene uşağım'))
+            messages.append(await ctx.send('Hoppala bir daha dene uşağım.'))
 
     @commands.command(help='Enter key to the terminal.')
     async def enter(self, ctx, index: int):
