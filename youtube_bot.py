@@ -64,6 +64,9 @@ class Music(commands.Cog):
         await self.bot.wait_until_ready()
         await ctx.send('Finished playing.')
 
+    def toggle_next(self, ctx, loop=None):
+        loop.create_task(self.after_voice(ctx))
+
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel):
         if ctx.voice_client is not None:
@@ -84,7 +87,7 @@ class Music(commands.Cog):
         loop = self.bot.loop
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
-            ctx.voice_client.play(player, after=self.bot.loop.create_task(self.after_voice(ctx)))
+            ctx.voice_client.play(player, after=self.toggle_next(ctx, loop=loop))
 
         await ctx.send('Now playing: {}'.format(player.title))
         # Durumu değiştir
