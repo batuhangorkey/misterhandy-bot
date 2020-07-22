@@ -60,6 +60,9 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    def after_voice(self, ctx):
+        self.bot.loop.call_soon_threadsafe(ctx.send('Finished playing.'))
+
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel):
         if ctx.voice_client is not None:
@@ -77,9 +80,10 @@ class Music(commands.Cog):
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
+        loop = self.bot.loop
         async with ctx.typing():
-            player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+            player = await YTDLSource.from_url(url, loop=loop, stream=True)
+            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else self.after_voice(ctx))
 
         await ctx.send('Now playing: {}'.format(player.title))
         # Durumu değiştir
