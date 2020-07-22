@@ -58,6 +58,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+    # toggle_next dosya bitmeden çağrılıyor
 
     async def after_voice(self, ctx):
         await self.bot.wait_until_ready()
@@ -80,7 +81,7 @@ class Music(commands.Cog):
         loop = self.bot.loop
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop)
-            # lambda e: print('Player error: %s' % e) if e else None
+            # 'after=lambda e: print('Player error: %s' % e) if e else None' çıkartıldı.
             ctx.voice_client.play(player, after=self.toggle_next(ctx, loop=loop))
 
         await ctx.send('Now playing: {}'.format(player.title))
