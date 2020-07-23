@@ -60,6 +60,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.bot.loop.create_task(self.audio_player_task())
 
     # toggle_next video bitmeden çağrılıyor
     async def audio_player_task(self):
@@ -105,7 +106,7 @@ class Music(commands.Cog):
         loop = self.bot.loop
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
-            ctx.voice_client.play(player, after=lambda e: self.toggle_next(ctx, e, loop=loop))
+            # ctx.voice_client.play(player, after=lambda e: self.toggle_next(ctx, e, loop=loop))
         # sıraya ekle
         await queue.put((ctx.voice_client, player))
         await ctx.send('Now playing: {}'.format(player.title))
