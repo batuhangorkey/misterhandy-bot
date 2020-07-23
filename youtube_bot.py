@@ -68,7 +68,7 @@ class Music(commands.Cog):
             play_next.clear()
             current = await queue.get()
             ctx = current[0]
-            ctx.voice_client.play(current[1], after=lambda e: self.toggle_next(ctx, e))
+            ctx.voice_client.play(current[1], after=lambda e: self.toggle_next(ctx, e, loop=self.bot.loop))
             await play_next.wait()
 
     async def after_voice(self, ctx):
