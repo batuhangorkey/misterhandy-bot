@@ -68,7 +68,9 @@ class Music(commands.Cog):
             play_next.clear()
             current = await queue.get()
             ctx = current[0]
-            ctx.voice_client.play(current[1], after=lambda e: self.toggle_next(e, loop=self.bot.loop))
+            player = current[1]
+            ctx.voice_client.play(player, after=lambda e: self.toggle_next(e, loop=self.bot.loop))
+            await ctx.send('Now playing: {}'.format(player.title))
             await play_next.wait()
 
     # async def after_voice(self, ctx):
@@ -82,7 +84,7 @@ class Music(commands.Cog):
             print('Player error: %s' % e)
 
         # loop.create_task(self.after_voice(ctx))
-        loop.call_soon_threadsafe(play_next.set)
+        loop.call_soon_threadsafe(play_next.set())
 
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel):
