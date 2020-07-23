@@ -33,6 +33,8 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 #     discord.opus.load_opus('opus')
 
 default_presence = discord.Activity(type=discord.ActivityType.listening, name='wasteland with sensors offline')
+queue = asyncio.Queue()
+play_next = asyncio.Event()
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -58,7 +60,15 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-    # toggle_next dosya bitmeden çağrılıyor
+
+    # toggle_next video bitmeden çağrılıyor
+    async def audio_player_task(self):
+        while not self.bot.is_closed:
+            play_next.clear()
+            current = await queue.get()
+            ctx = current[0]
+            ctx.voice_client.play(current[1], after=lambda e: self.toggle_next(ctx, e))
+            await play_next.wait()
 
     async def after_voice(self, ctx):
         await self.bot.wait_until_ready()
@@ -66,8 +76,12 @@ class Music(commands.Cog):
             await asyncio.sleep(1)
         await ctx.send('Finished playing.')
 
-    def toggle_next(self, ctx, loop=None):
+    def toggle_next(self, ctx, e: Exception = None, loop=None):
+        if e is not None:
+            print('Player error: %s' % e)
+
         loop.create_task(self.after_voice(ctx))
+        loop.call_soon_threadsafe(play_next.set)
 
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel):
@@ -82,7 +96,7 @@ class Music(commands.Cog):
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop)
             # 'after=lambda e: print('Player error: %s' % e) if e else None' çıkartıldı.
-            ctx.voice_client.play(player, after=self.toggle_next(ctx, loop=loop))
+            ctx.voice_client.play(player, after=lambda e: self.toggle_next(ctx, e, loop=loop))
 
         await ctx.send('Now playing: {}'.format(player.title))
 
@@ -91,8 +105,9 @@ class Music(commands.Cog):
         loop = self.bot.loop
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
-            ctx.voice_client.play(player, after=self.toggle_next(ctx, loop=loop))
-
+            ctx.voice_client.play(player, after=lambda e: self.toggle_next(ctx, e, loop=loop))
+        # sıraya ekle
+        await queue.put((ctx.voice_client, player))
         await ctx.send('Now playing: {}'.format(player.title))
         # Durumu değiştir
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
@@ -108,7 +123,6 @@ class Music(commands.Cog):
 
     @commands.command(help='Disconnects the bot from voice channel.')
     async def stop(self, ctx):
-
         await ctx.voice_client.disconnect()
         await self.bot.change_presence(activity=default_presence)
 
@@ -116,6 +130,7 @@ class Music(commands.Cog):
     async def pause(self, ctx):
         if ctx.voice_client is not None:
             ctx.voice_client.pause()
+            await ctx.send('Video durduruldu.')
         else:
             await ctx.send('Birşey çalmıyor.')
 
@@ -123,6 +138,7 @@ class Music(commands.Cog):
     async def resume(self, ctx):
         if ctx.voice_client is not None:
             ctx.voice_client.resume()
+            await ctx.send('Videoya devam.')
         else:
             await ctx.send('Birşey çalmıyor.')
 
