@@ -33,8 +33,6 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 #     discord.opus.load_opus('opus')
 
 default_presence = discord.Activity(type=discord.ActivityType.listening, name='wasteland with sensors offline')
-queue = asyncio.Queue()
-play_next = asyncio.Event()
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -61,30 +59,30 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.bot.loop.create_task(self.audio_player_task())
+        self.queue = asyncio.Queue(loop=self.bot.loop)
+        self.play_next = asyncio.Event(loop=self.bot.loop)
 
     # toggle_next video bitmeden çağrılıyor
     async def audio_player_task(self):
         while not self.bot.is_closed:
-            play_next.clear()
-            current = await queue.get()
+            self.play_next.clear()
+            current = await self.queue.get()
             ctx = current[0]
             player = current[1]
             ctx.voice_client.play(player, after=lambda e: self.toggle_next(e, loop=self.bot.loop))
             await ctx.send('Now playing: {}'.format(player.title))
-            await play_next.wait()
+            await self.play_next.wait()
 
     # async def after_voice(self, ctx):
     #     await self.bot.wait_until_ready()
     #     while ctx.voice_client.is_playing():
     #         await asyncio.sleep(1)
     #     await ctx.send('Finished playing.')
-    @staticmethod
-    def toggle_next(e: Exception, loop=None):
+    def toggle_next(self, e: Exception, loop=None):
         if e is not None:
             print('Player error: %s' % e)
-
         # loop.create_task(self.after_voice(ctx))
-        loop.call_soon_threadsafe(play_next.set())
+        loop.call_soon_threadsafe(self.play_next.set())
 
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel):
@@ -110,7 +108,7 @@ class Music(commands.Cog):
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
             # ctx.voice_client.play(player, after=lambda e: self.toggle_next(ctx, e, loop=loop))
         # sıraya ekle
-        await queue.put((ctx, player))
+        await self.queue.put((ctx, player))
         await ctx.send('Now playing: {}'.format(player.title))
         # Durumu değiştir
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
