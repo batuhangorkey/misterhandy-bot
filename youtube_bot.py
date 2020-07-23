@@ -68,20 +68,20 @@ class Music(commands.Cog):
             play_next.clear()
             current = await queue.get()
             ctx = current[0]
-            ctx.voice_client.play(current[1], after=lambda e: self.toggle_next(ctx, e, loop=self.bot.loop))
+            ctx.voice_client.play(current[1], after=lambda e: self.toggle_next(e, loop=self.bot.loop))
             await play_next.wait()
 
-    async def after_voice(self, ctx):
-        await self.bot.wait_until_ready()
-        while ctx.voice_client.is_playing():
-            await asyncio.sleep(1)
-        await ctx.send('Finished playing.')
-
-    def toggle_next(self, ctx, e: Exception = None, loop=None):
+    # async def after_voice(self, ctx):
+    #     await self.bot.wait_until_ready()
+    #     while ctx.voice_client.is_playing():
+    #         await asyncio.sleep(1)
+    #     await ctx.send('Finished playing.')
+    @staticmethod
+    def toggle_next(e: Exception, loop=None):
         if e is not None:
             print('Player error: %s' % e)
 
-        loop.create_task(self.after_voice(ctx))
+        # loop.create_task(self.after_voice(ctx))
         loop.call_soon_threadsafe(play_next.set)
 
     @commands.command(help='Joins authors voice channel.')
@@ -97,7 +97,7 @@ class Music(commands.Cog):
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop)
             # 'after=lambda e: print('Player error: %s' % e) if e else None' çıkartıldı.
-            ctx.voice_client.play(player, after=lambda e: self.toggle_next(ctx, e, loop=loop))
+            ctx.voice_client.play(player, after=lambda e: self.toggle_next(e, loop=loop))
 
         await ctx.send('Now playing: {}'.format(player.title))
 
