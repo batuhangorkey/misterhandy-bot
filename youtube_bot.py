@@ -108,7 +108,7 @@ class Music(commands.Cog):
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
             # ctx.voice_client.play(player, after=lambda e: self.toggle_next(ctx, e, loop=loop))
         # sıraya ekle
-        await queue.put((ctx.voice_client, player))
+        await queue.put((ctx, player))
         await ctx.send('Now playing: {}'.format(player.title))
         # Durumu değiştir
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
