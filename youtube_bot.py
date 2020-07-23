@@ -64,7 +64,7 @@ class Music(commands.Cog):
 
     # toggle_next video bitmeden çağrılıyor
     async def audio_player_task(self):
-        while not self.bot.is_closed:
+        while True:
             self.play_next.clear()
             current = await self.queue.get()
             ctx = current[0]
