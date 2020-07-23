@@ -82,7 +82,7 @@ class Music(commands.Cog):
         if e is not None:
             print('Player error: %s' % e)
         # loop.create_task(self.after_voice(ctx))
-        loop.call_soon_threadsafe(self.play_next.set())
+        loop.call_soon_threadsafe(self.play_next.set)
 
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel):
