@@ -57,18 +57,18 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.bot.loop.create_task(self.audio_player_task())
+        self.bot.loop.create_task(self.audio_player_task(self.bot.loop))
         self.queue = asyncio.Queue(loop=self.bot.loop)
         self.play_next = asyncio.Event(loop=self.bot.loop)
 
     # toggle_next video bitmeden çağrılıyor
-    async def audio_player_task(self):
+    async def audio_player_task(self, loop):
         while True:
             self.play_next.clear()
             current = await self.queue.get()
             ctx = current[0]
             player = current[1]
-            ctx.voice_client.play(player, after=lambda e: self.after_voice(e, ctx, loop=self.bot.loop))
+            ctx.voice_client.play(player, after=lambda e: loop.create_task(self.after_voice(e, ctx, loop=loop)))
             await ctx.send('Now playing: {}'.format(player.title))
             await self.play_next.wait()
 
