@@ -131,16 +131,24 @@ class Music(commands.Cog):
         if ctx.voice_client is not None:
             ctx.voice_client.pause()
             await ctx.send('Video durduruldu.')
-        else:
-            await ctx.send('Birşey çalmıyor.')
 
     @commands.command(help='Resumes')
     async def resume(self, ctx):
         if ctx.voice_client is not None:
             ctx.voice_client.resume()
             await ctx.send('Videoya devam.')
-        else:
-            await ctx.send('Birşey çalmıyor.')
+
+    @commands.command(help='Skips current video.')
+    async def skip(self, ctx):
+        if ctx.voice_client is not None:
+            ctx.voice_client.stop()
+
+    @skip.before_invoke
+    @resume.before_invoke
+    @pause.before_invoke
+    async def ensure_source(self, ctx):
+        if ctx.voice_client is None:
+            await ctx.send('Video oynamıyor.')
 
     @yt.before_invoke
     @stream.before_invoke
