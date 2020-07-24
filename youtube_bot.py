@@ -61,7 +61,7 @@ class Music(commands.Cog):
         self.queue = asyncio.Queue(loop=self.bot.loop)
         self.play_next = asyncio.Event(loop=self.bot.loop)
 
-    # toggle_next video bitmeden çağrılıyor
+    # 'after=' video bitmeden çağrılıyor
     async def audio_player_task(self, loop):
         while True:
             self.play_next.clear()
@@ -91,7 +91,7 @@ class Music(commands.Cog):
 
         await channel.connect()
 
-    # sıraya eklemiyor mevcut çalan videonun yerine geçiyor
+    # Nasıl tepki veriyor bilmiyorum
     @commands.command(help="Plays from a url.")
     async def yt(self, ctx, *, url):
         loop = self.bot.loop
@@ -159,5 +159,5 @@ class Music(commands.Cog):
             else:
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
-        elif ctx.voice_client.is_playing():
-            ctx.voice_client.stop()
+        # elif ctx.voice_client.is_playing():
+        #     ctx.voice_client.stop()
