@@ -107,8 +107,10 @@ class Music(commands.Cog):
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
             # ctx.voice_client.play(player, after=lambda e: self.toggle_next(ctx, e, loop=loop))
-        # sıraya ekle
-        await self.queue.put((ctx, player))
+            # sıraya ekle
+            await self.queue.put((ctx, player))
+            if ctx.voice_client.source is not None:
+                await ctx.send('Added to queue.')
         # Durumu değiştir
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                  name='{}'.format(player.title)))
