@@ -59,7 +59,7 @@ class Music(commands.Cog):
         self.bot = bot
         self.queue = asyncio.Queue(loop=self.bot.loop)
         self.play_next = asyncio.Event(loop=self.bot.loop)
-        self.audio_player_task = self.bot.loop.create_task(self.audio_player_task(self.bot.loop))
+        self.audio_player_task = self.bot.loop.create_task(self.audio_player(self.bot.loop))
 
     # 'after=' video bitmeden çağrılıyor
     async def audio_player(self, loop):
