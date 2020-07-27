@@ -112,7 +112,7 @@ class Music(commands.Cog):
             # sıraya ekle
             await self.queue.put((ctx, player))
             # await self.queue.join()
-            if ctx.voice_client.source is not None:
+            if ctx.voice_client.is_playing():
                 await ctx.send('Added to queue.')
         # Durumu değiştir
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
