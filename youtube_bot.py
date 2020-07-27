@@ -163,7 +163,7 @@ class Music(commands.Cog):
             if ctx.author.voice:
                 await ctx.author.voice.channel.connect()
                 if self.audio_player_task.cancelled():
-                    self.audio_player_task = self.bot.loop.create_task(self.audio_player_task(self.bot.loop))
+                    self.audio_player_task = self.bot.loop.create_task(self.audio_player(self.bot.loop))
             else:
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
