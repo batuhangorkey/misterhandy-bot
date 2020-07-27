@@ -80,7 +80,7 @@ class Music(commands.Cog):
         while ctx.voice_client.is_playing():
             await asyncio.sleep(1)
         if not self.audio_player_task.cancelled():
-            await ctx.send('Finished playing.')
+            await ctx.send(f'Finished playing: {ctx.voice_client.source.title}')
             self.toggle_next(loop)
 
     def toggle_next(self, loop=None):
