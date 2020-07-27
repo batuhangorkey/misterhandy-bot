@@ -70,7 +70,7 @@ class Music(commands.Cog):
             player = current[1]
             ctx.voice_client.play(player, after=lambda e: loop.create_task(self.after_voice(e, ctx, loop=loop)))
             await ctx.send('Now playing: {}'.format(player.title))
-            self.queue.task_done()
+            # self.queue.task_done()
             await self.play_next.wait()
 
     async def after_voice(self, e: Exception, ctx, loop=None):
@@ -110,7 +110,7 @@ class Music(commands.Cog):
             # ctx.voice_client.play(player, after=lambda e: self.toggle_next(ctx, e, loop=loop))
             # sıraya ekle
             await self.queue.put((ctx, player))
-            await self.queue.join()
+            # await self.queue.join()
             if ctx.voice_client.source is not None:
                 await ctx.send('Added to queue.')
         # Durumu değiştir
