@@ -63,8 +63,8 @@ class Music(commands.Cog):
 
     # 'after=' video bitmeden çağrılıyor
     async def audio_player(self, loop):
-        while True:
-            try:
+        try:
+            while True:
                 self.play_next.clear()
                 current = await self.queue.get()
                 ctx = current[0]
@@ -73,8 +73,8 @@ class Music(commands.Cog):
                 await ctx.send('Now playing: {}'.format(player.title))
                 # self.queue.task_done()
                 await self.play_next.wait()
-            except asyncio.CancelledError:
-                print('Task is cancelled.')
+        except asyncio.CancelledError:
+            print('Task is cancelled.')
 
     async def after_voice(self, e: Exception, ctx, loop=None):
         if e is not None:
