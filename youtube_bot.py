@@ -64,14 +64,17 @@ class Music(commands.Cog):
     # 'after=' video bitmeden çağrılıyor
     async def audio_player(self, loop):
         while True:
-            self.play_next.clear()
-            current = await self.queue.get()
-            ctx = current[0]
-            player = current[1]
-            ctx.voice_client.play(player, after=lambda e: loop.create_task(self.after_voice(e, ctx, loop=loop)))
-            await ctx.send('Now playing: {}'.format(player.title))
-            # self.queue.task_done()
-            await self.play_next.wait()
+            try:
+                self.play_next.clear()
+                current = await self.queue.get()
+                ctx = current[0]
+                player = current[1]
+                ctx.voice_client.play(player, after=lambda e: loop.create_task(self.after_voice(e, ctx, loop=loop)))
+                await ctx.send('Now playing: {}'.format(player.title))
+                # self.queue.task_done()
+                await self.play_next.wait()
+            except asyncio.CancelledError:
+                print('Task is cancelled.')
 
     async def after_voice(self, e: Exception, ctx, loop=None):
         if e is not None:
@@ -81,10 +84,7 @@ class Music(commands.Cog):
             await asyncio.sleep(1)
         if not self.audio_player_task.cancelled():
             await ctx.send(f'Finished playing: {ctx.voice_client.source.title}')
-            self.toggle_next(loop)
-
-    def toggle_next(self, loop=None):
-        loop.call_soon_threadsafe(self.play_next.set)
+            loop.call_soon_threadsafe(self.play_next.set)
 
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel):
