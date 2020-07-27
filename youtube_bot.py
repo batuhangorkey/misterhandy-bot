@@ -57,12 +57,12 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.bot.loop.create_task(self.audio_player_task(self.bot.loop))
         self.queue = asyncio.Queue(loop=self.bot.loop)
         self.play_next = asyncio.Event(loop=self.bot.loop)
+        self.audio_player_task = self.bot.loop.create_task(self.audio_player_task(self.bot.loop))
 
     # 'after=' video bitmeden çağrılıyor
-    async def audio_player_task(self, loop):
+    async def audio_player(self, loop):
         while True:
             self.play_next.clear()
             current = await self.queue.get()
@@ -79,8 +79,9 @@ class Music(commands.Cog):
         await self.bot.wait_until_ready()
         while ctx.voice_client.is_playing():
             await asyncio.sleep(1)
-        await ctx.send('Finished playing.')
-        self.toggle_next(loop)
+        if not self.audio_player_task.cancelled():
+            await ctx.send('Finished playing.')
+            self.toggle_next(loop)
 
     def toggle_next(self, loop=None):
         loop.call_soon_threadsafe(self.play_next.set)
@@ -127,6 +128,7 @@ class Music(commands.Cog):
 
     @commands.command(help='Disconnects the bot from voice channel.')
     async def stop(self, ctx):
+        self.audio_player_task.cancel()
         await ctx.voice_client.disconnect()
         await self.bot.change_presence(activity=default_presence)
 
@@ -160,6 +162,7 @@ class Music(commands.Cog):
         if ctx.voice_client is None:
             if ctx.author.voice:
                 await ctx.author.voice.channel.connect()
+                self.audio_player_task = self.bot.loop.create_task(self.audio_player_task(self.bot.loop))
             else:
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
