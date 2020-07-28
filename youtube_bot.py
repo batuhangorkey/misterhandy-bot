@@ -100,7 +100,7 @@ class Music(commands.Cog):
         loop = self.bot.loop
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop)
-            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else None)
+            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else print('Finish'))
 
         await ctx.send('Now playing: {}'.format(player.title))
 
