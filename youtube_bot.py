@@ -59,7 +59,7 @@ class Music(commands.Cog):
         self.bot = bot
         self.queue = asyncio.Queue(loop=self.bot.loop)
         self.play_next = asyncio.Event(loop=self.bot.loop)
-        self.task = self.bot.loop.create_task(self.audio_player(self.bot.loop))
+        self.bot.loop.create_task(self.audio_player(self.bot.loop))
 
     # 'after=' video bitmeden çağrılıyor
     async def audio_player(self, loop):
@@ -69,6 +69,7 @@ class Music(commands.Cog):
                 current = await self.queue.get()
                 ctx = current[0]
                 player = current[1]
+                print(ctx)
                 ctx.voice_client.play(player, after=lambda e: loop.create_task(self.after_voice(e, ctx, loop=loop)))
                 await ctx.send('Now playing: {}'.format(player.title))
                 # self.queue.task_done()
@@ -110,8 +111,8 @@ class Music(commands.Cog):
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
             # ctx.voice_client.play(player, after=lambda e: self.toggle_next(ctx, e, loop=loop))
             # sıraya ekle
-            await self.queue.put((ctx, player))
             # await self.queue.join()
+            await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
                 await ctx.send('Added to queue.')
         # Durumu değiştir
@@ -145,7 +146,6 @@ class Music(commands.Cog):
 
     @commands.command(help='Disconnects the bot from voice channel.')
     async def stop(self, ctx):
-        self.task.cancel()
         await ctx.voice_client.disconnect()
         await self.bot.change_presence(activity=default_presence)
 
@@ -162,7 +162,7 @@ class Music(commands.Cog):
         if ctx.voice_client is None:
             if ctx.author.voice:
                 await ctx.author.voice.channel.connect()
-                self.task = self.bot.loop.create_task(self.audio_player(self.bot.loop))
+                # self.task = self.bot.loop.create_task(self.audio_player(self.bot.loop))
             else:
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
