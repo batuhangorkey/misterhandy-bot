@@ -145,7 +145,7 @@ class Music(commands.Cog):
 
     @commands.command(help='Disconnects the bot from voice channel.')
     async def stop(self, ctx):
-        self.task.cancel()
+        self.bot.loop.call_soon_threadsafe(self.task.cancel())
         await ctx.voice_client.disconnect()
         await self.bot.change_presence(activity=default_presence)
 
