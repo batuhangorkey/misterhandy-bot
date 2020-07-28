@@ -69,10 +69,9 @@ class Music(commands.Cog):
                 current = await self.queue.get()
                 ctx = current[0]
                 player = current[1]
-                print(ctx)
-                ctx.voice_client.play(player, after=lambda e: loop.create_task(self.after_voice(e, ctx, loop=loop)))
+                # ctx.voice_client.play(player, after=lambda e: loop.create_task(self.after_voice(e, ctx, loop=loop)))
+                ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else print('Finish'))
                 await ctx.send('Now playing: {}'.format(player.title))
-                # self.queue.task_done()
                 await self.play_next.wait()
         except asyncio.CancelledError:
             print('Cancelled audio player task.')
@@ -162,9 +161,6 @@ class Music(commands.Cog):
         if ctx.voice_client is None:
             if ctx.author.voice:
                 await ctx.author.voice.channel.connect(reconnect=False)
-                # self.task = self.bot.loop.create_task(self.audio_player(self.bot.loop))
             else:
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
-        # elif ctx.voice_client.is_playing():
-        #     ctx.voice_client.stop()
