@@ -70,7 +70,7 @@ class Music(commands.Cog):
                 ctx = current[0]
                 player = current[1]
                 # ctx.voice_client.play(player, after=lambda e: loop.create_task(self.after_voice(e, ctx, loop=loop)))
-                ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else print('Finish'))
+                ctx.voice_client.play(player, after=print('Finish'))
                 await ctx.send('Now playing: {}'.format(player.title))
                 await self.play_next.wait()
         except asyncio.CancelledError:
