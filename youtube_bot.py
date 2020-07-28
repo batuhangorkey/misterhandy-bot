@@ -161,7 +161,7 @@ class Music(commands.Cog):
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
-                await ctx.author.voice.channel.connect()
+                await ctx.author.voice.channel.connect(reconnect=False)
                 # self.task = self.bot.loop.create_task(self.audio_player(self.bot.loop))
             else:
                 await ctx.send('Ses kanalında değilsin.')
