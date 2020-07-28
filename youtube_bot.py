@@ -1,4 +1,4 @@
-# Buildpackler
+# Buildpack'ler
 # https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git
 # https://github.com/xrisk/heroku-opus.git
 import asyncio
@@ -19,7 +19,6 @@ ytdl_format_options = {
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
-    # Çıkarttım çünkü ne anlamı var?
     # 'source_address': '0.0.0.0'
 }
 
@@ -27,7 +26,6 @@ ffmpeg_options = {
     'options': '-vn'
 }
 
-# Çalışmıyor
 # if not discord.opus.is_loaded():
 #     discord.opus.load_opus('opus')
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
@@ -42,7 +40,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.url = data.get('url')
 
     @classmethod
-    # Artık çalışıyor ama incelenmesi gerek
     async def from_url(cls, url, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
@@ -61,7 +58,6 @@ class Music(commands.Cog):
         self.play_next = asyncio.Event(loop=self.bot.loop)
         self.bot.loop.create_task(self.audio_player())
 
-    # 'after=' video bitmeden çağrılıyor
     async def audio_player(self):
         try:
             while self.bot.voice_clients is not None:
@@ -112,9 +108,7 @@ class Music(commands.Cog):
         loop = self.bot.loop
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
-            # ctx.voice_client.play(player, after=lambda e: self.toggle_next(ctx, e, loop=loop))
             # sıraya ekle
-            # await self.queue.join()
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
                 await ctx.send('Added to queue.')
