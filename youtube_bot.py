@@ -59,10 +59,10 @@ class Music(commands.Cog):
         self.bot = bot
         self.queue = asyncio.Queue(loop=self.bot.loop)
         self.play_next = asyncio.Event(loop=self.bot.loop)
-        self.bot.loop.create_task(self.audio_player(self.bot.loop))
+        self.bot.loop.create_task(self.audio_player())
 
     # 'after=' video bitmeden çağrılıyor
-    async def audio_player(self, loop):
+    async def audio_player(self):
         try:
             while self.bot.voice_clients is not None:
                 self.play_next.clear()
@@ -70,21 +70,24 @@ class Music(commands.Cog):
                 ctx = current[0]
                 player = current[1]
                 # ctx.voice_client.play(player, after=lambda e: loop.create_task(self.after_voice(e, ctx, loop=loop)))
-                ctx.voice_client.play(player, after=print('Finish'))
+                ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else self.toggle_next)
                 await ctx.send('Now playing: {}'.format(player.title))
                 await self.play_next.wait()
         except asyncio.CancelledError:
             print('Cancelled audio player task.')
             return
 
-    async def after_voice(self, e: Exception, ctx, loop=None):
-        if e is not None:
-            print('Player error: %s' % e)
-        await self.bot.wait_until_ready()
-        while ctx.voice_client.is_playing():
-            await asyncio.sleep(1)
-        await ctx.send(f'Finished playing: {ctx.voice_client.source.title}')
-        loop.call_soon_threadsafe(self.play_next.set)
+    # async def after_voice(self, e: Exception, ctx, loop=None):
+    #     if e is not None:
+    #         print('Player error: %s' % e)
+    #     await self.bot.wait_until_ready()
+    #     while ctx.voice_client.is_playing():
+    #         await asyncio.sleep(1)
+    #     await ctx.send(f'Finished playing: {ctx.voice_client.source.title}')
+    #     loop.call_soon_threadsafe(self.play_next.set)
+
+    def toggle_next(self):
+        self.bot.loop.call_soon_threadsafe(self.play_next.set)
 
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel):
