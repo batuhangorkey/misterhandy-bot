@@ -59,12 +59,12 @@ class Music(commands.Cog):
         self.bot = bot
         self.queue = asyncio.Queue(loop=self.bot.loop)
         self.play_next = asyncio.Event(loop=self.bot.loop)
-        self.audio_player_task = self.bot.loop.create_task(self.audio_player(self.bot.loop))
+        self.task = self.bot.loop.create_task(self.audio_player(self.bot.loop))
 
     # 'after=' video bitmeden çağrılıyor
     async def audio_player(self, loop):
         try:
-            while True:
+            while self.bot.voice_clients is not None:
                 self.play_next.clear()
                 current = await self.queue.get()
                 ctx = current[0]
@@ -74,7 +74,8 @@ class Music(commands.Cog):
                 # self.queue.task_done()
                 await self.play_next.wait()
         except asyncio.CancelledError:
-            print('Task is cancelled.')
+            print('Cancelled audio player task.')
+            return
 
     async def after_voice(self, e: Exception, ctx, loop=None):
         if e is not None:
@@ -82,9 +83,8 @@ class Music(commands.Cog):
         await self.bot.wait_until_ready()
         while ctx.voice_client.is_playing():
             await asyncio.sleep(1)
-        if not self.audio_player_task.cancelled():
-            await ctx.send(f'Finished playing: {ctx.voice_client.source.title}')
-            loop.call_soon_threadsafe(self.play_next.set)
+        await ctx.send(f'Finished playing: {ctx.voice_client.source.title}')
+        loop.call_soon_threadsafe(self.play_next.set)
 
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel):
@@ -116,7 +116,7 @@ class Music(commands.Cog):
                 await ctx.send('Added to queue.')
         # Durumu değiştir
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                 name='{}'.format(player.title)))
+                                                                 name=format(player.title)))
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
@@ -125,12 +125,6 @@ class Music(commands.Cog):
 
         ctx.voice_client.source.volume = volume / 100
         await ctx.send('Ses seviyesi %{} oldu.'.format(volume))
-
-    @commands.command(help='Disconnects the bot from voice channel.')
-    async def stop(self, ctx):
-        self.audio_player_task.cancel()
-        await ctx.voice_client.disconnect()
-        await self.bot.change_presence(activity=default_presence)
 
     @commands.command(help='Pauses')
     async def pause(self, ctx):
@@ -149,6 +143,12 @@ class Music(commands.Cog):
         if ctx.voice_client is not None:
             ctx.voice_client.stop()
 
+    @commands.command(help='Disconnects the bot from voice channel.')
+    async def stop(self, ctx):
+        self.task.cancel()
+        await ctx.voice_client.disconnect()
+        await self.bot.change_presence(activity=default_presence)
+
     @skip.before_invoke
     @resume.before_invoke
     @pause.before_invoke
@@ -162,8 +162,7 @@ class Music(commands.Cog):
         if ctx.voice_client is None:
             if ctx.author.voice:
                 await ctx.author.voice.channel.connect()
-                if self.audio_player_task.cancelled():
-                    self.audio_player_task = self.bot.loop.create_task(self.audio_player(self.bot.loop))
+                self.task = self.bot.loop.create_task(self.audio_player(self.bot.loop))
             else:
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
