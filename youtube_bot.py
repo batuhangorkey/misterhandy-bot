@@ -69,6 +69,8 @@ class Music(commands.Cog):
                 ctx.voice_client.play(player,
                                       after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
                 await ctx.send('Now playing: {}'.format(player.title))
+                await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
+                                                                         name=format(player.title)))
                 await self.play_next.wait()
         except asyncio.CancelledError:
             print('Cancelled audio player task.')
@@ -112,9 +114,6 @@ class Music(commands.Cog):
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
                 await ctx.send('Added to queue.')
-        # Durumu değiştir
-        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                 name=format(player.title)))
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
@@ -143,6 +142,9 @@ class Music(commands.Cog):
 
     @commands.command(help='Disconnects the bot from voice channel.')
     async def stop(self, ctx):
+        for _ in range(self.queue.qsize()):
+            self.queue.get_nowait()
+            self.queue.task_done()
         await ctx.voice_client.disconnect()
         await self.bot.change_presence(activity=default_presence)
 
