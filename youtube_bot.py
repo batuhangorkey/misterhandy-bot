@@ -122,7 +122,6 @@ class Music(commands.Cog):
         async with ctx.typing():
             result = YoutubeSearch(search_string, max_results=1).to_dict()
             url = 'https://www.youtube.com' + result[0]['url_suffix']
-            print(result)
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
@@ -130,6 +129,7 @@ class Music(commands.Cog):
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
+        await ctx.channel.delete_messages(ctx.message)
         if ctx.voice_client is None:
             return await ctx.send('Ses kanalına bağlı değilim.')
 
