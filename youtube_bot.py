@@ -118,7 +118,7 @@ class Music(commands.Cog):
 
     @commands.command(help='Plays the first result from a search string.')
     async def play(self, ctx, *, search_string):
-        results = YoutubeSearch(search_string, max_results=1).to_dict()
+        results = YoutubeSearch(search_string, max_results=1).to_json()
         print(results)
 
     @commands.command(help='Changes volume to the value.')
