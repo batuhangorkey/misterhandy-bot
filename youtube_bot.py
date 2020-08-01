@@ -114,17 +114,17 @@ class Music(commands.Cog):
             # sıraya ekle
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
-                await ctx.send('Added to queue.')
+                await ctx.send('Sıraya eklendi.')
 
     @commands.command(help='Plays the first result from a search string.')
     async def play(self, ctx, *, search_string):
         loop = self.bot.loop
         async with ctx.typing():
-            result = YoutubeSearch(search_string, max_results=1).to_json()
+            result = YoutubeSearch(search_string, max_results=1).to_dict()
             player = await YTDLSource.from_url('https://www.youtube.com' + result['url_suffix'], loop=loop, stream=True)
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
-                await ctx.send('Added to queue.')
+                await ctx.send('Sıraya eklendi.')
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
@@ -158,13 +158,6 @@ class Music(commands.Cog):
             self.queue.task_done()
         await ctx.voice_client.disconnect()
         await self.bot.change_presence(activity=default_presence)
-
-    @skip.before_invoke
-    @resume.before_invoke
-    @pause.before_invoke
-    async def ensure_source(self, ctx):
-        if ctx.voice_client is None:
-            await ctx.send('Video oynamıyor.')
 
     @yt.before_invoke
     @stream.before_invoke
