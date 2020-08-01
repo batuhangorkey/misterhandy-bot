@@ -121,7 +121,9 @@ class Music(commands.Cog):
         loop = self.bot.loop
         async with ctx.typing():
             result = YoutubeSearch(search_string, max_results=1).to_dict()
-            player = await YTDLSource.from_url('https://www.youtube.com' + result['url_suffix'], loop=loop, stream=True)
+            url = 'https://www.youtube.com' + result[0]['url_suffix']
+            print(result)
+            player = await YTDLSource.from_url(url, loop=loop, stream=True)
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
                 await ctx.send('Sıraya eklendi.')
