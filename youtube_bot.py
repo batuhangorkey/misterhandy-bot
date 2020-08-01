@@ -5,6 +5,7 @@ import asyncio
 import discord
 import youtube_dl
 from discord.ext import commands
+from youtube_search import YoutubeSearch
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
@@ -114,6 +115,11 @@ class Music(commands.Cog):
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
                 await ctx.send('Added to queue.')
+
+    @commands.command(help='Plays the first result from a search string.')
+    async def play(self, ctx, *, search_string):
+        results = YoutubeSearch(search_string, max_results=1).to_dict()
+        print(results)
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
