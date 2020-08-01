@@ -1,1 +1,1 @@
-# fallout hacking minigame and general purpose bot for discord 
+# Hacking minigame from Fallout and sound player from youtube for discord 
