@@ -168,6 +168,7 @@ class Music(commands.Cog):
 
     @yt.before_invoke
     @stream.before_invoke
+    @play.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
