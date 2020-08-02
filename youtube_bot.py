@@ -39,6 +39,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.data = data
         self.title = data.get('title')
         self.url = data.get('url')
+        self.thumbnail = data.get('thumbnail')
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
@@ -69,7 +70,10 @@ class Music(commands.Cog):
                 # ctx.voice_client.play(player, after=lambda e: loop.create_task(self.after_voice(e, ctx, loop=loop)))
                 ctx.voice_client.play(player,
                                       after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
-                await ctx.send('Now playing: {}'.format(player.title))
+                embed = discord.Embed(title=player.title, url=player.url)
+                embed.set_thumbnail(url=player.thumbnail)
+                await ctx.send(embed=embed)
+
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(player.title)))
                 await self.play_next.wait()
@@ -126,9 +130,6 @@ class Music(commands.Cog):
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
                 await ctx.send('Sıraya eklendi.')
-        embed = discord.Embed(title=player.title, url=url)
-        embed.set_thumbnail(url=result[0]['thumbnails'][0])
-        await ctx.send(embed=embed)
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
