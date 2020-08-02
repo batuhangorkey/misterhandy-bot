@@ -141,6 +141,7 @@ class Music(commands.Cog):
     async def search(self, ctx, *, search_string):
         async with ctx.typing():
             results = YoutubeSearch(search_string, max_results=10).to_dict()
+            print(results[0])
             embed = discord.Embed(colour=0x8B0000)
             i = 1
             for _ in results:
