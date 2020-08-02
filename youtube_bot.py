@@ -60,6 +60,9 @@ class Music(commands.Cog):
         self.play_next = asyncio.Event(loop=self.bot.loop)
         self.bot.loop.create_task(self.audio_player())
 
+    def toggle_next(self):
+        self.bot.loop.call_soon_threadsafe(self.play_next.set)
+
     async def audio_player(self):
         try:
             while self.bot.voice_clients is not None:
@@ -90,9 +93,6 @@ class Music(commands.Cog):
     #     await ctx.send(f'Finished playing: {ctx.voice_client.source.title}')
     #     loop.call_soon_threadsafe(self.play_next.set)
 
-    def toggle_next(self):
-        self.bot.loop.call_soon_threadsafe(self.play_next.set)
-
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel):
         if ctx.voice_client is not None:
@@ -108,7 +108,9 @@ class Music(commands.Cog):
             # sıraya ekle
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
-                await ctx.send('Sıraya eklendi.')
+                embed = discord.Embed(title=player.title, url=player.url, description='Sıraya eklendi', colour=0x8B0000)
+                embed.set_thumbnail(url=player.thumbnail)
+                await ctx.send(embed=embed)
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
@@ -118,7 +120,9 @@ class Music(commands.Cog):
             # sıraya ekle
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
-                await ctx.send('Sıraya eklendi.')
+                embed = discord.Embed(title=player.title, url=player.url, description='Sıraya eklendi', colour=0x8B0000)
+                embed.set_thumbnail(url=player.thumbnail)
+                await ctx.send(embed=embed)
 
     @commands.command(help='Plays the first result from a search string.')
     async def play(self, ctx, *, search_string):
@@ -129,7 +133,20 @@ class Music(commands.Cog):
             player = await YTDLSource.from_url(url, loop=loop)
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
-                await ctx.send('Sıraya eklendi.')
+                embed = discord.Embed(title=player.title, url=player.url, description='Sıraya eklendi', colour=0x8B0000)
+                embed.set_thumbnail(url=player.thumbnail)
+                await ctx.send(embed=embed)
+
+    @commands.command(help='Search youtube. 10 results')
+    async def search(self, ctx, *, search_string):
+        async with ctx.typing():
+            result = YoutubeSearch(search_string, max_results=10).to_dict()
+            embed = discord.Embed(colour=0x8B0000)
+            i = 1
+            for _ in result:
+                embed.add_field(name=str(i), value=result[_]['url_suffix'])
+                i = i + 1
+            await ctx.send(embed=embed)
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
