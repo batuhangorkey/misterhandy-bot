@@ -126,6 +126,9 @@ class Music(commands.Cog):
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
                 await ctx.send('Sıraya eklendi.')
+        embed = discord.Embed(title=player.title, url=url)
+        embed.set_thumbnail(url=result[0]['thumbnails'][0])
+        await ctx.send(embed)
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
