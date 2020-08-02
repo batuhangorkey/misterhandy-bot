@@ -96,15 +96,15 @@ class Music(commands.Cog):
 
         await channel.connect()
 
-    # Nasıl tepki veriyor bilmiyorum
     @commands.command(help="Plays from a url.")
     async def yt(self, ctx, *, url):
         loop = self.bot.loop
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop)
-            ctx.voice_client.play(player, after=lambda e: print('Player error: %s' % e) if e else print('Finish'))
-
-        await ctx.send('Now playing: {}'.format(player.title))
+            # sıraya ekle
+            await self.queue.put((ctx, player))
+            if ctx.voice_client.is_playing():
+                await ctx.send('Sıraya eklendi.')
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
@@ -122,7 +122,7 @@ class Music(commands.Cog):
         async with ctx.typing():
             result = YoutubeSearch(search_string, max_results=1).to_dict()
             url = 'https://www.youtube.com' + result[0]['url_suffix']
-            player = await YTDLSource.from_url(url, loop=loop, stream=True)
+            player = await YTDLSource.from_url(url, loop=loop)
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
                 await ctx.send('Sıraya eklendi.')
