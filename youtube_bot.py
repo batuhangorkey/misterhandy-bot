@@ -70,7 +70,8 @@ class Music(commands.Cog):
                 # ctx.voice_client.play(player, after=lambda e: loop.create_task(self.after_voice(e, ctx, loop=loop)))
                 ctx.voice_client.play(player,
                                       after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
-                embed = discord.Embed(title=player.title, url=player.url)
+                embed = discord.Embed(title=player.title, url=player.url, description='Now playing')
+                embed.color([139, 0, 0])
                 embed.set_thumbnail(url=player.thumbnail)
                 await ctx.send(embed=embed)
 
