@@ -66,9 +66,9 @@ class Music(commands.Cog):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
 
     async def manage_last(self, msg):
-        self.last_message = msg
         if self.last_message is not None:
             await self.last_message.delete()
+        self.last_message = msg
 
     async def audio_player(self):
         try:
