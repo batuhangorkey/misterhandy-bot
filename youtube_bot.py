@@ -150,7 +150,7 @@ class Music(commands.Cog):
                 self.search_list.append('https://www.youtube.com' + _['url_suffix'])
                 i = i + 1
             await ctx.send(embed=embed)
-        self.bot.add_cog(Events(self.bot))
+        self.bot.add_cog(Events(self.bot, ctx))
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
@@ -199,13 +199,14 @@ class Music(commands.Cog):
 
 
 class Events(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, ctx):
         self.bot = bot
+        self.ctx = ctx
 
     @commands.Cog.listener()
-    async def on_message(self, ctx):
+    async def on_message(self, msg):
         music = self.bot.get_cog('Music')
-        ctx.args = music.search_list[int(ctx.content) - 1]
-        await music.stream.invoke(ctx)
+        self.ctx.args = music.search_list[int(msg.content) - 1]
+        await music.stream.invoke(self.ctx)
         music.search_list.clear()
         self.bot.remove_cog('Events')
