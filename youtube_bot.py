@@ -205,6 +205,6 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, ctx):
         music = self.bot.get_cog('Music')
-        await music.stream.invoke(ctx, music.search_list[int(ctx.content) - 1])
+        await music.stream.invoke(ctx, args=music.search_list[int(ctx.content) - 1])
         music.search_list.clear()
         self.bot.remove_cog('Events')
