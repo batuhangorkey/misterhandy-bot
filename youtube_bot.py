@@ -59,6 +59,7 @@ class Music(commands.Cog):
         self.queue = asyncio.Queue(loop=self.bot.loop)
         self.play_next = asyncio.Event(loop=self.bot.loop)
         self.bot.loop.create_task(self.audio_player())
+        self.search_list = []
 
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
@@ -145,8 +146,10 @@ class Music(commands.Cog):
             i = 1
             for _ in results:
                 embed.add_field(name=str(i), value=_['title'])
+                self.search_list.append('https://www.youtube.com' + _['url_suffix'])
                 i = i + 1
             await ctx.send(embed=embed)
+        self.bot.add_cog(Events(self.bot))
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
@@ -192,3 +195,15 @@ class Music(commands.Cog):
             else:
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
+
+
+class Events(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.Cog.listener
+    async def on_message(self, ctx, index: int):
+        music = self.bot.get_cog('Music')
+        await music.stream.invoke(ctx=ctx, url=music.search_list[index - 1])
+        music.search_list.clear()
+        self.bot.remove_cog('Events')
