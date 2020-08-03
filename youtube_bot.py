@@ -206,7 +206,10 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, msg):
+        index = int(msg.content)
+        if index < 1 or 10 < index:
+            return
         music = self.bot.get_cog('Music')
-        await self.ctx.invoke(music.bot.get_command('yt'), url=music.search_list[int(msg.content) - 1])
+        await self.ctx.invoke(music.bot.get_command('yt'), url=music.search_list[index - 1])
         music.search_list.clear()
         self.bot.remove_cog('Events')
