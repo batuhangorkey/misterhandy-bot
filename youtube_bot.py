@@ -152,7 +152,7 @@ class Music(commands.Cog):
             embed = discord.Embed(colour=0x8B0000)
             i = 1
             for _ in results:
-                k = [_['title'], str(_['duration']), _['uploader']]
+                k = [_['title'], str(_['duration']), _['channel']]
                 embed.add_field(name=str(i), value=' '.join(k))
                 self.search_list.append('https://www.youtube.com' + _['url_suffix'])
                 i = i + 1
