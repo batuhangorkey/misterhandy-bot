@@ -189,6 +189,7 @@ class Music(commands.Cog):
     @yt.before_invoke
     @stream.before_invoke
     @play.before_invoke
+    @search.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
@@ -206,7 +207,7 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, msg):
         music = self.bot.get_cog('Music')
-        self.ctx.args = music.search_list[int(msg.content) - 1]
+        self.ctx.kwargs = {'url': music.search_list[int(msg.content) - 1]}
         self.ctx.command = music.bot.get_command('yt')
         await music.bot.invoke(self.ctx)
         music.search_list.clear()
