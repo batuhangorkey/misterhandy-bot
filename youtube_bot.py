@@ -140,6 +140,7 @@ class Music(commands.Cog):
 
     @commands.command(help='Search youtube. 10 results')
     async def search(self, ctx, *, search_string):
+        self.search_list.clear()
         async with ctx.typing():
             results = YoutubeSearch(search_string, max_results=10).to_dict()
             embed = discord.Embed(colour=0x8B0000)
@@ -202,8 +203,8 @@ class Events(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_message(self, ctx: int):
+    async def on_message(self, ctx):
         music = self.bot.get_cog('Music')
-        await music.stream.invoke(ctx=ctx, url=music.search_list[ctx - 1])
+        await music.stream.invoke(ctx=ctx, url=music.search_list[ctx.content - 1])
         music.search_list.clear()
         self.bot.remove_cog('Events')
