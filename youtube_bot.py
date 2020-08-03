@@ -206,7 +206,12 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, msg):
-        index = int(msg.content)
+        if msg.author == self.bot.user:
+            return
+        try:
+            index = int(msg.content)
+        except ValueError:
+            return 
         if index < 1 or 10 < index:
             return
         music = self.bot.get_cog('Music')
