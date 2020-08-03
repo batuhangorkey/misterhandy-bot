@@ -60,9 +60,15 @@ class Music(commands.Cog):
         self.play_next = asyncio.Event(loop=self.bot.loop)
         self.bot.loop.create_task(self.audio_player())
         self.search_list = []
+        self.last_message = None
 
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
+
+    async def manage_last(self, msg):
+        self.last_message = msg
+        if self.last_message is not None:
+            await self.last_message.delete()
 
     async def audio_player(self):
         try:
@@ -136,7 +142,7 @@ class Music(commands.Cog):
             if ctx.voice_client.is_playing():
                 embed = discord.Embed(title=player.title, url=player.url, description='Sıraya eklendi', colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
-                await ctx.send(embed=embed)
+                await self.manage_last(await ctx.send(embed=embed))
 
     @commands.command(help='Search youtube. 10 results')
     async def search(self, ctx, *, search_string):
@@ -146,7 +152,8 @@ class Music(commands.Cog):
             embed = discord.Embed(colour=0x8B0000)
             i = 1
             for _ in results:
-                embed.add_field(name=str(i), value=_['title'] + f'({_["duration"]})')
+                k = [_['title'], str(_['duration']), _['uploader']]
+                embed.add_field(name=str(i), value=' '.join(k))
                 self.search_list.append('https://www.youtube.com' + _['url_suffix'])
                 i = i + 1
             await ctx.send(embed=embed)
@@ -154,7 +161,7 @@ class Music(commands.Cog):
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
-        await ctx.channel.delete_messages(ctx.message)
+        await ctx.message.delete()
         if ctx.voice_client is None:
             return await ctx.send('Ses kanalına bağlı değilim.')
 
