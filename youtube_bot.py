@@ -82,7 +82,7 @@ class Music(commands.Cog):
                                       after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
                 embed = discord.Embed(title=player.title, url=player.url, description='Now playing', colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
-                await ctx.send(embed=embed)
+                await self.manage_last(await ctx.send(embed=embed))
 
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(player.title)))
