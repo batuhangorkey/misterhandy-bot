@@ -146,7 +146,7 @@ class Music(commands.Cog):
             embed = discord.Embed(colour=0x8B0000)
             i = 1
             for _ in results:
-                embed.add_field(name=str(i), value=_['title'])
+                embed.add_field(name=str(i), value=_['title'] + f'({_["duration"]})')
                 self.search_list.append('https://www.youtube.com' + _['url_suffix'])
                 i = i + 1
             await ctx.send(embed=embed)
@@ -211,7 +211,7 @@ class Events(commands.Cog):
         try:
             index = int(msg.content)
         except ValueError:
-            return 
+            return
         if index < 1 or 10 < index:
             return
         music = self.bot.get_cog('Music')
