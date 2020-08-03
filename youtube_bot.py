@@ -201,7 +201,7 @@ class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.Cog.listener
+    @commands.Cog.listener()
     async def on_message(self, ctx, index: int):
         music = self.bot.get_cog('Music')
         await music.stream.invoke(ctx=ctx, url=music.search_list[index - 1])
