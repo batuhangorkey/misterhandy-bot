@@ -154,7 +154,8 @@ class Music(commands.Cog):
             for _ in results:
                 # k = [_['title'], str(_['duration']), _['channel'], 'https://www.youtube.com' + _['url_suffix']]
                 # embed.add_field(name=str(i), value=' '.join(k))
-                embed = discord.Embed(title=_['title'], url=_['title'], colour=0x8B0000)
+                embed = discord.Embed(title=_['title'],
+                                      url='https://www.youtube.com' + _['url_suffix'], colour=0x8B0000)
                 embed.add_field(name=_['channel'], value=str(_['duration'])).set_thumbnail(url=_['thumbnails'][0])
                 embeds.append(embed)
                 self.search_list.append('https://www.youtube.com' + _['url_suffix'])
