@@ -149,19 +149,14 @@ class Music(commands.Cog):
         self.search_list.clear()
         async with ctx.typing():
             results = YoutubeSearch(search_string, max_results=10).to_dict()
+            embed = discord.Embed(colour=0x8B0000)
             i = 1
-            embeds = []
             for _ in results:
-                # k = [_['title'], str(_['duration']), _['channel'], 'https://www.youtube.com' + _['url_suffix']]
-                # embed.add_field(name=str(i), value=' '.join(k))
-                embed = discord.Embed(title=_['title'],
-                                      url='https://www.youtube.com' + _['url_suffix'], colour=0x8B0000)
-                embed.add_field(name=_['channel'], value=str(_['duration'])).set_thumbnail(url=_['thumbnails'][0])
-                embeds.append(embed)
+                k = [f"[{_['title']}](https://www.youtube.com + {_['url_suffix']})", str(_['duration']), _['channel']]
+                embed.add_field(name=str(i), value=' - '.join(k))
                 self.search_list.append('https://www.youtube.com' + _['url_suffix'])
                 i = i + 1
-            for _ in embeds:
-                await ctx.send(embed=_)
+            await ctx.send(embed=embed)
         self.bot.add_cog(Events(self.bot, ctx))
 
     @commands.command(help='Changes volume to the value.')
