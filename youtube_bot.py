@@ -159,7 +159,7 @@ class Music(commands.Cog):
                 embeds.append(embed)
                 self.search_list.append('https://www.youtube.com' + _['url_suffix'])
                 i = i + 1
-            await ctx.send(embeds)
+            await ctx.send(embed=embeds)
         self.bot.add_cog(Events(self.bot, ctx))
 
     @commands.command(help='Changes volume to the value.')
