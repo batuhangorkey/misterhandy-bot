@@ -72,7 +72,7 @@ class Music(commands.Cog):
 
     async def audio_player(self):
         try:
-            while self.bot.voice_clients is not None:
+            while True:
                 self.play_next.clear()
                 current = await self.queue.get()
                 ctx = current[0]
@@ -208,6 +208,11 @@ class Music(commands.Cog):
             else:
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
+
+    @commands.command(help='Downloads video')
+    async def download(self, ctx, *, url):
+        player = await YTDLSource.from_url(url, loop=self.bot.loop)
+        await ctx.send(file=player)
 
 
 class Events(commands.Cog):
