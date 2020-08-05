@@ -170,8 +170,9 @@ class Music(commands.Cog):
             embed = discord.Embed(colour=0x8B0000)
             i = 1
             for _ in results:
-                k = [f"[{_['title']}](https://www.youtube.com{_['url_suffix']})", str(_['duration']), _['channel']]
-                embed.add_field(name=str(i), value=' - '.join(k))
+                k = [str(_['duration']), _['channel']]
+                embed.add_field(name=f"{str(i)} - [{_['title']}](https://www.youtube.com{_['url_suffix']})",
+                                value=' - '.join(k))
                 self.search_list.append('https://www.youtube.com' + _['url_suffix'])
                 i = i + 1
             await self.manage_last(await ctx.send(embed=embed))
