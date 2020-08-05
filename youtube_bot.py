@@ -77,6 +77,10 @@ class Music(commands.Cog):
         try:
             while True:
                 self.play_next.clear()
+                try:
+                    await self.bot.change_presence(activity=default_presence)
+                except AttributeError as error:
+                    print(error)
                 current = await self.queue.get()
                 ctx = current[0]
                 player = current[1]
