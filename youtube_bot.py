@@ -74,6 +74,8 @@ class Music(commands.Cog):
         try:
             while self.bot.voice_clients is not None:
                 self.play_next.clear()
+                if self.bot is not None:
+                    await self.bot.change_presence(activity=default_presence)
                 current = await self.queue.get()
                 ctx = current[0]
                 player = current[1]
@@ -117,7 +119,7 @@ class Music(commands.Cog):
             if ctx.voice_client.is_playing():
                 embed = discord.Embed(title=player.title, url=player.url, description='Sıraya eklendi', colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
-                await ctx.send(embed=embed)
+                await self.manage_last(await ctx.send(embed=embed))
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
@@ -129,7 +131,7 @@ class Music(commands.Cog):
             if ctx.voice_client.is_playing():
                 embed = discord.Embed(title=player.title, url=player.url, description='Sıraya eklendi', colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
-                await ctx.send(embed=embed)
+                await self.manage_last(await ctx.send(embed=embed))
 
     @commands.command(help='Plays the first result from a search string.')
     async def play(self, ctx, *, search_string):
