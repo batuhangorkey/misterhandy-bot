@@ -74,7 +74,6 @@ class Music(commands.Cog):
         try:
             while self.bot.voice_clients is not None:
                 self.play_next.clear()
-                await self.bot.change_presence(activity=default_presence)
                 current = await self.queue.get()
                 ctx = current[0]
                 player = current[1]
