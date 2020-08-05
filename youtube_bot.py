@@ -225,10 +225,10 @@ class Music(commands.Cog):
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
 
-    # @commands.command(help='Downloads video')
-    # async def download(self, ctx, *, url):
-    #     player = await YTDLSource.from_url(url, loop=self.bot.loop)
-    #     await ctx.send(file=player)
+    @commands.command(help='Downloads video')
+    async def download(self, ctx, *, url):
+        player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+        await ctx.send(file=player)
 
 
 class Events(commands.Cog):
