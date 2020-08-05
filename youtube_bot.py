@@ -74,6 +74,7 @@ class Music(commands.Cog):
         try:
             while self.bot.voice_clients is not None:
                 self.play_next.clear()
+                await self.bot.change_presence(activity=default_presence)
                 current = await self.queue.get()
                 ctx = current[0]
                 player = current[1]
@@ -136,7 +137,11 @@ class Music(commands.Cog):
         loop = self.bot.loop
         async with ctx.typing():
             result = YoutubeSearch(search_string, max_results=1).to_dict()
-            url = 'https://www.youtube.com' + result[0]['url_suffix']
+            try:
+                url = 'https://www.youtube.com' + result[0]['url_suffix']
+            except IndexError:
+                await ctx.send('Video bulamadım.')
+                return
             player = await YTDLSource.from_url(url, loop=loop)
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
@@ -144,7 +149,7 @@ class Music(commands.Cog):
                 embed.set_thumbnail(url=player.thumbnail)
                 await self.manage_last(await ctx.send(embed=embed))
 
-    @commands.command(help='Search youtube. 10 results')
+    @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
         self.search_list.clear()
         async with ctx.typing():
@@ -156,7 +161,7 @@ class Music(commands.Cog):
                 embed.add_field(name=str(i), value=' - '.join(k))
                 self.search_list.append('https://www.youtube.com' + _['url_suffix'])
                 i = i + 1
-            await ctx.send(embed=embed)
+            await self.manage_last(await ctx.send(embed=embed))
         self.bot.add_cog(Events(self.bot, ctx))
 
     @commands.command(help='Changes volume to the value.')
@@ -222,6 +227,6 @@ class Events(commands.Cog):
         if index < 1 or 10 < index:
             return
         music = self.bot.get_cog('Music')
-        await self.ctx.invoke(music.bot.get_command('yt'), url=music.search_list[index - 1])
+        await self.ctx.invoke(music.bot.get_command('stream'), url=music.search_list[index - 1])
         music.search_list.clear()
         self.bot.remove_cog('Events')
