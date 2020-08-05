@@ -29,7 +29,7 @@ ffmpeg_options = {
 
 # if not discord.opus.is_loaded():
 #     discord.opus.load_opus('opus')
-ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
+# ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 default_presence = discord.Activity(type=discord.ActivityType.listening, name='wasteland with sensors offline')
 
 
@@ -45,14 +45,15 @@ class YTDLSource(discord.PCMVolumeTransformer):
     async def from_url(cls, url, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
         try:
-            data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+            with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
+                data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
         except youtube_dl.utils.DownloadError as error:
             print(error)
             return
         if 'entries' in data:
             data = data['entries'][0]
-
-        filename = data['url'] if stream else ytdl.prepare_filename(data)
+        with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
+            filename = data['url'] if stream else ytdl.prepare_filename(data)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
@@ -170,9 +171,9 @@ class Music(commands.Cog):
             embed = discord.Embed(colour=0x8B0000)
             i = 1
             for _ in results:
-                k = [str(_['duration']), _['channel']]
-                embed.add_field(name=f"{str(i)} - [{_['title']}](https://www.youtube.com{_['url_suffix']})",
-                                value=' - '.join(k))
+                k = [str(i), str(_['duration']), _['channel']]
+                embed.add_field(name=' - '.join(k),
+                                value=f"[{_['title']}](https://www.youtube.com{_['url_suffix']})")
                 self.search_list.append('https://www.youtube.com' + _['url_suffix'])
                 i = i + 1
             await self.manage_last(await ctx.send(embed=embed))
