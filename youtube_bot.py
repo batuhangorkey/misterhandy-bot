@@ -228,7 +228,7 @@ class Music(commands.Cog):
     @commands.command(help='Downloads video')
     async def download(self, ctx, *, url):
         player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-        await ctx.send(file=player)
+        await ctx.send(file=player.url)
 
 
 class Events(commands.Cog):
