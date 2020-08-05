@@ -29,7 +29,7 @@ ffmpeg_options = {
 
 # if not discord.opus.is_loaded():
 #     discord.opus.load_opus('opus')
-# ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
+ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 default_presence = discord.Activity(type=discord.ActivityType.listening, name='wasteland with sensors offline')
 
 
@@ -44,7 +44,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
-        ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
 
         if 'entries' in data:
