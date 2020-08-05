@@ -44,8 +44,11 @@ class YTDLSource(discord.PCMVolumeTransformer):
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
-
+        try:
+            data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+        except youtube_dl.utils.DownloadError as error:
+            print(error)
+            return
         if 'entries' in data:
             data = data['entries'][0]
 
@@ -112,6 +115,8 @@ class Music(commands.Cog):
         loop = self.bot.loop
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop)
+            if player is None:
+                return await ctx.send('Birşeyler yanlış')
             # sıraya ekle
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
@@ -124,6 +129,8 @@ class Music(commands.Cog):
         loop = self.bot.loop
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=loop, stream=True)
+            if player is None:
+                return await ctx.send('Birşeyler yanlış')
             # sıraya ekle
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
@@ -142,6 +149,9 @@ class Music(commands.Cog):
                 await ctx.send('Video bulamadım.')
                 return
             player = await YTDLSource.from_url(url, loop=loop)
+            if player is None:
+                return await ctx.send('Birşeyler yanlış')
+            # sıraya ekle
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing():
                 embed = discord.Embed(title=player.title, url=player.url, description='Sıraya eklendi', colour=0x8B0000)
@@ -209,10 +219,10 @@ class Music(commands.Cog):
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
 
-    @commands.command(help='Downloads video')
-    async def download(self, ctx, *, url):
-        player = await YTDLSource.from_url(url, loop=self.bot.loop)
-        await ctx.send(file=player)
+    # @commands.command(help='Downloads video')
+    # async def download(self, ctx, *, url):
+    #     player = await YTDLSource.from_url(url, loop=self.bot.loop)
+    #     await ctx.send(file=player)
 
 
 class Events(commands.Cog):
