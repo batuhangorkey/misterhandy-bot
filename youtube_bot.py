@@ -37,8 +37,8 @@ def get_random_playlist():
     with open('random_playlist.txt', 'r') as f:
         playlist = []
         for _ in f.readlines():
-            _ = _.splitlines()
-            if _ is not None:
+            _ = _.rstrip('\n')
+            if _ != '':
                 playlist.append(_)
     print(playlist)
 
