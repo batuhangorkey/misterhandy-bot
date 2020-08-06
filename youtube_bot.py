@@ -33,6 +33,12 @@ ffmpeg_options = {
 default_presence = discord.Activity(type=discord.ActivityType.listening, name='wasteland with sensors offline')
 
 
+def get_random_playlist():
+    with open("random_playlist.txt", 'r') as f:
+        playlist = f.readlines()
+    print(playlist)
+
+
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
         super().__init__(source, volume)
@@ -65,6 +71,7 @@ class Music(commands.Cog):
         self.bot.loop.create_task(self.audio_player())
         self.search_list = []
         self.last_message = None
+        get_random_playlist()
 
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
@@ -85,10 +92,12 @@ class Music(commands.Cog):
                 current = await self.queue.get()
                 ctx = current[0]
                 player = current[1]
-                # ctx.voice_client.play(player, after=lambda e: loop.create_task(self.after_voice(e, ctx, loop=loop)))
                 ctx.voice_client.play(player,
                                       after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
-                embed = discord.Embed(title=player.title, url=player.url, description='Now playing', colour=0x8B0000)
+                embed = discord.Embed(title=player.title,
+                                      url=player.url,
+                                      description='Now playing',
+                                      colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
                 await self.manage_last(await ctx.send(embed=embed))
 
@@ -225,10 +234,14 @@ class Music(commands.Cog):
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
 
-    @commands.command(help='Downloads video')
-    async def download(self, ctx, *, url):
-        player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-        await ctx.send(file=player.url)
+    # @commands.command(help='Plays random songs')
+    # async def playrandom(self, ctx):
+
+    # Yapılmayı bekliyor
+    # @commands.command(help='Downloads video')
+    # async def download(self, ctx, *, url):
+    #     player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+    #     await ctx.send(file=player.url)
 
 
 class Events(commands.Cog):
