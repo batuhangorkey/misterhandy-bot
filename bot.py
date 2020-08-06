@@ -5,6 +5,7 @@ import pymysql
 
 from minigame import Minigame
 from youtube_bot import Music
+from kaiser import Kaiser
 from dotenv import load_dotenv
 from discord.ext import commands
 
@@ -20,8 +21,9 @@ client = discord.Client()
 bot = commands.Bot(command_prefix='!')
 
 
-def fetch_user_table():
+def fetch_user_tables():
     user_table = {}
+    kaiser_points = {}
     conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
     with conn.cursor() as cursor:
         cursor.execute('SELECT VERSION()')
@@ -34,8 +36,8 @@ def fetch_user_table():
 
     for row in data:
         user_table[int(row[0])] = int(row[1])
-
-    return user_table
+        kaiser_points[int(row[0])] = int(row[2])
+    return user_table, kaiser_points
 
 
 @bot.event
@@ -43,6 +45,9 @@ async def on_ready():
     print('{0.name} with ID: {0.id} has connected to Discord!'.format(bot.user))
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                         name='wasteland with sensors offline'))
+    bot.add_cog(Minigame(bot, user_table=fetch_user_tables()[0]))
+    # bot.add_cog(Kaiser(bot, kaiser_points=fetch_user_tables()[1]))
+    bot.add_cog(Music(bot))
 
 
 @bot.command(help='Roll dice.')
@@ -69,6 +74,4 @@ async def delete(ctx):
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
-bot.add_cog(Minigame(bot, user_table=fetch_user_table()))
-bot.add_cog(Music(bot))
 bot.run(TOKEN)
