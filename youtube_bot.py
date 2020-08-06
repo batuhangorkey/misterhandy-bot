@@ -34,8 +34,10 @@ default_presence = discord.Activity(type=discord.ActivityType.listening, name='w
 
 
 def get_random_playlist():
-    with open("random_playlist.txt", 'r') as f:
+    with open('random_playlist.txt', 'r') as f:
         playlist = f.readlines()
+        for _ in playlist:
+            _.splitlines()
     print(playlist)
 
 
