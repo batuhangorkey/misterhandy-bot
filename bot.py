@@ -5,7 +5,7 @@ import pymysql
 
 from minigame import Minigame
 from youtube_bot import Music
-from kaiser import Kaiser
+# from kaiser import Kaiser
 from dotenv import load_dotenv
 from discord.ext import commands
 
