@@ -37,7 +37,7 @@ def get_random_playlist():
     with open('random_playlist.txt', 'r') as f:
         playlist = f.readlines()
         for _ in playlist:
-            _.splitlines()
+            _ = _.strip()
     print(playlist)
 
 
