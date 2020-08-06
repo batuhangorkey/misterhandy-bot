@@ -36,7 +36,7 @@ def fetch_user_tables():
 
     for row in data:
         user_table[int(row[0])] = int(row[1])
-        kaiser_points[int(row[0])] = int(row[2])
+        # kaiser_points[int(row[0])] = int(row[2])
     return user_table, kaiser_points
 
 
