@@ -4,6 +4,7 @@
 import asyncio
 import discord
 import youtube_dl
+import random
 from discord.ext import commands
 from youtube_search import YoutubeSearch
 
@@ -40,7 +41,7 @@ def get_random_playlist():
             _ = _.rstrip('\n')
             if _ != '':
                 playlist.append(_)
-    print(playlist)
+    return playlist
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -72,10 +73,15 @@ class Music(commands.Cog):
         self.bot = bot
         self.queue = asyncio.Queue(loop=self.bot.loop)
         self.play_next = asyncio.Event(loop=self.bot.loop)
+
         self.bot.loop.create_task(self.audio_player())
         self.search_list = []
         self.last_message = None
-        get_random_playlist()
+        self.random_playlist = get_random_playlist()
+        self.play_random = False
+
+    def get_song_from_rnd_playlist(self):
+        return random.choice(self.random_playlist)
 
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
@@ -87,23 +93,26 @@ class Music(commands.Cog):
 
     async def audio_player(self):
         try:
+            global _ctx
             while True:
                 self.play_next.clear()
-                try:
-                    await self.bot.change_presence(activity=default_presence)
-                except AttributeError as error:
-                    print(error)
+                await self.bot.change_presence(activity=default_presence)
+
+                if self.queue.qsize() == 0 and self.play_random:
+                    player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
+                    await self.queue.put((_ctx, player))
+
                 current = await self.queue.get()
-                ctx = current[0]
+                _ctx = current[0]
                 player = current[1]
-                ctx.voice_client.play(player,
-                                      after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
+                _ctx.voice_client.play(player,
+                                       after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
                 embed = discord.Embed(title=player.title,
                                       url=player.url,
                                       description='Now playing',
                                       colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
-                await self.manage_last(await ctx.send(embed=embed))
+                await self.manage_last(await _ctx.send(embed=embed))
 
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(player.title)))
@@ -238,8 +247,9 @@ class Music(commands.Cog):
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
 
-    # @commands.command(help='Plays random songs')
-    # async def playrandom(self, ctx):
+    @commands.command(help='Plays random songs')
+    async def playrandom(self):
+        self.play_random = not self.play_random
 
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
