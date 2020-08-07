@@ -94,17 +94,18 @@ class Music(commands.Cog):
 
     async def audio_player(self):
         try:
+            global _ctx
             while True:
-                global _ctx
                 self.play_next.clear()
                 await self.bot.change_presence(activity=default_presence)
 
-                if _ctx is not None:
+                try:
                     async with _ctx.typing():
                         if self.queue.qsize() == 0 and self.play_random:
                             player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
                             await self.queue.put((_ctx, player))
-
+                except NameError:
+                    pass
                 current = await self.queue.get()
                 _ctx = current[0]
                 player = current[1]
@@ -137,10 +138,9 @@ class Music(commands.Cog):
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel = None):
         if ctx.voice_client is not None:
-            if channel is None:
-                return await ctx.author.voice.channel.connect(reconnect=False)
-            else:
-                return await ctx.voice_client.move_to(channel)
+            return await ctx.voice_client.move_to(channel)
+        if channel is None:
+            return await ctx.author.voice.channel.connect(reconnect=False)
         await channel.connect()
 
     @commands.command(help="Plays from a url.")
