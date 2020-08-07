@@ -14,20 +14,30 @@ DATABASE_NAME = os.getenv('DATABASE_NAME')
 messages = []
 
 
+def get_raw_word_list():
+    global f
+    _raw_word_list = []
+    try:
+        f = open('words.txt', 'r')
+        word = ''
+        for var in f.readline():
+            if var != ' ':
+                word += var
+            else:
+                _raw_word_list.append(word)
+                word = ''
+    finally:
+        f.close()
+    return _raw_word_list
+
+
+raw_word_list = get_raw_word_list()
+
+
 def initialize(word_length):
-    f = open("words.txt", 'r')
-    global_list = []
-    final_list = []
     words = []
-    word = ""
-    for var in f.readline():
-        if var != ' ':
-            word += var
-        else:
-            global_list.append(word)
-            word = ""
-    f.close()
-    for word in global_list:
+    final_list = []
+    for word in raw_word_list:
         if len(word) == word_length:
             words.append(word)
     if word_length < 15:
