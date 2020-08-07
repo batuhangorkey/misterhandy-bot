@@ -101,7 +101,7 @@ class Music(commands.Cog):
 
                 try:
                     async with _ctx.typing():
-                        if self.queue.qsize() == 0 and self.play_random:
+                        if self.queue.qsize() == 0 and self.play_random and _ctx.voice_client is not None:
                             player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
                             await self.queue.put((_ctx, player))
                 except NameError:
