@@ -248,8 +248,9 @@ class Music(commands.Cog):
                 raise commands.CommandError('Author not connected to a voice channel.')
 
     @commands.command(help='Plays random songs')
-    async def playrandom(self):
+    async def playrandom(self, ctx):
         self.play_random = not self.play_random
+        await ctx.send('Rastgele çalınıyor') if self.play_random else ctx.send('Rastgele çalma kapatıldı')
 
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
