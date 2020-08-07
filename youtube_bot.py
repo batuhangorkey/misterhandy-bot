@@ -49,7 +49,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         super().__init__(source, volume)
         self.data = data
         self.title = data.get('title')
-        self.url = data.get('url')
+        self.url = data.get('__url')
         self.thumbnail = data.get('thumbnail')
 
     @classmethod
@@ -65,6 +65,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             data = data['entries'][0]
         with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
             filename = data['url'] if stream else ytdl.prepare_filename(data)
+        data['__url'] = url
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
