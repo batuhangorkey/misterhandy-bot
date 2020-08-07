@@ -251,6 +251,11 @@ class Music(commands.Cog):
     async def playrandom(self, ctx):
         self.play_random = not self.play_random
         await ctx.send('Rastgele çalınıyor') if self.play_random else await ctx.send('Rastgele çalma kapatıldı')
+        if not self.play_random:
+            return
+        async with ctx.typing():
+            player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
+            await self.queue.put((_ctx, player))
 
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
