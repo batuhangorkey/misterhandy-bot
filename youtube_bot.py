@@ -137,11 +137,13 @@ class Music(commands.Cog):
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel = None):
         if ctx.voice_client is not None:
-            if channel is not None:
-                return await ctx.voice_client.move_to(channel)
-            else:
-                return await ctx.author.voice.channel.connect(reconnect=False)
-        await channel.connect()
+            return await ctx.voice_client.move_to(channel)
+        if channel is None:
+            print('None')
+        try:
+            await channel.connect()
+        except AttributeError:
+            return await ctx.author.voice.channel.connect(reconnect=False)
 
     @commands.command(help="Plays from a url.")
     async def yt(self, ctx, *, url):
