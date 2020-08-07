@@ -94,8 +94,8 @@ class Music(commands.Cog):
 
     async def audio_player(self):
         try:
-            global _ctx
             while True:
+                global _ctx
                 self.play_next.clear()
                 await self.bot.change_presence(activity=default_presence)
 
@@ -137,7 +137,7 @@ class Music(commands.Cog):
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel = None):
         if ctx.voice_client is not None:
-            if channel:
+            if channel is not None:
                 return await ctx.voice_client.move_to(channel)
             else:
                 return await ctx.author.voice.channel.connect(reconnect=False)
