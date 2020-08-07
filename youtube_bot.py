@@ -99,13 +99,11 @@ class Music(commands.Cog):
                 self.play_next.clear()
                 await self.bot.change_presence(activity=default_presence)
 
-                try:
+                if _ctx is not None:
                     async with _ctx.typing():
                         if self.queue.qsize() == 0 and self.play_random:
                             player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
                             await self.queue.put((_ctx, player))
-                except AttributeError as error:
-                    print(error)
 
                 current = await self.queue.get()
                 _ctx = current[0]
@@ -122,6 +120,8 @@ class Music(commands.Cog):
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(player.title)))
                 await self.play_next.wait()
+        except AttributeError as error:
+            print(error)
         except asyncio.CancelledError as error:
             print(error)
 
@@ -137,13 +137,11 @@ class Music(commands.Cog):
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel = None):
         if ctx.voice_client is not None:
-            return await ctx.voice_client.move_to(channel)
-        if channel is None:
-            print('None')
-        try:
-            await channel.connect()
-        except AttributeError:
-            return await ctx.author.voice.channel.connect(reconnect=False)
+            if channel is None:
+                return await ctx.author.voice.channel.connect(reconnect=False)
+            else:
+                return await ctx.voice_client.move_to(channel)
+        await channel.connect()
 
     @commands.command(help="Plays from a url.")
     async def yt(self, ctx, *, url):
