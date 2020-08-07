@@ -117,9 +117,10 @@ class Music(commands.Cog):
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(player.title)))
                 await self.play_next.wait()
-        except asyncio.CancelledError:
-            print('Cancelled audio player task.')
-            return
+        except AttributeError as error:
+            print(error)
+        except asyncio.CancelledError as error:
+            print(error)
 
     # async def after_voice(self, e: Exception, ctx, loop=None):
     #     if e is not None:
@@ -232,20 +233,12 @@ class Music(commands.Cog):
         for _ in range(self.queue.qsize()):
             self.queue.get_nowait()
             self.queue.task_done()
-        await ctx.voice_client.disconnect()
+        try:
+            await ctx.voice_client.disconnect()
+        except AttributeError as error:
+            print(error)
+            pass
         await self.bot.change_presence(activity=default_presence)
-
-    @yt.before_invoke
-    @stream.before_invoke
-    @play.before_invoke
-    @search.before_invoke
-    async def ensure_voice(self, ctx):
-        if ctx.voice_client is None:
-            if ctx.author.voice:
-                await ctx.author.voice.channel.connect(reconnect=False)
-            else:
-                await ctx.send('Ses kanalında değilsin.')
-                raise commands.CommandError('Author not connected to a voice channel.')
 
     @commands.command(help='Plays random songs')
     async def playrandom(self, ctx):
@@ -255,7 +248,20 @@ class Music(commands.Cog):
             return
         async with ctx.typing():
             player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
-            await self.queue.put((_ctx, player))
+            await self.queue.put((ctx, player))
+
+    @yt.before_invoke
+    @stream.before_invoke
+    @play.before_invoke
+    @search.before_invoke
+    @playrandom.before_invoke
+    async def ensure_voice(self, ctx):
+        if ctx.voice_client is None:
+            if ctx.author.voice:
+                await ctx.author.voice.channel.connect(reconnect=False)
+            else:
+                await ctx.send('Ses kanalında değilsin.')
+                raise commands.CommandError('Author not connected to a voice channel.')
 
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
