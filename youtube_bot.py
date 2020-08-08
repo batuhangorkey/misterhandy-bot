@@ -49,8 +49,9 @@ class YTDLSource(discord.PCMVolumeTransformer):
         super().__init__(source, volume)
         self.data = data
         self.title = data.get('title')
-        self.url = data.get('__url')
+        self.url = data.get('webpage_url')
         self.thumbnail = data.get('thumbnail')
+        self.uploader = data.get('uploader')
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
@@ -65,9 +66,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
             data = data['entries'][0]
         with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
             filename = data['url'] if stream else ytdl.prepare_filename(data)
-        data['__url'] = url
-        for _, x in data.items():
-            print(_, x)
+        # for _, x in data.items():
+        #     print(_, x)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
@@ -114,7 +114,7 @@ class Music(commands.Cog):
                 player = current[1]
                 _ctx.voice_client.play(player,
                                        after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
-                embed = discord.Embed(title=f'{player.title} - {player.channel}',
+                embed = discord.Embed(title=f'{player.title} - {player.uploader}',
                                       url=player.url,
                                       description='Şimdi oynatılıyor',
                                       colour=0x8B0000)
