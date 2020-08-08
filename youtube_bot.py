@@ -82,6 +82,7 @@ class Music(commands.Cog):
         self.last_message = None
         self.random_playlist = get_random_playlist()
         self.play_random = False
+        self._ctx = None
 
     def get_song_from_rnd_playlist(self):
         return random.choice(self.random_playlist)
@@ -111,6 +112,7 @@ class Music(commands.Cog):
 
                 current = await self.queue.get()
                 _ctx = current[0]
+                self._ctx = _ctx
                 player = current[1]
                 _ctx.voice_client.play(player,
                                        after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
@@ -119,7 +121,8 @@ class Music(commands.Cog):
                                       description='Şimdi oynatılıyor',
                                       colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
-                await self.manage_last(await _ctx.send(embed=embed))
+                async with _ctx.typing():
+                    await self.manage_last(await _ctx.send(embed=embed))
                 await self.last_message.add_reaction('\N{CROSS MARK}')
 
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
@@ -205,7 +208,7 @@ class Music(commands.Cog):
             k = '[{} - {}](https://www.youtube.com{})'
             embed.add_field(name=' - '.join([str(i), _['title']]),
                             value=k.format(_['channel'], _['duration'], _['url_suffix']))
-            self.search_list.append('https://www.youtube.com' + _['url_suffix'])
+            self.search_list.append('https://www.youtube.com{}'.format(_['url_suffix']))
             i = i + 1
         async with ctx.typing():
             await self.manage_last(await ctx.send(embed=embed))
@@ -273,6 +276,14 @@ class Music(commands.Cog):
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
 
+    @commands.Cog.listener
+    async def on_reaction_add(self, reaction):
+        try:
+            if reaction == self.last_message.reactions[0]:
+                await self._ctx.invoke(self.bot.get_command('skip'))
+        except IndexError as error:
+            print(error)
+
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
     # async def download(self, ctx, *, url):
@@ -285,7 +296,7 @@ class Events(commands.Cog):
         self.bot = bot
         self.ctx = ctx
 
-    @commands.Cog.listener()
+    @commands.Cog.listener
     async def on_message(self, msg):
         if msg.author == self.bot.user:
             return
