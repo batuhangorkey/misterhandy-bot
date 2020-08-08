@@ -277,7 +277,7 @@ class Music(commands.Cog):
                 raise commands.CommandError('Author not connected to a voice channel.')
 
     @commands.Cog.listener()
-    async def on_reaction_add(self, reaction):
+    async def on_reaction_add(self, reaction, user):
         try:
             if reaction == self.last_message.reactions[0]:
                 await self._ctx.invoke(self.bot.get_command('skip'))
