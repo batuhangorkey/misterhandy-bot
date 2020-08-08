@@ -51,7 +51,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.title = data.get('title')
         self.url = data.get('__url')
         self.thumbnail = data.get('thumbnail')
-        self.channel = data.get('channel')
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
@@ -67,6 +66,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
         with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
             filename = data['url'] if stream else ytdl.prepare_filename(data)
         data['__url'] = url
+        for _ in data:
+            print(_)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
@@ -238,6 +239,7 @@ class Music(commands.Cog):
 
     @commands.command(help='Disconnects the bot from voice channel.')
     async def stop(self, ctx):
+        self.play_random = False
         for _ in range(self.queue.qsize()):
             self.queue.get_nowait()
             self.queue.task_done()
