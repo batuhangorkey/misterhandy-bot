@@ -51,6 +51,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.title = data.get('title')
         self.url = data.get('__url')
         self.thumbnail = data.get('thumbnail')
+        self.channel = data.get('channel')
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
@@ -106,17 +107,19 @@ class Music(commands.Cog):
                             await self.queue.put((_ctx, player))
                 except NameError:
                     pass
+
                 current = await self.queue.get()
                 _ctx = current[0]
                 player = current[1]
                 _ctx.voice_client.play(player,
                                        after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
-                embed = discord.Embed(title=player.title,
+                embed = discord.Embed(title=f'{player.title} - {player.channel}',
                                       url=player.url,
-                                      description='Now playing',
+                                      description='Şimdi oynatılıyor',
                                       colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
                 await self.manage_last(await _ctx.send(embed=embed))
+                await self.last_message.add_reaction('\N{CROSS MARK}')
 
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(player.title)))
@@ -152,7 +155,7 @@ class Music(commands.Cog):
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
             # sıraya ekle
             await self.queue.put((ctx, player))
-            if ctx.voice_client.is_playing():
+            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
                 embed = discord.Embed(title=player.title, url=player.url, description='Sıraya eklendi', colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
                 await self.manage_last(await ctx.send(embed=embed))
@@ -166,7 +169,7 @@ class Music(commands.Cog):
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
             # sıraya ekle
             await self.queue.put((ctx, player))
-            if ctx.voice_client.is_playing():
+            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
                 embed = discord.Embed(title=player.title, url=player.url, description='Sıraya eklendi', colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
                 await self.manage_last(await ctx.send(embed=embed))
@@ -186,7 +189,7 @@ class Music(commands.Cog):
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
             # sıraya ekle
             await self.queue.put((ctx, player))
-            if ctx.voice_client.is_playing():
+            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
                 embed = discord.Embed(title=player.title, url=player.url, description='Sıraya eklendi', colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
                 await self.manage_last(await ctx.send(embed=embed))
@@ -199,9 +202,9 @@ class Music(commands.Cog):
             embed = discord.Embed(colour=0x8B0000)
             i = 1
             for _ in results:
-                k = [str(i), str(_['duration']), _['channel']]
-                embed.add_field(name=' - '.join(k),
-                                value=f"[{_['title']}](https://www.youtube.com{_['url_suffix']})")
+                k = '[{} - {}](https://www.youtube.com{})'
+                embed.add_field(name=' - '.join([str(i), _['title']]),
+                                value=k.format(_['channel'], _['duration'], _['url_suffix']))
                 self.search_list.append('https://www.youtube.com' + _['url_suffix'])
                 i = i + 1
             await self.manage_last(await ctx.send(embed=embed))
