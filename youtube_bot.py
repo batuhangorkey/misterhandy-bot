@@ -276,7 +276,7 @@ class Music(commands.Cog):
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
 
-    @commands.Cog.listener
+    @commands.Cog.listener()
     async def on_reaction_add(self, reaction):
         try:
             if reaction == self.last_message.reactions[0]:
@@ -296,7 +296,7 @@ class Events(commands.Cog):
         self.bot = bot
         self.ctx = ctx
 
-    @commands.Cog.listener
+    @commands.Cog.listener()
     async def on_message(self, msg):
         if msg.author == self.bot.user:
             return
