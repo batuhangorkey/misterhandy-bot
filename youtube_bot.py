@@ -66,8 +66,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
         with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
             filename = data['url'] if stream else ytdl.prepare_filename(data)
         data['__url'] = url
-        for _ in data:
-            print(_)
+        for _, x in data.items():
+            print(_, x)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
@@ -198,16 +198,16 @@ class Music(commands.Cog):
     @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
         self.search_list.clear()
+        results = YoutubeSearch(search_string, max_results=10).to_dict()
+        embed = discord.Embed(colour=0x8B0000)
+        i = 1
+        for _ in results:
+            k = '[{} - {}](https://www.youtube.com{})'
+            embed.add_field(name=' - '.join([str(i), _['title']]),
+                            value=k.format(_['channel'], _['duration'], _['url_suffix']))
+            self.search_list.append('https://www.youtube.com' + _['url_suffix'])
+            i = i + 1
         async with ctx.typing():
-            results = YoutubeSearch(search_string, max_results=10).to_dict()
-            embed = discord.Embed(colour=0x8B0000)
-            i = 1
-            for _ in results:
-                k = '[{} - {}](https://www.youtube.com{})'
-                embed.add_field(name=' - '.join([str(i), _['title']]),
-                                value=k.format(_['channel'], _['duration'], _['url_suffix']))
-                self.search_list.append('https://www.youtube.com' + _['url_suffix'])
-                i = i + 1
             await self.manage_last(await ctx.send(embed=embed))
         self.bot.add_cog(Events(self.bot, ctx))
 
