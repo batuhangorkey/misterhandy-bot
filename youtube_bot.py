@@ -279,7 +279,7 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
         try:
-            if reaction == self.last_message.reactions[0]:
+            if reaction == self.last_message.reactions[0] and not reaction.me:
                 await self._ctx.invoke(self.bot.get_command('skip'))
         except IndexError as error:
             print(error)
