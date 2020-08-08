@@ -101,8 +101,8 @@ class Music(commands.Cog):
                 await self.bot.change_presence(activity=default_presence)
 
                 try:
-                    async with _ctx.typing():
-                        if self.queue.qsize() == 0 and self.play_random and _ctx.voice_client is not None:
+                    if self.queue.qsize() == 0 and self.play_random and _ctx.voice_client is not None:
+                        async with _ctx.typing():
                             player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
                             await self.queue.put((_ctx, player))
                 except NameError:
