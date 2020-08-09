@@ -278,7 +278,7 @@ class Music(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
-        for _ in before.reactions:
+        for _ in after.reactions:
             print(_.emoji)
         if before.id == self.last_message.id and before.reactions != []:
             print('Debug 1')
