@@ -28,6 +28,12 @@ ffmpeg_options = {
     'options': '-vn'
 }
 
+player_emojis = {
+    'next_track': u'\u23ED',
+    'stop': u'\u23F9',
+    'play_pause': u'u\23EF'
+}
+
 # if not discord.opus.is_loaded():
 #     discord.opus.load_opus('opus')
 # ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
@@ -122,9 +128,9 @@ class Music(commands.Cog):
                                       colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
                 async with _ctx.typing():
-                    msg = await _ctx.send(embed=embed)
-                    await self.manage_last(msg)
-                    await msg.add_reaction(u'\u23EF')
+                    await self.manage_last(await _ctx.send(embed=embed))
+                    for _ in player_emojis.values():
+                        await self.last_message.add_reaction(_)
 
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(player.title)))
@@ -282,7 +288,20 @@ class Music(commands.Cog):
         if user.bot:
             return
         if reaction.count == 2:
-            await self._ctx.invoke(self.bot.get_command('skip'))
+            if reaction.emoji == player_emojis['next_track']:
+                return await self._ctx.invoke(self.bot.get_command('skip'))
+            if reaction.emoji == player_emojis['play_pause']:
+                return await self._ctx.invoke(self.bot.get_command('pause'))
+            if reaction.emoji == player_emojis['stop']:
+                return await self._ctx.invoke(self.bot.get_command('stop'))
+
+    @commands.Cog.listener()
+    async def on_reaction_remove(self, reaction, user):
+        if user.bot:
+            return
+        if reaction.count == 1:
+            if reaction.emoji == player_emojis['play_pause']:
+                return await self._ctx.invoke(self.bot.get_command('resume'))
 
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
