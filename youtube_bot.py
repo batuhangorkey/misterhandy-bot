@@ -122,8 +122,9 @@ class Music(commands.Cog):
                                       colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
                 async with _ctx.typing():
-                    await self.manage_last(await _ctx.send(embed=embed))
-                await self.last_message.add_reaction('\N{CROSS MARK}')
+                    msg = await _ctx.send(embed=embed)
+                    await msg.add_reaction('\N{CROSS MARK}')
+                await self.manage_last(msg)
 
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(player.title)))
@@ -280,11 +281,11 @@ class Music(commands.Cog):
     async def on_message_edit(self, before, after):
         print(len(after.reactions))
         try:
-            if before.id == self.last_message.id and after.reactions[0].count == 2:
+            if before.id == self.last_message.id and len(before.reactions) == 0:
                 print('Debug 1')
                 await self._ctx.invoke(self.bot.get_command('skip'))
         except IndexError as error:
-            print(error)
+            return print(error)
 
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
