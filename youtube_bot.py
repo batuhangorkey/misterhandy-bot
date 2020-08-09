@@ -289,7 +289,7 @@ class Music(commands.Cog):
     async def on_reaction_add(self, reaction, user):
         if user.bot:
             return
-        if reaction.count == 2:
+        if reaction.message.id == self.last_message.id:
             if reaction.emoji == player_emojis['next_track']:
                 return await self._ctx.invoke(self.bot.get_command('skip'))
             if reaction.emoji == player_emojis['play_pause']:
@@ -301,7 +301,7 @@ class Music(commands.Cog):
     async def on_reaction_remove(self, reaction, user):
         if user.bot:
             return
-        if reaction.count == 1:
+        if reaction.message.id == self.last_message.id:
             if reaction.emoji == player_emojis['play_pause']:
                 return await self._ctx.invoke(self.bot.get_command('resume'))
 
