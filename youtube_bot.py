@@ -278,14 +278,9 @@ class Music(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        try:
-            print(reaction.message.id, self.last_message.id)
-            print(reaction.message.id == self.last_message.id)
-            print(reaction.me)
-            if reaction.message.id == self.last_message.id and not reaction.me:
-                await self._ctx.invoke(self.bot.get_command('skip'))
-        except IndexError as error:
-            print(error)
+        if reaction.message.id == self.last_message.id and not reaction.me:
+            print('Debug 1')
+            await self._ctx.invoke(self.bot.get_command('skip'))
 
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
