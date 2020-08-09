@@ -31,7 +31,7 @@ ffmpeg_options = {
 player_emojis = {
     'next_track': u'\u23ED',
     'stop': u'\u23F9',
-    'play_pause': u'u\23EF'
+    'play_pause': u'\u23EF'
 }
 
 # if not discord.opus.is_loaded():
