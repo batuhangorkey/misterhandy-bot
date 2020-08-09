@@ -124,7 +124,7 @@ class Music(commands.Cog):
                 async with _ctx.typing():
                     msg = await _ctx.send(embed=embed)
                     await self.manage_last(msg)
-                    await msg.add_reaction('\N{CROSS MARK}')
+                    await msg.add_reaction(':track_next:')
 
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(player.title)))
@@ -278,12 +278,11 @@ class Music(commands.Cog):
                 raise commands.CommandError('Author not connected to a voice channel.')
 
     @commands.Cog.listener()
-    async def on_message_edit(self, before, after):
-        print(len(self.last_message.reactions))
-
-    @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
-        print('Reaction')
+        if user.bot:
+            return
+        if reaction.count == 2:
+            await self._ctx.invoke(self.bot.get_command('skip'))
 
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
