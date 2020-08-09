@@ -278,9 +278,7 @@ class Music(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
-        for _ in after.reactions:
-            print(_.emoji)
-        if before.id == self.last_message.id and before.reactions != []:
+        if before.id == self.last_message.id and after.reactions[0].count == 2:
             print('Debug 1')
             await self._ctx.invoke(self.bot.get_command('skip'))
 
