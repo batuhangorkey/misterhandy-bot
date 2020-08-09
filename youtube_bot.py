@@ -278,10 +278,13 @@ class Music(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
-        print(after.reactions.count)
-        if before.id == self.last_message.id and after.reactions[0].count == 2:
-            print('Debug 1')
-            await self._ctx.invoke(self.bot.get_command('skip'))
+        print(after.reactions.count())
+        try:
+            if before.id == self.last_message.id and after.reactions[0].count == 2:
+                print('Debug 1')
+                await self._ctx.invoke(self.bot.get_command('skip'))
+        except IndexError as error:
+            print(error)
 
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
