@@ -279,13 +279,9 @@ class Music(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
-        print(len(after.reactions))
-        try:
-            if before.id == self.last_message.id and len(before.reactions) == 0:
-                print('Debug 1')
-                await self._ctx.invoke(self.bot.get_command('skip'))
-        except IndexError as error:
-            return print(error)
+        print(len(self.last_message.reactions))
+        if '\N{CROSS MARK}' in self.last_message.reactions:
+            pass
 
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
