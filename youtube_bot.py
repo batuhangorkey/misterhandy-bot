@@ -278,7 +278,7 @@ class Music(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
-        print(after.reactions.count())
+        print(len(after.reactions))
         try:
             if before.id == self.last_message.id and after.reactions[0].count == 2:
                 print('Debug 1')
