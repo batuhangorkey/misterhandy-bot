@@ -279,6 +279,7 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
         try:
+            print(reaction.message.id, self.last_message.id)
             if reaction.message.id == self.last_message.id and not reaction.me:
                 await self._ctx.invoke(self.bot.get_command('skip'))
         except IndexError as error:
@@ -307,6 +308,6 @@ class Events(commands.Cog):
         if index < 1 or 10 < index:
             return
         music = self.bot.get_cog('Music')
-        await self.ctx.invoke(music.bot.get_command('stream'), url=music.search_list[index - 1])
+        await self.ctx.invoke(music.bot.get_command('yt'), url=music.search_list[index - 1])
         music.search_list.clear()
         self.bot.remove_cog('Events')
