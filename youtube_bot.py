@@ -123,8 +123,8 @@ class Music(commands.Cog):
                 embed.set_thumbnail(url=player.thumbnail)
                 async with _ctx.typing():
                     msg = await _ctx.send(embed=embed)
+                    await self.manage_last(msg)
                     await msg.add_reaction('\N{CROSS MARK}')
-                await self.manage_last(msg)
 
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(player.title)))
