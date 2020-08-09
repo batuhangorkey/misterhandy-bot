@@ -124,7 +124,7 @@ class Music(commands.Cog):
                 async with _ctx.typing():
                     msg = await _ctx.send(embed=embed)
                     await self.manage_last(msg)
-                    await msg.add_reaction(':track_next:')
+                    await msg.add_reaction(self.bot.get_emoji(742067693083033632))
 
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(player.title)))
