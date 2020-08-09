@@ -280,8 +280,10 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
         print(len(self.last_message.reactions))
-        if '\N{CROSS MARK}' in self.last_message.reactions:
-            pass
+
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction, user):
+        print('Reaction')
 
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
