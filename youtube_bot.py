@@ -137,6 +137,8 @@ class Music(commands.Cog):
                 await self.play_next.wait()
         except AttributeError as error:
             print(error)
+        except discord.errors.HTTPException as error:
+            print(error)
         except asyncio.CancelledError as error:
             print(error)
 
