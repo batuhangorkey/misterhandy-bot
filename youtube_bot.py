@@ -173,9 +173,10 @@ class Music(commands.Cog):
             # sıraya ekle
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
-                embed = discord.Embed(title=player.title, url=player.url, description='Sıraya eklendi', colour=0x8B0000)
-                embed.set_thumbnail(url=player.thumbnail)
-                await self.manage_last(await ctx.send(embed=embed))
+                embed = self.last_message.embeds[0]
+                embed.add_field(name=str(self.queue.qsize()),
+                                value=player.title)
+                await self.last_message.edit(embed=embed)
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
@@ -187,9 +188,10 @@ class Music(commands.Cog):
             # sıraya ekle
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
-                embed = discord.Embed(title=player.title, url=player.url, description='Sıraya eklendi', colour=0x8B0000)
-                embed.set_thumbnail(url=player.thumbnail)
-                await self.manage_last(await ctx.send(embed=embed))
+                embed = self.last_message.embeds[0]
+                embed.add_field(name=str(self.queue.qsize()),
+                                value=player.title)
+                await self.last_message.edit(embed=embed)
 
     @commands.command(help='Plays the first result from a search string.')
     async def play(self, ctx, *, search_string):
