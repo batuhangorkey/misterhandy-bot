@@ -129,7 +129,8 @@ class Music(commands.Cog):
                 embed = discord.Embed(title=f'{player.title} - {player.uploader}',
                                       url=player.url,
                                       description='Şimdi oynatılıyor',
-                                      colour=0x8B0000)
+                                      colour=0x8B0000,
+                                      footer='Yerli ve Milli İlk Video Oynatıcısı: Ozan')
                 embed.set_thumbnail(url=player.thumbnail)
                 async with _ctx.typing():
                     if self.last_message:
@@ -181,12 +182,12 @@ class Music(commands.Cog):
             # sıraya ekle
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
-                embed = discord.Embed(title=player.title,
-                                      url=player.url,
-                                      description='Sıraya eklendi',
-                                      colour=0x8B0000)
-                embed.set_thumbnail(url=player.thumbnail)
+                embed = self.last_message.embeds[0]
+                embed.add_field(name=str(self.queue.qsize()),
+                                value=player.title)
                 await self.manage_last(await ctx.send(embed=embed))
+                for _ in player_emojis.values():
+                    await self.last_message.add_reaction(_)
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
@@ -197,12 +198,12 @@ class Music(commands.Cog):
             # sıraya ekle
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
-                embed = discord.Embed(title=player.title,
-                                      url=player.url,
-                                      description='Sıraya eklendi',
-                                      colour=0x8B0000)
-                embed.set_thumbnail(url=player.thumbnail)
+                embed = self.last_message.embeds[0]
+                embed.add_field(name=str(self.queue.qsize()),
+                                value=player.title)
                 await self.manage_last(await ctx.send(embed=embed))
+                for _ in player_emojis.values():
+                    await self.last_message.add_reaction(_)
 
     @commands.command(help='Plays the first result from a search string.')
     async def play(self, ctx, *, search_string):
@@ -267,13 +268,17 @@ class Music(commands.Cog):
     async def pause(self, ctx):
         if ctx.voice_client is not None:
             ctx.voice_client.pause()
-            # await ctx.send('Video durduruldu.')
+            embed = self.last_message.embeds[0]
+            embed.description = 'Durduruldu'
+            await self.last_message.edit(embed=embed)
 
     @commands.command(help='Resumes')
     async def resume(self, ctx):
         if ctx.voice_client is not None:
             ctx.voice_client.resume()
-            # await ctx.send('Videoya devam.')
+            embed = self.last_message.embeds[0]
+            embed.description = 'Oynatılıyor'
+            await self.last_message.edit(embed=embed)
 
     @commands.command(help='Skips current video.')
     async def skip(self, ctx):
