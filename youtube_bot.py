@@ -132,13 +132,13 @@ class Music(commands.Cog):
                                       colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
                 async with _ctx.typing():
+                    await self.manage_last(await _ctx.send(embed=embed))
                     embed = self.last_message.embeds[0]
                     if len(embed.fields) != 0:
                         embed.remove_field(0)
-                    for _ in embed.fields:
-                        _.name = str(self.queue.qsize())
+                        for _ in embed.fields:
+                            _.name = str(self.queue.qsize())
                     self.last_message.edit(embed=embed)
-                    await self.manage_last(await _ctx.send(embed=embed))
                     for _ in player_emojis.values():
                         await self.last_message.add_reaction(_)
 
@@ -308,6 +308,16 @@ class Music(commands.Cog):
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
 
+    # @commands.command(help='Go to the time on the video')
+    # async def goto(self, ctx, time: int):
+
+    # Yapılmayı bekliyor
+    # @commands.command(help='Downloads video')
+    # async def download(self, ctx, *, url):
+    #     player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+    #     await ctx.send(file=player.url)
+
+    # Player events
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
         if user.bot:
@@ -327,12 +337,6 @@ class Music(commands.Cog):
         if reaction.message.id == self.last_message.id:
             if reaction.emoji == player_emojis['play_pause']:
                 return await self._ctx.invoke(self.bot.get_command('resume'))
-
-    # Yapılmayı bekliyor
-    # @commands.command(help='Downloads video')
-    # async def download(self, ctx, *, url):
-    #     player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-    #     await ctx.send(file=player.url)
 
 
 class Events(commands.Cog):
