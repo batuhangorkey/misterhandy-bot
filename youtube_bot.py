@@ -166,9 +166,8 @@ class Music(commands.Cog):
     # Şarkı oynatma komutları
     @commands.command(help="Plays from a url.")
     async def yt(self, ctx, *, url):
-        loop = self.bot.loop
         async with ctx.typing():
-            player = await YTDLSource.from_url(url, loop=loop)
+            player = await YTDLSource.from_url(url, loop=self.bot.loop)
             if player is None:
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
             # sıraya ekle
@@ -183,9 +182,8 @@ class Music(commands.Cog):
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
-        loop = self.bot.loop
         async with ctx.typing():
-            player = await YTDLSource.from_url(url, loop=loop, stream=True)
+            player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
             if player is None:
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
             # sıraya ekle
@@ -200,7 +198,6 @@ class Music(commands.Cog):
 
     @commands.command(help='Plays the first result from a search string.')
     async def play(self, ctx, *, search_string):
-        loop = self.bot.loop
         async with ctx.typing():
             result = YoutubeSearch(search_string, max_results=1).to_dict()
             try:
@@ -208,7 +205,7 @@ class Music(commands.Cog):
             except IndexError:
                 await ctx.send('Video bulamadım. Bir daha dene')
                 return
-            player = await YTDLSource.from_url(url, loop=loop)
+            player = await YTDLSource.from_url(url, loop=self.bot.loop)
             if player is None:
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
             # sıraya ekle
@@ -236,6 +233,18 @@ class Music(commands.Cog):
         async with ctx.typing():
             await self.manage_last(await ctx.send(embed=embed))
         self.bot.add_cog(Events(self.bot, ctx))
+
+    @commands.command(help='Plays random songs')
+    async def playrandom(self, ctx):
+        if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
+            if not self.play_random:
+                async with ctx.typing():
+                    player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
+                    if player is None:
+                        return await ctx.send('Birşeyler yanlış. Bir daha dene')
+                    await self.queue.put((ctx, player))
+        self.play_random = not self.play_random
+        await ctx.send('Rastgele çalınıyor') if self.play_random else await ctx.send('Rastgele çalma kapatıldı')
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
@@ -275,18 +284,6 @@ class Music(commands.Cog):
             print(error)
             pass
         await self.bot.change_presence(activity=default_presence)
-
-    @commands.command(help='Plays random songs')
-    async def playrandom(self, ctx):
-        self.play_random = not self.play_random
-        await ctx.send('Rastgele çalınıyor') if self.play_random else await ctx.send('Rastgele çalma kapatıldı')
-        if not self.play_random:
-            return
-        if ctx.voice_client.is_playing() or ctx.voice_client.is_playing():
-            return
-        async with ctx.typing():
-            player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
-            await self.queue.put((ctx, player))
 
     @yt.before_invoke
     @stream.before_invoke
