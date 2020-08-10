@@ -240,13 +240,13 @@ class Music(commands.Cog):
     async def pause(self, ctx):
         if ctx.voice_client is not None:
             ctx.voice_client.pause()
-            await ctx.send('Video durduruldu.')
+            # await ctx.send('Video durduruldu.')
 
     @commands.command(help='Resumes')
     async def resume(self, ctx):
         if ctx.voice_client is not None:
             ctx.voice_client.resume()
-            await ctx.send('Videoya devam.')
+            # await ctx.send('Videoya devam.')
 
     @commands.command(help='Skips current video.')
     async def skip(self, ctx):
