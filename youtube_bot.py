@@ -163,6 +163,7 @@ class Music(commands.Cog):
             return await ctx.author.voice.channel.connect(reconnect=False)
         await channel.connect()
 
+    # Şarkı oynatma komutları
     @commands.command(help="Plays from a url.")
     async def yt(self, ctx, *, url):
         loop = self.bot.loop
