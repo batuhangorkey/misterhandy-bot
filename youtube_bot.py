@@ -220,7 +220,7 @@ class Music(commands.Cog):
     async def queue_message(self, ctx):
         player = ctx.voice_client.source
         if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
-            embed = self.last_message.embed
+            embed = self.last_message.embeds[0]
             embed.add_field(name=str(self.queue.qsize()),
                             value=player.title)
             await self.last_message.edit(embed=embed)
