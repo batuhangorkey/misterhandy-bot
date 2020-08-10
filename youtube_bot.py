@@ -29,9 +29,9 @@ ffmpeg_options = {
 }
 
 player_emojis = {
-    'next_track': u'\u23ED',
     'stop': u'\u23F9',
-    'play_pause': u'\u23EF'
+    'play_pause': u'\u23EF',
+    'next_track': u'\u23ED'
 }
 
 # if not discord.opus.is_loaded():
@@ -91,7 +91,11 @@ class Music(commands.Cog):
         self._ctx = None
 
     def get_song_from_rnd_playlist(self):
-        return random.choice(self.random_playlist)
+        if len(self.random_playlist) == 0:
+            self.random_playlist = get_random_playlist()
+        song = random.choice(self.random_playlist)
+        self.random_playlist.remove(song)
+        return song
 
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
