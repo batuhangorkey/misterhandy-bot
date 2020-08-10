@@ -206,10 +206,24 @@ class Music(commands.Cog):
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
             # sıraya ekle
             await self.queue.put((ctx, player))
-            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
-                embed = discord.Embed(title=player.title, url=player.url, description='Sıraya eklendi', colour=0x8B0000)
-                embed.set_thumbnail(url=player.thumbnail)
-                await self.manage_last(await ctx.send(embed=embed))
+            # if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
+            #     embed = discord.Embed(title=player.title,
+            #                           url=player.url,
+            #                           description='Sıraya eklendi',
+            #                           colour=0x8B0000)
+            #     embed.set_thumbnail(url=player.thumbnail)
+            #     await self.manage_last(await ctx.send(embed=embed))
+
+    @yt.after_invoke
+    @stream.after_invoke
+    @play.after_invoke
+    async def queue_message(self, ctx):
+        player = ctx.voice_client.source
+        if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
+            embed = self.last_message.embed
+            embed.add_field(name=str(self.queue.qsize()),
+                            value=player.title)
+            await self.last_message.edit(embed=embed)
 
     @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
@@ -271,6 +285,8 @@ class Music(commands.Cog):
         self.play_random = not self.play_random
         await ctx.send('Rastgele çalınıyor') if self.play_random else await ctx.send('Rastgele çalma kapatıldı')
         if not self.play_random:
+            return
+        if ctx.voice_client.is_playing() or ctx.voice_client.is_playing():
             return
         async with ctx.typing():
             player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
