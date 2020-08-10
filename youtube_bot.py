@@ -133,12 +133,13 @@ class Music(commands.Cog):
                 embed.set_thumbnail(url=player.thumbnail)
                 async with _ctx.typing():
                     if self.last_message:
-                        embed = self.last_message.embeds[0]
-                        if len(embed.fields) != 0:
-                            embed.remove_field(0)
-                            for _ in embed.fields:
-                                _.name = str(self.queue.qsize())
-                            await self.last_message.edit(embed=embed)
+                        _embed = self.last_message.embeds[0]
+                        if len(_embed.fields) > 1:
+                            _embed.remove_field(0)
+                            for _ in _embed.fields:
+                                embed.add_field(name=str(self.queue.qsize()),
+                                                value=_.value)
+
                     await self.manage_last(await _ctx.send(embed=embed))
                     for _ in player_emojis.values():
                         await self.last_message.add_reaction(_)
