@@ -129,9 +129,8 @@ class Music(commands.Cog):
                 embed = discord.Embed(title=f'{player.title} - {player.uploader}',
                                       url=player.url,
                                       description='Şimdi oynatılıyor',
-                                      colour=0x8B0000,
-                                      footer='Yerli ve Milli İlk Video Oynatıcısı: Ozan')
-                embed.set_thumbnail(url=player.thumbnail)
+                                      colour=0x8B0000)
+                embed.set_thumbnail(url=player.thumbnail).set_footer(text='Yerli ve Milli İlk Video Oynatıcısı: Ozan')
                 async with _ctx.typing():
                     if self.last_message:
                         _embed = self.last_message.embeds[0]
