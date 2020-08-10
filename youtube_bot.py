@@ -138,7 +138,7 @@ class Music(commands.Cog):
                         embed.remove_field(0)
                         for _ in embed.fields:
                             _.name = str(self.queue.qsize())
-                    self.last_message.edit(embed=embed)
+                    await self.last_message.edit(embed=embed)
                     for _ in player_emojis.values():
                         await self.last_message.add_reaction(_)
 
@@ -220,13 +220,9 @@ class Music(commands.Cog):
                 embed = self.last_message.embeds[0]
                 embed.add_field(name=str(self.queue.qsize()),
                                 value=player.title)
-                # await self.last_message.edit(embed=embed)
-                # embed = discord.Embed(title=player.title,
-                #                       url=player.url,
-                #                       description='Sıraya eklendi',
-                #                       colour=0x8B0000)
-                # embed.set_thumbnail(url=player.thumbnail)
                 await self.manage_last(await ctx.send(embed=embed))
+                for _ in player_emojis.values():
+                    await self.last_message.add_reaction(_)
 
     @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
