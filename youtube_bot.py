@@ -271,7 +271,7 @@ class Music(commands.Cog):
 
     @commands.command(help='Pauses')
     async def pause(self, ctx):
-        if ctx.voice_client is not None:
+        if ctx.voice_client is not None and ctx.voice_client.source:
             ctx.voice_client.pause()
             embed = self.last_message.embeds[0]
             embed.description = 'Durduruldu'
@@ -279,7 +279,7 @@ class Music(commands.Cog):
 
     @commands.command(help='Resumes')
     async def resume(self, ctx):
-        if ctx.voice_client is not None:
+        if ctx.voice_client is not None and ctx.voice_client.source:
             ctx.voice_client.resume()
             embed = self.last_message.embeds[0]
             embed.description = 'Oynatılıyor'
