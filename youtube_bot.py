@@ -112,15 +112,17 @@ class Music(commands.Cog):
                 self.play_next.clear()
 
                 try:
-                    if self.queue.qsize() == 0 and self.play_random and _ctx.voice_client is not None:
-                        async with _ctx.typing():
-                            player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
-                            await self.queue.put((_ctx, player))
-                    elif self.queue.qsize() == 0:
-                        await self.bot.change_presence(activity=default_presence)
-                        embed = self.last_message.embeds[0]
-                        embed.description = 'Video bitti'
-                        await self.last_message.edit(embed=embed)
+                    if self.queue.qsize() == 0:
+                        if self.play_random and _ctx.voice_client is not None:
+                            async with _ctx.typing():
+                                player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(),
+                                                                   loop=self.bot.loop)
+                                await self.queue.put((_ctx, player))
+                        else:
+                            await self.bot.change_presence(activity=default_presence)
+                            embed = self.last_message.embeds[0]
+                            embed.description = 'Video bitti'
+                            await self.last_message.edit(embed=embed)
                 except NameError:
                     pass
 
