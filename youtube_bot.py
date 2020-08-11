@@ -118,7 +118,7 @@ class Music(commands.Cog):
                                 player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(),
                                                                    loop=self.bot.loop)
                                 await self.queue.put((_ctx, player))
-                        else:
+                        elif self.last_message:
                             await self.bot.change_presence(activity=default_presence)
                             embed = self.last_message.embeds[0]
                             embed.description = 'Video bitti'
