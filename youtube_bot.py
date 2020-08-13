@@ -174,7 +174,7 @@ class Music(commands.Cog):
         if ctx.voice_client is not None:
             return await ctx.voice_client.move_to(channel)
         if channel is None:
-            return await ctx.author.voice.channel.connect(reconnect=False)
+            return await ctx.author.voice.channel.connect()
         await channel.connect()
 
     # Şarkı oynatma komutları
@@ -311,7 +311,7 @@ class Music(commands.Cog):
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
-                await ctx.author.voice.channel.connect(reconnect=False)
+                await ctx.author.voice.channel.connect()
             else:
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
