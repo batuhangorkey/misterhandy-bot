@@ -134,6 +134,7 @@ class Music(commands.Cog):
                 player = current[1]
                 _ctx.voice_client.play(player,
                                        after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
+
                 embed = discord.Embed(title=f'{player.title} - {player.uploader}',
                                       url=player.url,
                                       description='Şimdi oynatılıyor',
@@ -147,7 +148,6 @@ class Music(commands.Cog):
                             for _ in _embed.fields:
                                 embed.add_field(name=str(self.queue.qsize()),
                                                 value=_.value)
-
                     await self.manage_last(await _ctx.send(embed=embed))
                     for _ in player_emojis.values():
                         await self.last_message.add_reaction(_)
@@ -173,7 +173,7 @@ class Music(commands.Cog):
 
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel = None):
-        if ctx.voice_client is not None:
+        if ctx.voice_client:
             return await ctx.voice_client.move_to(channel)
         if channel is None:
             return await ctx.author.voice.channel.connect()
@@ -262,6 +262,19 @@ class Music(commands.Cog):
         self.play_random = not self.play_random
         await ctx.send('Rastgele çalınıyor') if self.play_random else await ctx.send('Rastgele çalma kapatıldı')
 
+    @yt.before_invoke
+    @stream.before_invoke
+    @play.before_invoke
+    @search.before_invoke
+    @playrandom.before_invoke
+    async def ensure_voice(self, ctx):
+        if ctx.voice_client is None:
+            if ctx.author.voice:
+                await ctx.author.voice.channel.connect()
+            else:
+                await ctx.send('Ses kanalında değilsin.')
+                raise commands.CommandError('Author not connected to a voice channel.')
+
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
         await ctx.message.delete()
@@ -305,6 +318,7 @@ class Music(commands.Cog):
             pass
         await self.bot.change_presence(activity=default_presence)
 
+    # Bu şekilde çalışmıyor
     # @commands.command(help='Go to the time on the video')
     # async def goto(self, ctx, time: str):
     #     async with ctx.typing():
@@ -323,19 +337,6 @@ class Music(commands.Cog):
     #     if ctx.voice_client.source is None:
     #         await ctx.send('Ortada ileri alınacak video yok.')
     #         raise commands.CommandError('Audio source empty.')
-
-    @yt.before_invoke
-    @stream.before_invoke
-    @play.before_invoke
-    @search.before_invoke
-    @playrandom.before_invoke
-    async def ensure_voice(self, ctx):
-        if ctx.voice_client is None:
-            if ctx.author.voice:
-                await ctx.author.voice.channel.connect()
-            else:
-                await ctx.send('Ses kanalında değilsin.')
-                raise commands.CommandError('Author not connected to a voice channel.')
 
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
