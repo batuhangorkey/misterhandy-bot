@@ -305,24 +305,24 @@ class Music(commands.Cog):
             pass
         await self.bot.change_presence(activity=default_presence)
 
-    @commands.command(help='Go to the time on the video')
-    async def goto(self, ctx, time: str):
-        async with ctx.typing():
-            player = await YTDLSource.from_url(url=ctx.voice_client.source.url + '&t=' + time,
-                                               loop=self.bot.loop)
-        await self.queue.put((ctx, player))
-        for _ in range(self.queue.qsize() - 1):
-            a = self.queue.get_nowait()
-            self.queue.task_done()
-            self.queue.put_nowait(a)
-        await self._ctx.invoke(self.bot.get_command('skip'))
-        await ctx.send('Mevcut şarkıda {}ıncı saniyeye gidiliyor.'.format(time))
-
-    @goto.before_invoke
-    async def ensure_source(self, ctx):
-        if ctx.voice_client.source is None:
-            await ctx.send('Ortada ileri alınacak video yok.')
-            raise commands.CommandError('Audio source empty.')
+    # @commands.command(help='Go to the time on the video')
+    # async def goto(self, ctx, time: str):
+    #     async with ctx.typing():
+    #         player = await YTDLSource.from_url(url=ctx.voice_client.source.url + '&t=' + time,
+    #                                            loop=self.bot.loop)
+    #     await self.queue.put((ctx, player))
+    #     for _ in range(self.queue.qsize() - 1):
+    #         a = self.queue.get_nowait()
+    #         self.queue.task_done()
+    #         self.queue.put_nowait(a)
+    #     await self._ctx.invoke(self.bot.get_command('skip'))
+    #     await ctx.send('Mevcut şarkıda {}ıncı saniyeye gidiliyor.'.format(time))
+    #
+    # @goto.before_invoke
+    # async def ensure_source(self, ctx):
+    #     if ctx.voice_client.source is None:
+    #         await ctx.send('Ortada ileri alınacak video yok.')
+    #         raise commands.CommandError('Audio source empty.')
 
     @yt.before_invoke
     @stream.before_invoke
