@@ -69,8 +69,12 @@ async def del_bot(ctx):
 
 
 @bot.command(help='Tries to purge messages. Max limit 50')
-async def delete(ctx):
-    deleted = await ctx.channel.purge(limit=50)
+async def delete(ctx, limit: int = None):
+    if limit is None:
+        limit = 50
+    if limit > 50:
+        limit = 50
+    deleted = await ctx.channel.purge(limit=limit)
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
