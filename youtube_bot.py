@@ -44,9 +44,12 @@ def get_random_playlist():
     with open('random_playlist.txt', 'r') as f:
         playlist = []
         for _ in f.readlines():
+            if _[0] == '#':
+                continue
             _ = _.rstrip('\n')
             if _ != '':
                 playlist.append(_)
+    print('\n'.join(playlist))
     return playlist
 
 
