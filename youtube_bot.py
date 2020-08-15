@@ -49,7 +49,6 @@ def get_random_playlist():
             _ = _.rstrip('\n')
             if _ != '':
                 playlist.append(_)
-    print('\n'.join(playlist))
     return playlist
 
 
