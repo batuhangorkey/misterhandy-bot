@@ -350,7 +350,6 @@ class Music(commands.Cog):
             with conn.cursor() as cursor:
                 cursor.execute('SELECT url FROM playlist where url="{}"'.format(url))
                 data = cursor.fetchone()
-                print(data)
             if data:
                 self.refresh_playlist()
                 await ctx.send('Şarkı eklendi. Teşekkürler')
