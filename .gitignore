@@ -10,3 +10,4 @@ __pycache__/minigame.cpython-37.pyc
 .idea/dictionaries/Batuhan.xml
 heroku_logs.bat
 db_scripts/get_playlist.py
+db_scripts/upload_links.py
