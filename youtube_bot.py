@@ -340,7 +340,9 @@ class Music(commands.Cog):
         await self.bot.change_presence(activity=self.default_presence)
 
     @commands.command(help='Adds song to bot playlist')
-    async def add_link(self, ctx, *, url):
+    async def add_link(self, ctx, *, url: str):
+        if len(url) != 43 or not url.startswith('https://www.youtube.com/watch?v='):
+            return await ctx.send('Linkini kontrol et. Tam link atmalısın')
         conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
         try:
             with conn.cursor() as cursor:
