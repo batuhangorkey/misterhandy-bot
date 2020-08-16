@@ -28,8 +28,7 @@ def fetch_user_tables():
     conn = pymysql.connect(str(HOST),
                            str(USER_ID),
                            str(PASSWORD),
-                           str(DATABASE_NAME),
-                           cursorclass=pymysql.cursors.DictCursor)
+                           str(DATABASE_NAME))
     with conn.cursor() as cursor:
         cursor.execute('SELECT VERSION()')
         data = cursor.fetchone()
