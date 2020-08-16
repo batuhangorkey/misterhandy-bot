@@ -78,7 +78,8 @@ class Minigame(commands.Cog):
         messages.append(ctx.message)
         if game_list is not None:
             scene = Scene(game_list, difficulty)
-            words = [f'{i + 1} - {scene.list[i][0]}' for i in range(0, 10)]
+            words = [f'{i + 1} -  {scene.list[i][0]}' for i in range(0, 9)]
+            words.append(f'10 - {scene.list[9][0]}')
             if len(messages) > 0:
                 if type(ctx.channel) != discord.DMChannel:
                     await ctx.channel.delete_messages(messages)
