@@ -83,7 +83,7 @@ class Minigame(commands.Cog):
                 if type(ctx.channel) != discord.DMChannel:
                     await ctx.channel.delete_messages(messages)
                 messages.clear()
-            messages.append(await ctx.send('Terminal: \n ' + '\n '.join(words)))
+            messages.append(await ctx.send('```Terminal: \n ' + '\n '.join(words) + '```'))
         else:
             messages.append(await ctx.send('Hoppala bir daha dene uşağım.'))
 
