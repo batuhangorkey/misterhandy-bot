@@ -59,7 +59,6 @@ def get_random_playlist():
             data = cursor.fetchall()
     finally:
         conn.close()
-    print([item for _ in data for item in _])
     return [item for _ in data for item in _]
 
 
@@ -345,7 +344,7 @@ class Music(commands.Cog):
         conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
         try:
             with conn.cursor() as cursor:
-                cursor.execute("INSERT INTO playlist VALUES ('{}')".format(url))
+                cursor.execute("INSERT INTO playlist (url) VALUES ('{}')".format(url))
             conn.commit()
 
             with conn.cursor() as cursor:
