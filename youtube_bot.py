@@ -84,19 +84,21 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
         self.queue = asyncio.Queue(loop=self.bot.loop)
         self.play_next = asyncio.Event(loop=self.bot.loop)
+        self.play_random = False
+        self._ctx = None
+        self.last_message = None
 
         self.bot.loop.create_task(self.audio_player())
         self.search_list = []
-        self.last_message = None
-        self.random_playlist = get_random_playlist()
-        self.play_random = False
-        self._ctx = None
+        self._random_playlist = get_random_playlist()
+        self.random_playlist = self._random_playlist.copy()
 
     def get_song_from_rnd_playlist(self):
         if len(self.random_playlist) == 0:
-            self.random_playlist = get_random_playlist()
+            self.random_playlist = self._random_playlist.copy()
         song = random.choice(self.random_playlist)
         self.random_playlist.remove(song)
         return song
