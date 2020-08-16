@@ -138,7 +138,7 @@ class Music(commands.Cog):
                 _ctx.voice_client.play(player,
                                        after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
 
-                embed = discord.Embed(title='{0.title} ({0.duration}) by {0.channel}'.format(player),
+                embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(player),
                                       url=player.url,
                                       description='Şimdi oynatılıyor',
                                       colour=0x8B0000)
