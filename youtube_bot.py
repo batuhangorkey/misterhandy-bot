@@ -59,7 +59,7 @@ def get_random_playlist():
             data = cursor.fetchall()
     finally:
         conn.close()
-    print(data)
+    print(list(data))
     return list(data)
 
 
