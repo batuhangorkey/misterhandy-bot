@@ -37,9 +37,9 @@ def fetch_user_tables():
         data = cursor.fetchall()
     conn.close()
 
-    for _, v in data:
-        user_table[int(_)] = int(v)
-        # kaiser_points[int(row[0])] = int(row[2])
+    for _, b, k in data:
+        user_table[int(_)] = int(b)
+        # kaiser_points[int(_)] = int(k)
     return user_table, kaiser_points
 
 
