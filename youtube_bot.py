@@ -6,10 +6,11 @@ import discord
 import youtube_dl
 import random
 import time
+import os
+import pymysql
 from discord.ext import commands
 from youtube_search import YoutubeSearch
-
-youtube_dl.utils.bug_reports_message = lambda: ''
+from dotenv import load_dotenv
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
@@ -38,19 +39,27 @@ player_emojis = {
 # if not discord.opus.is_loaded():
 #     discord.opus.load_opus('opus')
 # ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
-default_presence = discord.Activity(type=discord.ActivityType.listening, name='wasteland with sensors offline')
+
+youtube_dl.utils.bug_reports_message = lambda: ''
+
+load_dotenv()
+TOKEN = os.getenv('DISCORD_TOKEN')
+GUILD = os.getenv('DISCORD_GUILD')
+HOST = os.getenv('HOST')
+USER_ID = os.getenv('USER_ID')
+PASSWORD = os.getenv('PASSWORD')
+DATABASE_NAME = os.getenv('DATABASE_NAME')
 
 
 def get_random_playlist():
-    with open('random_playlist.txt', 'r') as f:
-        playlist = []
-        for _ in f.readlines():
-            if _[0] == '#':
-                continue
-            _ = _.rstrip('\n')
-            if _ != '':
-                playlist.append(_)
-    return playlist
+    conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT url FROM playlist")
+            data = cursor.fetchall()
+    finally:
+        conn.close()
+    return data
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -84,6 +93,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.default_presence = discord.Activity(type=discord.ActivityType.listening,
+                                                 name='wasteland with sensors offline')
 
         self.queue = asyncio.Queue(loop=self.bot.loop)
         self.play_next = asyncio.Event(loop=self.bot.loop)
@@ -93,6 +104,10 @@ class Music(commands.Cog):
 
         self.bot.loop.create_task(self.audio_player())
         self.search_list = []
+        self._random_playlist = get_random_playlist()
+        self.random_playlist = self._random_playlist.copy()
+
+    def refresh_playlist(self):
         self._random_playlist = get_random_playlist()
         self.random_playlist = self._random_playlist.copy()
 
@@ -127,7 +142,7 @@ class Music(commands.Cog):
                                                                    loop=self.bot.loop)
                                 await self.queue.put((_ctx, player))
                         elif self.last_message:
-                            await self.bot.change_presence(activity=default_presence)
+                            await self.bot.change_presence(activity=self.default_presence)
                             embed = self.last_message.embeds[0]
                             embed.description = 'Video bitti'
                             await self.last_message.edit(embed=embed)
@@ -322,7 +337,25 @@ class Music(commands.Cog):
         except AttributeError as error:
             print(error)
             pass
-        await self.bot.change_presence(activity=default_presence)
+        await self.bot.change_presence(activity=self.default_presence)
+
+    @commands.command(help='Adds song to bot playlist')
+    async def add_link(self, ctx, *, url):
+        conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("INSERT INTO playlist VALUES ('{}')".format(url))
+            conn.commit()
+
+            with conn.cursor() as cursor:
+                cursor.execute('SELECT url FROM playlist where url="{}"'.format(url))
+                data = cursor.fetchone()
+                print(data)
+            if data:
+                self.refresh_playlist()
+                await ctx.send('Şarkı eklendi. Teşekkürler')
+        finally:
+            conn.close()
 
     # Bu şekilde çalışmıyor
     # @commands.command(help='Go to the time on the video')
