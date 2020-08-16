@@ -60,6 +60,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.url = data.get('webpage_url')
         self.thumbnail = data.get('thumbnail')
         self.uploader = data.get('uploader')
+        self.duration = data.get('duration')
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
@@ -74,8 +75,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
             data = data['entries'][0]
         with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
             filename = data['url'] if stream else ytdl.prepare_filename(data)
-        # for _, x in data.items():
-        #     print(_, x)
+        for _, x in data.items():
+            print(_, x)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
@@ -137,7 +138,7 @@ class Music(commands.Cog):
                 _ctx.voice_client.play(player,
                                        after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
 
-                embed = discord.Embed(title=f'{player.title} - {player.uploader}',
+                embed = discord.Embed(title='{0.title} ({0.duration}) by {0.channel}'.format(player),
                                       url=player.url,
                                       description='Şimdi oynatılıyor',
                                       colour=0x8B0000)
@@ -187,7 +188,7 @@ class Music(commands.Cog):
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
             if player is None:
-                return await ctx.send('Birşeyler yanlış. Bir daha dene')
+                return await ctx.send('Bir şeyler yanlış. Bir daha dene')
             # sıraya ekle
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
@@ -225,7 +226,7 @@ class Music(commands.Cog):
                 return
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
             if player is None:
-                return await ctx.send('Birşeyler yanlış. Bir daha dene')
+                return await ctx.send('Bir şeyler yanlış. Bir daha dene')
             # sıraya ekle
             await self.queue.put((ctx, player))
             if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
@@ -259,7 +260,7 @@ class Music(commands.Cog):
                 async with ctx.typing():
                     player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
                     if player is None:
-                        return await ctx.send('Birşeyler yanlış. Bir daha dene')
+                        return await ctx.send('Bir şeyler yanlış. Bir daha dene')
                     await self.queue.put((ctx, player))
         self.play_random = not self.play_random
         await ctx.send('Rastgele çalınıyor') if self.play_random else await ctx.send('Rastgele çalma kapatıldı')
