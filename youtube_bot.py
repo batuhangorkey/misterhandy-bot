@@ -85,8 +85,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
             data = data['entries'][0]
         with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
             filename = data['url'] if stream else ytdl.prepare_filename(data)
-        for _, x in data.items():
-            print(_, x)
+        # for _, x in data.items():
+        #     print(_, x)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
