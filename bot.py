@@ -24,18 +24,22 @@ bot = commands.Bot(command_prefix='!')
 def fetch_user_tables():
     user_table = {}
     kaiser_points = {}
-    conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
+
+    conn = pymysql.connect(str(HOST),
+                           str(USER_ID),
+                           str(PASSWORD),
+                           str(DATABASE_NAME),
+                           cursorclass=pymysql.cursors.DictCursor)
     with conn.cursor() as cursor:
         cursor.execute('SELECT VERSION()')
         data = cursor.fetchone()
-    print(f'Database version: {data}')
-    with conn.cursor() as cursor:
+        print(f'Database version: {data}')
         cursor.execute("SELECT * FROM main")
         data = cursor.fetchall()
     conn.close()
 
-    for row in data:
-        user_table[int(row[0])] = int(row[1])
+    for _, v in data.items():
+        user_table[int(_)] = int(v)
         # kaiser_points[int(row[0])] = int(row[2])
     return user_table, kaiser_points
 
