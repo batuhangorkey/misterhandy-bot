@@ -5,6 +5,7 @@ import asyncio
 import discord
 import youtube_dl
 import random
+import time
 from discord.ext import commands
 from youtube_search import YoutubeSearch
 
@@ -60,7 +61,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.url = data.get('webpage_url')
         self.thumbnail = data.get('thumbnail')
         self.uploader = data.get('uploader')
-        self.duration = data.get('duration')
+        self.duration = time.strftime('%M:%S', data.get('duration'))
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
