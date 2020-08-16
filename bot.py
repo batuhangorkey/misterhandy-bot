@@ -32,7 +32,7 @@ def fetch_user_tables():
     with conn.cursor() as cursor:
         cursor.execute('SELECT VERSION()')
         data = cursor.fetchone()
-        print(f'Database version: {data}')
+        print(f'Database version: {data[0]}')
         cursor.execute("SELECT * FROM main")
         data = cursor.fetchall()
     conn.close()
