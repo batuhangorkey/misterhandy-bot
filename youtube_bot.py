@@ -59,8 +59,8 @@ def get_random_playlist():
             data = cursor.fetchall()
     finally:
         conn.close()
-    print([_ for _ in data])
-    return [_ for _ in data]
+    print([item for _ in data for item in _])
+    return [item for _ in data for item in _]
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
