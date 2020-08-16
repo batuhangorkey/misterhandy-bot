@@ -95,16 +95,17 @@ class Minigame(commands.Cog):
             scene.state = 1
 
             conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
-            cursor = conn.cursor()
-            if user.id in self.user_table:
-                self.user_table[user.id] += scene.reward
-                cursor.execute(f"UPDATE main SET Unit = Unit + {scene.reward} WHERE UserID = {user.id}")
-            else:
-                self.user_table.update({user.id: scene.reward})
-                cursor.execute(f"INSERT INTO main VALUES ('{user.id}', '{scene.reward}')")
-            cursor.close()
-            conn.commit()
-            conn.close()
+            try:
+                with conn.cursor() as cursor:
+                    if user.id in self.user_table:
+                        self.user_table[user.id] += scene.reward
+                        cursor.execute(f"UPDATE main SET Unit = Unit + {scene.reward} WHERE UserID = {user.id}")
+                    else:
+                        self.user_table.update({user.id: scene.reward})
+                        cursor.execute(f"INSERT INTO main VALUES ('{user.id}', '{scene.reward}')")
+                    conn.commit()
+            finally:
+                conn.close()
 
             await ctx.message.add_reaction('\N{WHITE HEAVY CHECK MARK}')
             await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({self.user_table.get(user.id)})')
@@ -124,20 +125,22 @@ class Minigame(commands.Cog):
                 await ctx.message.add_reaction('\N{CROSS MARK}')
                 messages.append(await ctx.send('Sistem kitlendi.'))
 
-    @commands.command(help='Get another attempt. Cost: 50')
+    @commands.command(help='Get another attempt. Cost: 50 * difficulty / 4')
     async def rebank(self, ctx):
         if scene.state == 1:
-            cost = 50
+            cost = 50 * scene.diff / 4
             user = ctx.message.author.id
             if user in self.user_table:
                 if self.user_table.get(user) > 50:
                     self.user_table[user] -= cost
                     scene.attempts += 1
+
                     conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
                     with conn.cursor() as cursor:
                         cursor.execute(f"UPDATE main SET Unit = Unit - {cost} WHERE UserID = {user}")
                     conn.commit()
                     conn.close()
+
                     await ctx.send(f'Kalan deneme sayısı: {scene.attempts}')
                 else:
                     await ctx.send('Yeterli lirabitin yok.')
