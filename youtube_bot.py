@@ -163,7 +163,7 @@ class Music(commands.Cog):
                                       description='Şimdi oynatılıyor',
                                       colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
-                rnd_txt = 'Rastgele çalma açık' if self.playrandom else rnd_txt = 'Rastgele çalma kapalı'
+                rnd_txt = 'Rastgele çalma açık' if self.playrandom else 'Rastgele çalma kapalı'
                 embed.set_footer(text='Ozan: Yerli ve Milli İlk Video Oynatıcısı - {}'.format(rnd_txt))
                 async with _ctx.typing():
                     if self.last_message:
