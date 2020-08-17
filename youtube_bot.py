@@ -164,7 +164,7 @@ class Music(commands.Cog):
                                       colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
                 footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {}'
-                footer.format('açık' if self.play_random else 'kapalı')
+                footer = footer.format('açık' if self.play_random else 'kapalı')
                 embed.set_footer(text=footer)
                 async with _ctx.typing():
                     if self.last_message:
@@ -286,11 +286,12 @@ class Music(commands.Cog):
                         return await ctx.send('Bir şeyler yanlış. Bir daha dene')
                     await self.queue.put((ctx, player))
         self.play_random = not self.play_random
-        _embed = self.last_message.embeds[0]
-        footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {}'
-        footer.format('açık' if self.play_random else 'kapalı')
-        _embed.set_footer(text=footer)
-        await self.last_message.edit(embed=_embed)
+        if self.last_message:
+            _embed = self.last_message.embeds[0]
+            footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {}'
+            footer.format('açık' if self.play_random else 'kapalı')
+            _embed.set_footer(text=footer)
+            await self.last_message.edit(embed=_embed)
 
     @yt.before_invoke
     @stream.before_invoke
