@@ -59,7 +59,7 @@ def get_random_playlist():
             data = cursor.fetchall()
     finally:
         conn.close()
-    return [item for _ in data for item in _]
+    return [item for t in data for item in t]
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -160,7 +160,9 @@ class Music(commands.Cog):
                                       url=player.url,
                                       description='Şimdi oynatılıyor',
                                       colour=0x8B0000)
-                embed.set_thumbnail(url=player.thumbnail).set_footer(text='Ozan: Yerli ve Milli İlk Video Oynatıcısı')
+                embed.set_thumbnail(url=player.thumbnail)
+                play_random_text = 'Rastgele çalma açık' if self.playrandom else 'Rastgele çalma kapalı'
+                embed.set_footer(text='Ozan: Yerli ve Milli İlk Video Oynatıcısı - {}'.format(play_random_text))
                 async with _ctx.typing():
                     if self.last_message:
                         _embed = self.last_message.embeds[0]
@@ -281,7 +283,10 @@ class Music(commands.Cog):
                         return await ctx.send('Bir şeyler yanlış. Bir daha dene')
                     await self.queue.put((ctx, player))
         self.play_random = not self.play_random
-        await ctx.send('Rastgele çalınıyor') if self.play_random else await ctx.send('Rastgele çalma kapatıldı')
+        play_random_text = 'Rastgele çalma açık' if self.playrandom else 'Rastgele çalma kapalı'
+        _embed = self.last_message.embeds[0]
+        _embed.set_footer(text='Ozan: Yerli ve Milli İlk Video Oynatıcısı - {}'.format(play_random_text))
+        await self.last_message.edit(embed=_embed)
 
     @yt.before_invoke
     @stream.before_invoke
@@ -346,12 +351,15 @@ class Music(commands.Cog):
         conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
         try:
             with conn.cursor() as cursor:
-                cursor.execute("INSERT INTO playlist (url) VALUES ('{}')".format(url))
-            conn.commit()
+                if url in self._random_playlist:
+                    return await ctx.send('Bu şarkı listede var.')
+                
+                cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(url))
+                conn.commit()
 
-            with conn.cursor() as cursor:
                 cursor.execute('SELECT url FROM playlist where url="{}"'.format(url))
                 data = cursor.fetchone()
+
             if data:
                 self.refresh_playlist()
                 await ctx.send('Şarkı eklendi. Teşekkürler')
