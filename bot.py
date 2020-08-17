@@ -49,6 +49,8 @@ async def on_ready():
     async for guild in bot.fetch_guilds():
         print('Operating on {} with id: {}'.format(guild.name, guild.id))
 
+    channel = bot.get_channel(710179799792091227)
+    await channel.send('Buradayım')
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                         name='wasteland with sensors offline'))
     bot.add_cog(Minigame(bot, user_table=fetch_user_tables()[0]))
