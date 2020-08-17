@@ -59,7 +59,7 @@ def get_random_playlist():
             data = cursor.fetchall()
     finally:
         conn.close()
-    return [t[0] for t in data]
+    return [item for t in data for item in t]
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -332,7 +332,15 @@ class Music(commands.Cog):
     @commands.command(help='Skips current video.')
     async def skip(self, ctx):
         if ctx.voice_client is not None:
-            ctx.voice_client.stop()
+            url = ctx.voice_client.source.url
+            conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute('UPDATE playlist SET skip_count = skip_count + 1 WHERE url = "{}"'.format(url))
+                conn.commit()
+            finally:
+                conn.close()
+                ctx.voice_client.stop()
 
     @commands.command(help='Disconnects the bot from voice channel.')
     async def stop(self, ctx):
@@ -357,7 +365,7 @@ class Music(commands.Cog):
                 if url in self._random_playlist:
                     return await ctx.send('Bu şarkı listede var.')
 
-                cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(url))
+                cursor.execute('INSERT INTO playlist (url, skip_count) VALUES ("{}", 0)'.format(url))
                 conn.commit()
 
                 cursor.execute('SELECT url FROM playlist where url="{}"'.format(url))
