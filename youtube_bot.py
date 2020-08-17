@@ -55,7 +55,7 @@ def get_random_playlist():
     conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
     try:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT url FROM playlist")
+            cursor.execute("SELECT url, skip_count FROM playlist")
             data = cursor.fetchall()
     finally:
         conn.close()
@@ -125,7 +125,7 @@ class Music(commands.Cog):
         song = random.choice([t for t in self.random_playlist if t[1] == _min])
         self.random_playlist.remove(song)
         return song[0]
-    
+
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
 
