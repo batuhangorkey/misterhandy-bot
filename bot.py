@@ -84,4 +84,11 @@ async def delete(ctx, limit: int = None):
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
+@bot.command(help='Refreshes music cog.')
+async def refresh(ctx):
+    async with ctx.typing():
+        bot.remove_cog('Music')
+        bot.add_cog(Music(bot))
+        await ctx.send('Oynatıcı baştan yüklendi.')
+
 bot.run(TOKEN)
