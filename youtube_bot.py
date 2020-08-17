@@ -163,8 +163,8 @@ class Music(commands.Cog):
                                       description='Şimdi oynatılıyor',
                                       colour=0x8B0000)
                 embed.set_thumbnail(url=player.thumbnail)
-                play_random_text = 'Rastgele çalma açık' if self.playrandom else 'Rastgele çalma kapalı'
-                embed.set_footer(text='Ozan: Yerli ve Milli İlk Video Oynatıcısı - {}'.format(play_random_text))
+                rnd_txt = 'Rastgele çalma açık' if self.playrandom else rnd_txt = 'Rastgele çalma kapalı'
+                embed.set_footer(text='Ozan: Yerli ve Milli İlk Video Oynatıcısı - {}'.format(rnd_txt))
                 async with _ctx.typing():
                     if self.last_message:
                         _embed = self.last_message.embeds[0]
@@ -285,7 +285,7 @@ class Music(commands.Cog):
                         return await ctx.send('Bir şeyler yanlış. Bir daha dene')
                     await self.queue.put((ctx, player))
         self.play_random = not self.play_random
-        play_random_text = 'Rastgele çalma açık' if self.playrandom else 'Rastgele çalma kapalı'
+        play_random_text = 'Rastgele çalma açık' if self.playrandom else play_random_text = 'Rastgele çalma kapalı'
         _embed = self.last_message.embeds[0]
         _embed.set_footer(text='Ozan: Yerli ve Milli İlk Video Oynatıcısı - {}'.format(play_random_text))
         await self.last_message.edit(embed=_embed)
