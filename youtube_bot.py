@@ -59,7 +59,7 @@ def get_random_playlist():
             data = cursor.fetchall()
     finally:
         conn.close()
-    return [item for t in data for item in t]
+    return [t for t in data]
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -114,12 +114,18 @@ class Music(commands.Cog):
         self.random_playlist = self._random_playlist.copy()
 
     def get_song_from_rnd_playlist(self):
+        # if len(self.random_playlist) == 0:
+        #     self.random_playlist = self._random_playlist.copy()
+        # song = random.choice(self.random_playlist)
+        # self.random_playlist.remove(song)
+        # return song[0]
         if len(self.random_playlist) == 0:
             self.random_playlist = self._random_playlist.copy()
-        song = random.choice(self.random_playlist)
+        _min = min([t[1] for t in self.random_playlist])
+        song = random.choice([t for t in self.random_playlist if t[1] == _min])
         self.random_playlist.remove(song)
-        return song
-
+        return song[0]
+    
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
 
@@ -277,19 +283,19 @@ class Music(commands.Cog):
 
     @commands.command(help='Plays random songs')
     async def playrandom(self, ctx):
-        if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
-            if not self.play_random:
-                async with ctx.typing():
-                    player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
-                    if player is None:
-                        return await ctx.send('Bir şeyler yanlış. Bir daha dene')
-                    await self.queue.put((ctx, player))
-        self.play_random = not self.play_random
-        if self.last_message:
-            _embed = self.last_message.embeds[0]
-            footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {}'
-            _embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı'))
-            await self.last_message.edit(embed=_embed)
+        async with ctx.typing():
+            if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
+                if not self.play_random:
+                        player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
+                        if player is None:
+                            return await ctx.send('Bir şeyler yanlış. Bir daha dene')
+                        await self.queue.put((ctx, player))
+            self.play_random = not self.play_random
+            if self.last_message:
+                _embed = self.last_message.embeds[0]
+                footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {}'
+                _embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı'))
+                await self.last_message.edit(embed=_embed)
 
     @yt.before_invoke
     @stream.before_invoke
