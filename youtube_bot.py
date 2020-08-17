@@ -70,7 +70,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.url = data.get('webpage_url')
         self.thumbnail = data.get('thumbnail')
         self.uploader = data.get('uploader')
-        self.duration = time.strftime('%M:%S', time.gmtime(data.get('duration')))
+        self.duration = data.get('duration')
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
@@ -85,8 +85,10 @@ class YTDLSource(discord.PCMVolumeTransformer):
             data = data['entries'][0]
         with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
             filename = data['url'] if stream else ytdl.prepare_filename(data)
+        data['duration'] = time.strftime('%M:%S', time.gmtime(data.get('duration')))
         # for _, x in data.items():
         #     print(_, x)
+        ffmpeg_options['options'] = '-vn -t 60'
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
@@ -363,6 +365,8 @@ class Music(commands.Cog):
             if data:
                 self.refresh_playlist()
                 await ctx.send('Şarkı eklendi. Teşekkürler')
+            else:
+                await ctx.send('Şarkı eklenemedi.')
         finally:
             conn.close()
 
