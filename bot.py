@@ -45,7 +45,10 @@ def fetch_user_tables():
 
 @bot.event
 async def on_ready():
-    print('{0.name} with ID: {0.id} has connected to Discord!'.format(bot.user))
+    print('{0.name} with id: {0.id} has connected to Discord!'.format(bot.user))
+    async for guild in bot.fetch_guilds():
+        print('Operating on {} with id: {}'.format(guild.name, guild.id))
+
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                         name='wasteland with sensors offline'))
     bot.add_cog(Minigame(bot, user_table=fetch_user_tables()[0]))
