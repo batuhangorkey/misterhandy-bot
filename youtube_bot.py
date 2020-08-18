@@ -60,7 +60,10 @@ def get_random_playlist():
             data = cursor.fetchall()
     finally:
         conn.close()
-    return [t for t in data]
+    _list = [t for t in data]
+    _max = max([i for _, i in _list])
+    _list = [(url, _max - i) for url, i in _list]
+    return _list
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -107,9 +110,10 @@ class Music(commands.Cog):
 
         self.bot.loop.create_task(self.audio_player())
         self.search_list = []
-        self._random_playlist = get_random_playlist()
-        self.random_playlist = self._random_playlist.copy()
-        self.weights = list(itertools.accumulate([_[1] + 1 for _ in self.random_playlist]))
+        self._random_playlist = None
+        self.random_playlist = None
+        self.weights = None
+        self.refresh_playlist()
 
     def refresh_playlist(self):
         self._random_playlist = get_random_playlist()
