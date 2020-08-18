@@ -123,9 +123,7 @@ class Music(commands.Cog):
     def get_song_from_rnd_playlist(self):
         if len(self.random_playlist) == 0:
             self.refresh_playlist()
-        song = random.choices(self.random_playlist, cum_weights=self.weights, k=1)
-        print(song)
-        print(song[0])
+        song = random.choices(self.random_playlist, cum_weights=self.weights, k=1)[0]
         self.random_playlist.remove(song)
         return song[0]
 
