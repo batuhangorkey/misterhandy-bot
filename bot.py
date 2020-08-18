@@ -20,6 +20,22 @@ DATABASE_NAME = os.getenv('DATABASE_NAME')
 client = discord.Client()
 bot = commands.Bot(command_prefix='!')
 
+adj = {
+    8: 'Efsane',
+    7: 'İnanılmaz',
+    6: 'Şahane',
+    5: 'Muhteşem',
+    4: 'Harika',
+    3: 'Baya iyi',
+    2: 'İyi',
+    1: 'Eh',
+    0: 'Düz',
+    -1: 'Dandik',
+    -2: 'Kötü',
+    -3: 'Rezalet',
+    -4: 'Felaket'
+}
+
 
 def fetch_user_tables():
     user_table = {}
@@ -65,6 +81,17 @@ async def roll(ctx, number_of_dice: int, number_of_sides: int):
         for _ in range(number_of_dice)
     ]
     await ctx.send(', '.join(dice))
+
+
+@bot.command(help='FATE zarı atar')
+async def zar(ctx, modifier: int):
+    dice = [
+        random.choice([-1, -1, 0, 0, 1, 1])
+        for _ in range(4)
+    ]
+    _sum = sum(dice) + modifier
+    map(str, dice)
+    await ctx.send(' + '.join(dice) + ' + {} = {} **{}**'.format(modifier, _sum, adj[_sum]))
 
 
 @bot.command(help='Tries to purge max 50 messages by the bot.')
