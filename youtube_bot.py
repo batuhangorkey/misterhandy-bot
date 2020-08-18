@@ -5,6 +5,7 @@ import asyncio
 import discord
 import youtube_dl
 import random
+import itertools
 import time
 import os
 import pymysql
@@ -108,21 +109,17 @@ class Music(commands.Cog):
         self.search_list = []
         self._random_playlist = get_random_playlist()
         self.random_playlist = self._random_playlist.copy()
+        self.weights = list(itertools.accumulate([_[1] + 1 for _ in self.random_playlist]))
 
     def refresh_playlist(self):
         self._random_playlist = get_random_playlist()
         self.random_playlist = self._random_playlist.copy()
+        self.weights = list(itertools.accumulate([_[1] + 1 for _ in self.random_playlist]))
 
     def get_song_from_rnd_playlist(self):
-        # if len(self.random_playlist) == 0:
-        #     self.random_playlist = self._random_playlist.copy()
-        # song = random.choice(self.random_playlist)
-        # self.random_playlist.remove(song)
-        # return song[0]
         if len(self.random_playlist) == 0:
-            self.random_playlist = self._random_playlist.copy()
-        _min = min([t[1] for t in self.random_playlist])
-        song = random.choice([t for t in self.random_playlist if t[1] == _min])
+            self.refresh_playlist()
+        song = random.choices(self.random_playlist, cum_weights=self.weights)
         self.random_playlist.remove(song)
         return song[0]
 
