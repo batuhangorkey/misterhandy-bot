@@ -90,8 +90,8 @@ async def zar(ctx, modifier: int):
         for _ in range(4)
     ]
     _sum = sum(dice) + modifier
-    map(str, dice)
-    await ctx.send(' + '.join(dice) + ' + {} = {} **{}**'.format(str(modifier), str(_sum), str(adj[_sum])))
+    dice = map(str, dice)
+    await ctx.send(' + '.join(dice) + ' + {} = {} **{}**'.format(str(modifier), str(_sum), adj[_sum]))
 
 
 @bot.command(help='Tries to purge max 50 messages by the bot.')
