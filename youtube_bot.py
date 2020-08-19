@@ -92,7 +92,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         data['duration'] = time.strftime('%M:%S', time.gmtime(data.get('duration')))
         # for _, x in data.items():
         #     print(_, x)
-        # ffmpeg_options['options'] = '-vn -t 60'
+        ffmpeg_options['options'] = '-vn -ss 00:00:50'
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
