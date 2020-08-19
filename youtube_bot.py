@@ -375,7 +375,7 @@ class Music(commands.Cog):
                 if url in self._random_playlist:
                     return await ctx.send('Bu şarkı listede var.')
 
-                cursor.execute('INSERT INTO playlist (url, skip_count) VALUES ("{}", 0)'.format(url))
+                cursor.execute('INSERT INTO playlist (url, skip_count) VALUES ("{}", 1)'.format(url))
                 conn.commit()
 
                 cursor.execute('SELECT url FROM playlist where url="{}"'.format(url))
