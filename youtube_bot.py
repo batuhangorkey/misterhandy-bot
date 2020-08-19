@@ -113,21 +113,20 @@ class Music(commands.Cog):
         self.search_list = []
         self._random_playlist = None
         self.random_playlist = None
-        self.cum_weights = None
         self.refresh_playlist()
 
     def refresh_playlist(self):
         self._random_playlist = get_random_playlist()
         self.random_playlist = self._random_playlist.copy()
-        self.cum_weights = list(itertools.accumulate([s for url, s in self.random_playlist]))
 
     def get_song_from_rnd_playlist(self):
         if len(self.random_playlist) == 0:
             self.refresh_playlist()
-        song = random.choices(self.random_playlist, cum_weights=self.cum_weights, k=1)[0]
+        cum_weights = list(itertools.accumulate([s for url, s in self.random_playlist]))
+        song = random.choices(self.random_playlist, cum_weights=cum_weights, k=1)[0]
         self.random_playlist.remove(song)
         return song[0]
-
+    
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
 
