@@ -77,7 +77,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.duration = data.get('duration')
 
     @classmethod
-    async def from_url(cls, url, *, loop=None, stream=False):
+    async def from_url(cls, url, *, loop=None, stream=False, t_time=None):
         loop = loop or asyncio.get_event_loop()
         try:
             with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
@@ -92,7 +92,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
         data['duration'] = time.strftime('%M:%S', time.gmtime(data.get('duration')))
         # for _, x in data.items():
         #     print(_, x)
-        ffmpeg_options['options'] = '-vn -ss 00:00:50'
+        if t_time:
+            ffmpeg_options['options'] = '-vn -ss {}'.format(t_time)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
@@ -388,25 +389,25 @@ class Music(commands.Cog):
         finally:
             conn.close()
 
-    # Bu şekilde çalışmıyor
-    # @commands.command(help='Go to the time on the video')
-    # async def goto(self, ctx, time: str):
-    #     async with ctx.typing():
-    #         player = await YTDLSource.from_url(url=ctx.voice_client.source.url + '&t=' + time,
-    #                                            loop=self.bot.loop)
-    #     await self.queue.put((ctx, player))
-    #     for _ in range(self.queue.qsize() - 1):
-    #         a = self.queue.get_nowait()
-    #         self.queue.task_done()
-    #         self.queue.put_nowait(a)
-    #     await self._ctx.invoke(self.bot.get_command('skip'))
-    #     await ctx.send('Mevcut şarkıda {}ıncı saniyeye gidiliyor.'.format(time))
-    #
-    # @goto.before_invoke
-    # async def ensure_source(self, ctx):
-    #     if ctx.voice_client.source is None:
-    #         await ctx.send('Ortada ileri alınacak video yok.')
-    #         raise commands.CommandError('Audio source empty.')
+    @commands.command(help='Go to the time on the video')
+    async def goto(self, ctx, t_time: int):
+        async with ctx.typing():
+            player = await YTDLSource.from_url(url=ctx.voice_client.source.url,
+                                               loop=self.bot.loop,
+                                               t_time=time.strftime('%M:%S', time.gmtime(t_time)))
+        await self.queue.put((ctx, player))
+        for _ in range(self.queue.qsize() - 1):
+            a = self.queue.get_nowait()
+            self.queue.task_done()
+            self.queue.put_nowait(a)
+        await self._ctx.invoke(self.bot.get_command('skip'))
+        await ctx.send('Mevcut şarkıda {}ıncı saniyeye gidiliyor.'.format(time))
+
+    @goto.before_invoke
+    async def ensure_source(self, ctx):
+        if ctx.voice_client.source is None:
+            await ctx.send('Ortada ileri alınacak video yok.')
+            raise commands.CommandError('Audio source empty.')
 
     # Yapılmayı bekliyor
     # @commands.command(help='Downloads video')
