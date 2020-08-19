@@ -61,8 +61,8 @@ def get_random_playlist():
     finally:
         conn.close()
     _list = [t for t in data]
-    _max = max([i for _, i in _list])
-    _list = [(url, _max - i) for url, i in _list]
+    _max = max([i for _, i in _list]) + 1
+    _list = [(url, _max - s) for url, s in _list]
     return _list
 
 
@@ -112,18 +112,18 @@ class Music(commands.Cog):
         self.search_list = []
         self._random_playlist = None
         self.random_playlist = None
-        self.weights = None
+        self.cum_weights = None
         self.refresh_playlist()
 
     def refresh_playlist(self):
         self._random_playlist = get_random_playlist()
         self.random_playlist = self._random_playlist.copy()
-        self.weights = list(itertools.accumulate([_[1] + 1 for _ in self.random_playlist]))
+        self.cum_weights = list(itertools.accumulate([s for url, s in self.random_playlist]))
 
     def get_song_from_rnd_playlist(self):
         if len(self.random_playlist) == 0:
             self.refresh_playlist()
-        song = random.choices(self.random_playlist, cum_weights=self.weights, k=1)[0]
+        song = random.choices(self.random_playlist, cum_weights=self.cum_weights, k=1)[0]
         self.random_playlist.remove(song)
         return song[0]
 
