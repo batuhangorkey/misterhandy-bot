@@ -342,10 +342,8 @@ class Music(commands.Cog):
         if ctx.voice_client.source is None:
             return
         url = ctx.voice_client.source.url
-        print(url)
-        [print(url) for url, s in self.random_playlist]
-        print([url for url, s in self.random_playlist])
-        if url not in [url for url, s in self.random_playlist]:
+        if url not in [url for url, s in self._random_playlist]:
+            print('Listede değil')
             return ctx.voice_client.stop()
         conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
         try:
