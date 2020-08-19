@@ -355,6 +355,7 @@ class Music(commands.Cog):
     @commands.command(help='Disconnects the bot from voice channel.')
     async def stop(self, ctx):
         self.play_random = False
+        self.refresh_playlist()
         for _ in range(self.queue.qsize()):
             self.queue.get_nowait()
             self.queue.task_done()
