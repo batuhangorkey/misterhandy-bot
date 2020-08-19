@@ -395,13 +395,13 @@ class Music(commands.Cog):
             player = await YTDLSource.from_url(url=ctx.voice_client.source.url,
                                                loop=self.bot.loop,
                                                t_time=time.strftime('%M:%S', time.gmtime(t_time)))
-        await self.queue.put((ctx, player))
-        for _ in range(self.queue.qsize() - 1):
-            a = self.queue.get_nowait()
-            self.queue.task_done()
-            self.queue.put_nowait(a)
-        await self._ctx.invoke(self.bot.get_command('skip'))
-        await ctx.send('Mevcut şarkıda {}ıncı saniyeye gidiliyor.'.format(time))
+            await self.queue.put((ctx, player))
+            for _ in range(self.queue.qsize() - 1):
+                a = self.queue.get_nowait()
+                self.queue.task_done()
+                self.queue.put_nowait(a)
+            await self._ctx.invoke(self.bot.get_command('skip'))
+            await ctx.send('Mevcut şarkıda {}ıncı saniyeye gidiliyor.'.format(t_time))
 
     @goto.before_invoke
     async def ensure_source(self, ctx):
