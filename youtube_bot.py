@@ -341,8 +341,8 @@ class Music(commands.Cog):
     async def skip(self, ctx):
         if ctx.voice_client is not None:
             url = ctx.voice_client.source.url
-            _list = [t[0] for t in self.random_playlist]
-            if url not in _list:
+            print(self.random_playlist)
+            if url not in [url for url, s in self.random_playlist]:
                 return ctx.voice_client.stop()
             conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
             try:
