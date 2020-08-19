@@ -92,6 +92,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         data['duration'] = time.strftime('%M:%S', time.gmtime(data.get('duration')))
         # for _, x in data.items():
         #     print(_, x)
+        ffmpeg_options['options'] = '-vn'
         if t_time:
             ffmpeg_options['options'] = '-vn -ss {}'.format(t_time)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
@@ -126,7 +127,7 @@ class Music(commands.Cog):
         song = random.choices(self.random_playlist, cum_weights=cum_weights, k=1)[0]
         self.random_playlist.remove(song)
         return song[0]
-    
+
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
 
