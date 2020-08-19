@@ -339,19 +339,22 @@ class Music(commands.Cog):
 
     @commands.command(help='Skips current video.')
     async def skip(self, ctx):
-        if ctx.voice_client is not None:
-            url = ctx.voice_client.source.url
-            print(self.random_playlist)
-            if url not in [url for url, s in self.random_playlist]:
-                return ctx.voice_client.stop()
-            conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
-            try:
-                with conn.cursor() as cursor:
-                    cursor.execute('UPDATE playlist SET skip_count = skip_count + 1 WHERE url = "{}"'.format(url))
-                    conn.commit()
-            finally:
-                conn.close()
-                ctx.voice_client.stop()
+        if ctx.voice_client.source is None:
+            return
+        url = ctx.voice_client.source.url
+        print(url)
+        [print(url) for url, s in self.random_playlist]
+        print([url for url, s in self.random_playlist])
+        if url not in [url for url, s in self.random_playlist]:
+            return ctx.voice_client.stop()
+        conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute('UPDATE playlist SET skip_count = skip_count + 1 WHERE url = "{}"'.format(url))
+            conn.commit()
+        finally:
+            conn.close()
+            ctx.voice_client.stop()
 
     @commands.command(help='Disconnects the bot from voice channel.')
     async def stop(self, ctx):
