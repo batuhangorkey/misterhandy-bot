@@ -341,13 +341,15 @@ class Music(commands.Cog):
     async def skip(self, ctx):
         if ctx.voice_client is not None:
             url = ctx.voice_client.source.url
+            print(url)
             if url not in [t[0] for t in self.random_playlist]:
+                print('listede bulamıyor')
                 return ctx.voice_client.stop()
             conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
             try:
                 with conn.cursor() as cursor:
                     cursor.execute('UPDATE playlist SET skip_count = skip_count + 1 WHERE url = "{}"'.format(url))
-                conn.commit()
+                    conn.commit()
             finally:
                 conn.close()
                 ctx.voice_client.stop()
