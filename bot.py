@@ -65,7 +65,7 @@ async def on_ready():
     async for guild in bot.fetch_guilds():
         print('Operating on {} with id: {}'.format(guild.name, guild.id))
 
-    channel = bot.get_channel(710179799792091227)
+    channel = bot.get_channel(717725470954749985)
     await channel.send('Buradayım')
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                         name='wasteland with sensors offline'))
