@@ -80,7 +80,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.duration = data.get('duration')
 
     @classmethod
-    async def from_url(cls, url, *, loop=None, stream=False, t_time=None):
+    async def from_url(cls, url, *, loop=None, stream=False, start_time=None):
         loop = loop or asyncio.get_event_loop()
         try:
             with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
@@ -96,8 +96,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
         # for _, x in data.items():
         #     print(_, x)
         ffmpeg_options['options'] = '-vn'
-        if t_time:
-            ffmpeg_options['options'] = '-vn -ss {}'.format(t_time)
+        if start_time:
+            ffmpeg_options['options'] = '-vn -ss {}'.format(start_time)
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
@@ -168,7 +168,11 @@ class Music(commands.Cog):
                             async with _ctx.typing():
                                 player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(),
                                                                    loop=self.bot.loop)
-                                await self.queue.put((_ctx, player))
+                                if player:
+                                    await self.queue.put((_ctx, player))
+                                else:
+                                    await _ctx.invoke(self.bot.get_command('play_random'))
+                                    await _ctx.send('Birşeyler kırıldı.')
                         elif self.last_message:
                             await self.bot.change_presence(activity=self.default_presence)
                             embed = self.last_message.embeds[0]
@@ -403,7 +407,7 @@ class Music(commands.Cog):
         async with ctx.typing():
             player = await YTDLSource.from_url(url=ctx.voice_client.source.url,
                                                loop=self.bot.loop,
-                                               t_time=time.strftime('%M:%S', time.gmtime(t_time)))
+                                               start_time=time.strftime('%M:%S', time.gmtime(t_time)))
             await self.queue.put((ctx, player))
             for _ in range(self.queue.qsize() - 1):
                 a = self.queue.get_nowait()
