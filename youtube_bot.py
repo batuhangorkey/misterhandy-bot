@@ -132,6 +132,7 @@ class Music(commands.Cog):
             conn.commit()
         finally:
             conn.close()
+            return
 
     def refresh_playlist(self):
         self._random_playlist = get_random_playlist()
@@ -436,8 +437,8 @@ class Music(commands.Cog):
             if reaction.emoji == player_emojis['stop']:
                 return await self._ctx.invoke(self.bot.get_command('stop'))
             if reaction.emoji == player_emojis['dislike']:
+                self.dislike()
                 await self._ctx.invoke(self.bot.get_command('skip'))
-                return self.dislike()
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
