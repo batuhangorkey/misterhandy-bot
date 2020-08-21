@@ -2,7 +2,7 @@ import os
 import random
 import discord
 import pymysql
-from time import ctime
+from time import time, ctime
 from minigame import Minigame
 from youtube_bot import Music
 # from kaiser import Kaiser
@@ -61,7 +61,7 @@ def fetch_user_tables():
 
 @bot.event
 async def on_ready():
-    print('{0.name} with id: {0.id} has connected to Discord at {time}'.format(bot.user, time=ctime()))
+    print('{0.name} with id: {0.id} has connected to Discord at {time}'.format(bot.user, time=ctime(time() + 10800)))
     async for guild in bot.fetch_guilds():
         print('Operating on {} with id: {}'.format(guild.name, guild.id))
 
