@@ -191,8 +191,9 @@ class Music(commands.Cog):
                 player = current[1]
                 _ctx.voice_client.play(player,
                                        after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
-                [print(_) for _ in _ctx.args]
-                self.started_at = _ctx.args[0]
+                [print(t) for _ in _ctx.args for t in _]
+                [print(_) for _ in _ctx.kwargs]
+                self.started_at = time.time()
                 embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(player),
                                       url=player.url,
                                       description='Şimdi oynatılıyor',
