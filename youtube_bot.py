@@ -151,6 +151,25 @@ class Music(commands.Cog):
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
 
+    async def send_player_embed(self, source):
+        embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(source),
+                              url=source.url,
+                              description='Şimdi oynatılıyor',
+                              colour=0x8B0000)
+        embed.set_thumbnail(url=source.thumbnail)
+        footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {}'
+        embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı'))
+        if self.last_message:
+            _embed = self.last_message.embeds[0]
+            if len(_embed.fields) > 1:
+                _embed.remove_field(0)
+                for _ in _embed.fields:
+                    embed.add_field(name=str(self.queue.qsize()),
+                                    value=_.value)
+        await self.manage_last(await _ctx.send(embed=embed))
+        for _ in player_emojis.values():
+            await self.last_message.add_reaction(_)
+
     async def manage_last(self, msg):
         try:
             if self.last_message:
@@ -191,26 +210,8 @@ class Music(commands.Cog):
                 _ctx.voice_client.play(player,
                                        after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
                 self.started_at = time.time()
-
-                embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(player),
-                                      url=player.url,
-                                      description='Şimdi oynatılıyor',
-                                      colour=0x8B0000)
-                embed.set_thumbnail(url=player.thumbnail)
-                footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {}'
-                embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı'))
                 async with _ctx.typing():
-                    if self.last_message:
-                        _embed = self.last_message.embeds[0]
-                        if len(_embed.fields) > 1:
-                            _embed.remove_field(0)
-                            for _ in _embed.fields:
-                                embed.add_field(name=str(self.queue.qsize()),
-                                                value=_.value)
-                    await self.manage_last(await _ctx.send(embed=embed))
-                    for _ in player_emojis.values():
-                        await self.last_message.add_reaction(_)
-
+                    await self.send_player_embed(player)
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(player.title)))
                 await self.play_next.wait()
@@ -220,15 +221,6 @@ class Music(commands.Cog):
             print(error)
         except asyncio.CancelledError as error:
             print(error)
-
-    # async def after_voice(self, e: Exception, ctx, loop=None):
-    #     if e is not None:
-    #         print('Player error: %s' % e)
-    #     await self.bot.wait_until_ready()
-    #     while ctx.voice_client.is_playing():
-    #         await asyncio.sleep(1)
-    #     await ctx.send(f'Finished playing: {ctx.voice_client.source.title}')
-    #     loop.call_soon_threadsafe(self.play_next.set)
 
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel = None):
@@ -415,12 +407,11 @@ class Music(commands.Cog):
                                                loop=self.bot.loop,
                                                start_time=target_time)
             ctx.voice_client.source = player
-            # await self.queue.put((ctx, player))
+            await self.send_player_embed(player)
             for _ in range(self.queue.qsize() - 1):
                 a = self.queue.get_nowait()
                 self.queue.task_done()
                 self.queue.put_nowait(a)
-            # await self._ctx.invoke(self.bot.get_command('skip'))
 
     @goto.before_invoke
     async def ensure_source(self, ctx):
