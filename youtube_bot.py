@@ -78,9 +78,10 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.thumbnail = data.get('thumbnail')
         self.uploader = data.get('uploader')
         self.duration = data.get('duration')
+        self.started_at = data.get('started_at')
 
     @classmethod
-    async def from_url(cls, url, *, loop=None, stream=False, start_time=None):
+    async def from_url(cls, url, *, loop=None, stream=False, start_time=0):
         loop = loop or asyncio.get_event_loop()
         try:
             with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
@@ -93,11 +94,10 @@ class YTDLSource(discord.PCMVolumeTransformer):
         with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
             filename = data['url'] if stream else ytdl.prepare_filename(data)
         data['duration'] = time.strftime('%M:%S', time.gmtime(data.get('duration')))
+        data['started__at'] = time.time() + start_time
         # for _, x in data.items():
         #     print(_, x)
-        ffmpeg_options['options'] = '-vn'
-        if start_time:
-            ffmpeg_options['options'] = '-vn -ss {}'.format(start_time)
+        ffmpeg_options['options'] = '-vn -ss {}'.format(time.strftime('%M:%S', time.gmtime(start_time)))
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
@@ -113,7 +113,6 @@ class Music(commands.Cog):
         self._ctx = None
         self.last_message = None
 
-        self.started_at = None
         self.time_cursor = None
         self.time_setting = 30
 
@@ -191,9 +190,7 @@ class Music(commands.Cog):
                 player = current[1]
                 _ctx.voice_client.play(player,
                                        after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
-                [print(t) for _ in _ctx.args for t in _]
-                [print(_) for _ in _ctx.kwargs]
-                self.started_at = time.time()
+                self.time_cursor = player.started_at
                 embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(player),
                                       url=player.url,
                                       description='Şimdi oynatılıyor',
@@ -414,7 +411,7 @@ class Music(commands.Cog):
             ctx.voice_client.pause()
             player = await YTDLSource.from_url(url=ctx.voice_client.source.url,
                                                loop=self.bot.loop,
-                                               start_time=time.strftime('%M:%S', time.gmtime(target_time)))
+                                               start_time=target_time)
             await self.queue.put((ctx, player))
             for _ in range(self.queue.qsize() - 1):
                 a = self.queue.get_nowait()
@@ -449,9 +446,7 @@ class Music(commands.Cog):
                 self.dislike()
                 return await self._ctx.invoke(self.bot.get_command('skip'))
             if reaction.emoji == player_emojis['backward']:
-                self.time_cursor = time.time() - self.started_at
-                target_time = self.time_cursor - self.time_setting
-                self.time_cursor = target_time
+                target_time = time.time() - self.time_cursor - self.time_setting
                 return await self._ctx.invoke(self.bot.get_command('goto'), target_time=target_time)
             if reaction.emoji == player_emojis['forward']:
                 target_time = time.time() - self.time_cursor + self.time_setting
