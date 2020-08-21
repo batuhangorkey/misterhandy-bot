@@ -112,7 +112,9 @@ class Music(commands.Cog):
         self.play_random = False
         self._ctx = None
         self.last_message = None
+
         self.started_at = None
+        self.time_cursor = None
         self.time_setting = 30
 
         self.bot.loop.create_task(self.audio_player())
@@ -189,7 +191,8 @@ class Music(commands.Cog):
                 player = current[1]
                 _ctx.voice_client.play(player,
                                        after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
-                self.started_at = time.time()
+                [print(_) for _ in _ctx.args]
+                self.started_at = _ctx.args[0]
                 embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(player),
                                       url=player.url,
                                       description='Şimdi oynatılıyor',
@@ -347,7 +350,7 @@ class Music(commands.Cog):
 
     @commands.command(help='Pauses')
     async def pause(self, ctx):
-        if ctx.voice_client is not None and ctx.voice_client.source:
+        if ctx.voice_client and ctx.voice_client.source:
             ctx.voice_client.pause()
             embed = self.last_message.embeds[0]
             embed.description = 'Durduruldu'
@@ -407,7 +410,7 @@ class Music(commands.Cog):
     @commands.command(help='Go to the time on the video')
     async def goto(self, ctx, target_time: int):
         async with ctx.typing():
-            await self._ctx.invoke(self.bot.get_command('pause'))
+            ctx.voice_client.pause()
             player = await YTDLSource.from_url(url=ctx.voice_client.source.url,
                                                loop=self.bot.loop,
                                                start_time=time.strftime('%M:%S', time.gmtime(target_time)))
@@ -445,10 +448,12 @@ class Music(commands.Cog):
                 self.dislike()
                 return await self._ctx.invoke(self.bot.get_command('skip'))
             if reaction.emoji == player_emojis['backward']:
-                target_time = time.time() - self.started_at - self.time_setting
+                self.time_cursor = time.time() - self.started_at
+                target_time = self.time_cursor - self.time_setting
+                self.time_cursor = target_time
                 return await self._ctx.invoke(self.bot.get_command('goto'), target_time=target_time)
             if reaction.emoji == player_emojis['forward']:
-                target_time = time.time() - self.started_at + self.time_setting
+                target_time = time.time() - self.time_cursor + self.time_setting
                 return await self._ctx.invoke(self.bot.get_command('goto'), target_time=target_time)
 
     @commands.Cog.listener()
