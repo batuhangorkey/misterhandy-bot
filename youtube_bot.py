@@ -113,6 +113,7 @@ class Music(commands.Cog):
         self._ctx = None
         self.last_message = None
 
+        self.started_at = None
         self.time_cursor = None
         self.time_setting = 30
 
@@ -164,6 +165,7 @@ class Music(commands.Cog):
             global _ctx
             while True:
                 self.play_next.clear()
+                self.time_cursor = 0
 
                 try:
                     if self.queue.qsize() == 0:
@@ -190,7 +192,8 @@ class Music(commands.Cog):
                 player = current[1]
                 _ctx.voice_client.play(player,
                                        after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
-                self.time_cursor = player.started_at
+                self.started_at = time.time()
+
                 embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(player),
                                       url=player.url,
                                       description='Şimdi oynatılıyor',
@@ -408,16 +411,18 @@ class Music(commands.Cog):
     @commands.command(help='Go to the time on the video')
     async def goto(self, ctx, target_time: int):
         async with ctx.typing():
+            self.time_cursor = target_time
             ctx.voice_client.pause()
             player = await YTDLSource.from_url(url=ctx.voice_client.source.url,
                                                loop=self.bot.loop,
                                                start_time=target_time)
-            await self.queue.put((ctx, player))
+            ctx.voice_client.source = player
+            # await self.queue.put((ctx, player))
             for _ in range(self.queue.qsize() - 1):
                 a = self.queue.get_nowait()
                 self.queue.task_done()
                 self.queue.put_nowait(a)
-            await self._ctx.invoke(self.bot.get_command('skip'))
+            # await self._ctx.invoke(self.bot.get_command('skip'))
 
     @goto.before_invoke
     async def ensure_source(self, ctx):
@@ -446,10 +451,12 @@ class Music(commands.Cog):
                 self.dislike()
                 return await self._ctx.invoke(self.bot.get_command('skip'))
             if reaction.emoji == player_emojis['backward']:
-                target_time = time.time() - self.time_cursor - self.time_setting
+                delta_time = time.time() - self.started_at
+                target_time = self.time_cursor + delta_time - self.time_setting
                 return await self._ctx.invoke(self.bot.get_command('goto'), target_time=target_time)
             if reaction.emoji == player_emojis['forward']:
-                target_time = time.time() - self.time_cursor + self.time_setting
+                delta_time = time.time() - self.started_at
+                target_time = self.time_cursor + delta_time + self.time_setting
                 return await self._ctx.invoke(self.bot.get_command('goto'), target_time=target_time)
 
     @commands.Cog.listener()
