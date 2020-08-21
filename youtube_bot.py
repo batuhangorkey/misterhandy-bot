@@ -94,7 +94,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
             filename = data['url'] if stream else ytdl.prepare_filename(data)
         data['duration'] = time.strftime('%M:%S', time.gmtime(data.get('duration')))
-        data['started__at'] = time.time() + start_time
+        data['started_at'] = time.time() + start_time
         # for _, x in data.items():
         #     print(_, x)
         ffmpeg_options['options'] = '-vn -ss {}'.format(time.strftime('%M:%S', time.gmtime(start_time)))
