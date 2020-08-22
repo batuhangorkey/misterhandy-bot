@@ -63,10 +63,10 @@ def get_random_playlist():
             data = cursor.fetchall()
     finally:
         conn.close()
-    _list = [t for t in data]
-    _max = max([i for _, i in _list]) + 1
-    _list = [(url, _max - s) for url, s in _list]
-    return _list
+    db_playlist = [t for t in data]
+    _max = max([i for _, i in db_playlist]) + 1
+    db_playlist = [(url, _max - s) for url, s in db_playlist]
+    return db_playlist
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -202,9 +202,8 @@ class Music(commands.Cog):
                     pass
 
                 current = await self.queue.get()
-                _ctx = current[0]
+                _ctx, player = current
                 self._ctx = _ctx
-                player = current[1]
                 _ctx.voice_client.play(player,
                                        after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
                 self.started_at = time.time()
