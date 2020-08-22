@@ -17,7 +17,7 @@ USER_ID = os.getenv('USER_ID')
 PASSWORD = os.getenv('PASSWORD')
 DATABASE_NAME = os.getenv('DATABASE_NAME')
 
-client = discord.Client()
+# client = discord.Client()
 bot = commands.Bot(command_prefix='!')
 
 adj = {
@@ -72,6 +72,8 @@ async def on_ready():
     bot.add_cog(Minigame(bot, user_table=fetch_user_tables()[0]))
     # bot.add_cog(Kaiser(bot, kaiser_points=fetch_user_tables()[1]))
     bot.add_cog(Music(bot))
+    music_cog = bot.get_cog('Music')
+    music_cog.last_update_date = ctime(time() + 10800)
 
 
 @bot.command(help='Roll dice.')
