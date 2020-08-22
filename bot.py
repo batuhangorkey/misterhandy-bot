@@ -36,6 +36,8 @@ adj = {
     -4: 'Felaket'
 }
 
+last_update_date = None
+
 
 def fetch_user_tables():
     user_table = {}
@@ -61,6 +63,7 @@ def fetch_user_tables():
 
 @bot.event
 async def on_ready():
+    global last_update_date
     print('{0.name} with id: {0.id} has connected to Discord at {time}'.format(bot.user, time=ctime(time() + 10800)))
     async for guild in bot.fetch_guilds():
         print('Operating on {} with id: {}'.format(guild.name, guild.id))
@@ -73,7 +76,8 @@ async def on_ready():
     # bot.add_cog(Kaiser(bot, kaiser_points=fetch_user_tables()[1]))
     bot.add_cog(Music(bot))
     music_cog = bot.get_cog('Music')
-    music_cog.last_update_date = ctime(time() + 10800)
+    last_update_date = ctime(time() + 10800)
+    music_cog.last_update_date = last_update_date
 
 
 @bot.command(help='Roll dice.')
@@ -119,6 +123,8 @@ async def refresh(ctx):
     async with ctx.typing():
         bot.remove_cog('Music')
         bot.add_cog(Music(bot))
+        music_cog = bot.get_cog('Music')
+        music_cog.last_update_date = last_update_date
         await ctx.send('Oynatıcı baştan yüklendi.')
 
 bot.run(TOKEN)
