@@ -78,6 +78,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.thumbnail = data.get('thumbnail')
         self.uploader = data.get('uploader')
         self.duration = data.get('duration')
+        self.start_time = data.get('start_time')
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False, start_time=0):
@@ -92,6 +93,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             data = data['entries'][0]
         with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
             filename = data['url'] if stream else ytdl.prepare_filename(data)
+        data['start_time'] = start_time
         data['duration'] = time.strftime('%M:%S', time.gmtime(data.get('duration')))
         if start_time != 0:
             ffmpeg_options['options'] = '-vn -ss {}'.format(time.strftime('%M:%S', time.gmtime(start_time)))
@@ -154,9 +156,14 @@ class Music(commands.Cog):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
 
     async def send_player_embed(self, source):
+        if source.start_time != 0:
+            description = 'Şimdi oynatılıyor - {} dan başladı'.format(time.strftime('%M:%S',
+                                                                                    time.gmtime(source.start_time)))
+        else:
+            description = 'Şimdi oynatılıyor'
         embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(source),
                               url=source.url,
-                              description='Şimdi oynatılıyor',
+                              description=description,
                               colour=0x8B0000)
         embed.set_thumbnail(url=source.thumbnail)
         footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {} - {}'
