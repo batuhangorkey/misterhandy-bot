@@ -2,7 +2,7 @@ import os
 import random
 import discord
 import pymysql
-from time import time, ctime
+import time
 from minigame import Minigame
 from youtube_bot import Music
 # from kaiser import Kaiser
@@ -23,7 +23,7 @@ DATABASE_NAME = os.getenv('DATABASE_NAME')
 class CustomBot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix='!')
-        self.last_update_date = ctime(time() + 10800)
+        self.version_name = time.strftime('v%d.%m.%Y', time.gmtime())
 
 
 bot = CustomBot()
@@ -43,8 +43,6 @@ adj = {
     -3: 'Rezalet',
     -4: 'Felaket'
 }
-
-last_update_date = None
 
 
 def fetch_user_tables():
@@ -71,8 +69,8 @@ def fetch_user_tables():
 
 @bot.event
 async def on_ready():
-    global last_update_date
-    print('{0.name} with id: {0.id} has connected to Discord at {time}'.format(bot.user, time=ctime(time() + 10800)))
+    print('{0.name} with id: {0.id} has connected to Discord at {time}'.format(bot.user,
+                                                                               time=time.ctime(time.time() + 10800)))
     async for guild in bot.fetch_guilds():
         print('Operating on {} with id: {}'.format(guild.name, guild.id))
 
