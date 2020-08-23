@@ -18,7 +18,15 @@ PASSWORD = os.getenv('PASSWORD')
 DATABASE_NAME = os.getenv('DATABASE_NAME')
 
 # client = discord.Client()
-bot = commands.Bot(command_prefix='!')
+
+
+class CustomBot(commands.Bot):
+    def __init__(self):
+        super().__init__(command_prefix='!')
+        self.last_update_date = ctime(time() + 10800)
+
+
+bot = CustomBot()
 
 adj = {
     8: 'Efsane',
@@ -75,9 +83,6 @@ async def on_ready():
     bot.add_cog(Minigame(bot, user_table=fetch_user_tables()[0]))
     # bot.add_cog(Kaiser(bot, kaiser_points=fetch_user_tables()[1]))
     bot.add_cog(Music(bot))
-    music_cog = bot.get_cog('Music')
-    last_update_date = ctime(time() + 10800)
-    music_cog.last_update_date = last_update_date
 
 
 @bot.command(help='Roll dice.')
@@ -123,8 +128,6 @@ async def refresh(ctx):
     async with ctx.typing():
         bot.remove_cog('Music')
         bot.add_cog(Music(bot))
-        music_cog = bot.get_cog('Music')
-        music_cog.last_update_date = last_update_date
         await ctx.send('Oynatıcı baştan yüklendi.')
 
 bot.run(TOKEN)
