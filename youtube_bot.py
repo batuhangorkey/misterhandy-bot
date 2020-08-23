@@ -105,7 +105,7 @@ class Music(commands.Cog):
         self.bot = bot
         self.default_presence = discord.Activity(type=discord.ActivityType.listening,
                                                  name='wasteland with sensors offline')
-        self.last_update_date = None
+        self.last_update_date = bot.last_update_date
 
         self.queue = asyncio.Queue(loop=self.bot.loop)
         self.play_next = asyncio.Event(loop=self.bot.loop)
