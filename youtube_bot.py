@@ -105,7 +105,6 @@ class Music(commands.Cog):
         self.bot = bot
         self.default_presence = discord.Activity(type=discord.ActivityType.listening,
                                                  name='wasteland with sensors offline')
-        self.last_update_date = bot.last_update_date
 
         self.queue = asyncio.Queue(loop=self.bot.loop)
         self.play_next = asyncio.Event(loop=self.bot.loop)
@@ -160,7 +159,7 @@ class Music(commands.Cog):
                               colour=0x8B0000)
         embed.set_thumbnail(url=source.thumbnail)
         footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {} - {}'
-        embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı', self.last_update_date))
+        embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı', self.bot.version_name))
         if self.last_message:
             _embed = self.last_message.embeds[0]
             if len(_embed.fields) > 1:
