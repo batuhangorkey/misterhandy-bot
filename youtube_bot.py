@@ -116,7 +116,8 @@ class Music(commands.Cog):
         self.time_cursor = None
         self.time_setting = 30
 
-        self.bot.loop.create_task(self.audio_player())
+        # self.bot.loop.create_task(self.audio_player())
+        self.task = None
         self.search_list = []
         self._random_playlist = None
         self.random_playlist = None
@@ -326,6 +327,7 @@ class Music(commands.Cog):
         if ctx.voice_client is None:
             if ctx.author.voice:
                 await ctx.author.voice.channel.connect()
+                self.task = self.bot.loop.create_task(self.audio_player())
             else:
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
@@ -371,7 +373,8 @@ class Music(commands.Cog):
             await ctx.voice_client.disconnect()
         except AttributeError as error:
             print(error)
-            pass
+        if self.task:
+            self.task.cancel()
         await self.bot.change_presence(activity=self.default_presence)
 
     @commands.command(help='Adds song to bot playlist')
