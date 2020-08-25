@@ -114,7 +114,7 @@ class Music(commands.Cog):
         self._ctx = None
         self.last_message = None
 
-        self.started_at = None
+        self.source_start_tme = None
         self.time_cursor = None
         self.time_setting = 30
 
@@ -217,7 +217,7 @@ class Music(commands.Cog):
                 self._ctx = _ctx
                 _ctx.voice_client.play(player,
                                        after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
-                self.started_at = time.time()
+                self.source_start_tme = time.time()
                 async with _ctx.typing():
                     await self.send_player_embed(player)
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
@@ -417,6 +417,7 @@ class Music(commands.Cog):
                                                loop=self.bot.loop,
                                                start_time=target_time)
             ctx.voice_client.source = player
+            self.source_start_tme = time.time()
             await self.send_player_embed(player)
             for _ in range(self.queue.qsize() - 1):
                 a = self.queue.get_nowait()
@@ -450,11 +451,11 @@ class Music(commands.Cog):
                 self.dislike()
                 return await self._ctx.invoke(self.bot.get_command('skip'))
             if reaction.emoji == player_emojis['backward']:
-                delta_time = time.time() - self.started_at
+                delta_time = time.time() - self.source_start_tme
                 target_time = self.time_cursor + delta_time - self.time_setting
                 return await self._ctx.invoke(self.bot.get_command('goto'), target_time=target_time)
             if reaction.emoji == player_emojis['forward']:
-                delta_time = time.time() - self.started_at
+                delta_time = time.time() - self.source_start_tme
                 target_time = self.time_cursor + delta_time + self.time_setting
                 return await self._ctx.invoke(self.bot.get_command('goto'), target_time=target_time)
 
