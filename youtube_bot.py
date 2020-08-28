@@ -452,14 +452,13 @@ class Music(commands.Cog):
                 return await self._ctx.invoke(self.bot.get_command('skip'))
             if reaction.emoji == playlist_emojis['like']:
                 await self.like()
-                return await self._ctx.invoke(self.bot.get_command('skip'))
 
     def dislike(self):
         if _ctx.voice_client.source is None:
             return
         url = _ctx.voice_client.source.url
         if url not in [url for url, s in self._random_playlist]:
-            return _ctx.voice_client.stop()
+            return
         conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
         try:
             with conn.cursor() as cursor:
