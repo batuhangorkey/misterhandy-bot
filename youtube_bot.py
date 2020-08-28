@@ -451,7 +451,7 @@ class Music(commands.Cog):
                 self.dislike()
                 return await self._ctx.invoke(self.bot.get_command('skip'))
             if reaction.emoji == player_emojis['like']:
-                self.like()
+                await self.like()
                 return await self._ctx.invoke(self.bot.get_command('skip'))
 
     def dislike(self):
@@ -469,7 +469,7 @@ class Music(commands.Cog):
             conn.close()
             return
 
-    def like(self):
+    async def like(self):
         if _ctx.voice_client.source is None:
             return
         url = _ctx.voice_client.source.url
