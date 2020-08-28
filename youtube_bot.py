@@ -170,6 +170,7 @@ class Music(commands.Cog):
             return
         for _ in playlist_emojis.values():
             await self.last_message.add_reaction(_)
+        await asyncio.gather([await self.last_message.add_reaction(_) for _ in player_emojis.values()])
 
     async def manage_last(self, msg):
         try:
