@@ -64,7 +64,7 @@ def get_random_playlist():
     finally:
         conn.close()
     db_playlist = [t for t in data]
-    db_playlist = [(url, int(like / dislike) for url, dislike, like in db_playlist]
+    db_playlist = [(url, int(like / dislike)) for url, dislike, like in db_playlist]
     return db_playlist
 
 
