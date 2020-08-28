@@ -448,10 +448,10 @@ class Music(commands.Cog):
                 delta_time = time.time() - self.source_start_tme
                 target_time = self.time_cursor + delta_time + self.time_setting
                 return await self._ctx.invoke(self.bot.get_command('goto'), target_time=target_time)
-            if reaction.emoji == player_emojis['dislike']:
+            if reaction.emoji == playlist_emojis['dislike']:
                 self.dislike()
                 return await self._ctx.invoke(self.bot.get_command('skip'))
-            if reaction.emoji == player_emojis['like']:
+            if reaction.emoji == playlist_emojis['like']:
                 await self.like()
                 return await self._ctx.invoke(self.bot.get_command('skip'))
 
