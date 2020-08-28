@@ -37,7 +37,8 @@ player_emojis = {
     'next_track': u'\u23ED',
     'backward': u'\u21AA',
     'forward': u'\u21A9',
-    'dislike': u'\U0001F44E'
+    'dislike': u'\U0001F44E',
+    'like': u'\U0001F44D'
 }
 
 # if not discord.opus.is_loaded():
@@ -123,21 +124,6 @@ class Music(commands.Cog):
         self._random_playlist = None
         self.random_playlist = None
         self.refresh_playlist()
-
-    def dislike(self):
-        if _ctx.voice_client.source is None:
-            return
-        url = _ctx.voice_client.source.url
-        if url not in [url for url, s in self._random_playlist]:
-            return _ctx.voice_client.stop()
-        conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute('UPDATE playlist SET skip_count = skip_count + 1 WHERE url = "{}"'.format(url))
-            conn.commit()
-        finally:
-            conn.close()
-            return
 
     def refresh_playlist(self):
         self._random_playlist = get_random_playlist()
@@ -446,9 +432,6 @@ class Music(commands.Cog):
                 return await self._ctx.invoke(self.bot.get_command('pause'))
             if reaction.emoji == player_emojis['stop']:
                 return await self._ctx.invoke(self.bot.get_command('stop'))
-            if reaction.emoji == player_emojis['dislike']:
-                self.dislike()
-                return await self._ctx.invoke(self.bot.get_command('skip'))
             if reaction.emoji == player_emojis['backward']:
                 delta_time = time.time() - self.source_start_tme
                 target_time = self.time_cursor + delta_time - self.time_setting
@@ -457,6 +440,42 @@ class Music(commands.Cog):
                 delta_time = time.time() - self.source_start_tme
                 target_time = self.time_cursor + delta_time + self.time_setting
                 return await self._ctx.invoke(self.bot.get_command('goto'), target_time=target_time)
+            if reaction.emoji == player_emojis['dislike']:
+                self.dislike()
+                return await self._ctx.invoke(self.bot.get_command('skip'))
+            if reaction.emoji == player_emojis['dislike']:
+                self.like()
+                return await self._ctx.invoke(self.bot.get_command('skip'))
+
+    def dislike(self):
+        if _ctx.voice_client.source is None:
+            return
+        url = _ctx.voice_client.source.url
+        if url not in [url for url, s in self._random_playlist]:
+            return _ctx.voice_client.stop()
+        conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute('UPDATE playlist SET dislike = dislike + 1 WHERE url = "{}"'.format(url))
+            conn.commit()
+        finally:
+            conn.close()
+            return
+
+    def like(self):
+        if _ctx.voice_client.source is None:
+            return
+        url = _ctx.voice_client.source.url
+        if url not in [url for url, s in self._random_playlist]:
+            return await self._ctx.send('Sadece şarkı listesindeki şarkılar beğenilebilir.')
+        conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute('UPDATE playlist SET like = like + 1 WHERE url = "{}"'.format(url))
+            conn.commit()
+        finally:
+            conn.close()
+            return
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
