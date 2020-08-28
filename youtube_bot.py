@@ -59,7 +59,7 @@ def get_random_playlist():
     conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
     try:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT url, dislike, like FROM playlist")
+            cursor.execute("SELECT url, dislike, like_count FROM playlist")
             data = cursor.fetchall()
     finally:
         conn.close()
