@@ -386,7 +386,7 @@ class Music(commands.Cog):
                 if url in self._random_playlist:
                     return await ctx.send('Bu şarkı listede var.')
 
-                cursor.execute('INSERT INTO playlist (url, skip_count) VALUES ("{}", 1)'.format(url))
+                cursor.execute('INSERT INTO playlist (url, skip_count) VALUES ("{}")'.format(url))
                 conn.commit()
 
                 cursor.execute('SELECT url FROM playlist where url="{}"'.format(url))
@@ -477,7 +477,7 @@ class Music(commands.Cog):
         conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
         try:
             with conn.cursor() as cursor:
-                cursor.execute('UPDATE playlist SET like = like + 1 WHERE url = "{}"'.format(url))
+                cursor.execute('UPDATE playlist SET like_count = like_count + 1 WHERE url = "{}"'.format(url))
             conn.commit()
         finally:
             conn.close()
