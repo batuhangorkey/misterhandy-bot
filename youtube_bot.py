@@ -443,7 +443,7 @@ class Music(commands.Cog):
             if reaction.emoji == player_emojis['dislike']:
                 self.dislike()
                 return await self._ctx.invoke(self.bot.get_command('skip'))
-            if reaction.emoji == player_emojis['dislike']:
+            if reaction.emoji == player_emojis['like']:
                 self.like()
                 return await self._ctx.invoke(self.bot.get_command('skip'))
 
