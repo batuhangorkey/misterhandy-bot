@@ -164,12 +164,8 @@ class Music(commands.Cog):
                     embed.add_field(name=str(self.queue.qsize()),
                                     value=_.value)
         await self.manage_last(await _ctx.send(embed=embed))
-        await asyncio.gather(self.last_message.add_reaction(u'\u23F9'),
-                             self.last_message.add_reaction(u'\u23EF'),
-                             self.last_message.add_reaction(u'\u23ED'),
-                             self.last_message.add_reaction(u'\u21AA'))
-        # for _ in player_emojis.values():
-        #     await self.last_message.add_reaction(_)
+        for _ in player_emojis.values():
+            await self.last_message.add_reaction(_)
         if not self.play_random:
             return
         for _ in playlist_emojis.values():
