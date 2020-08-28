@@ -59,13 +59,12 @@ def get_random_playlist():
     conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
     try:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT url, skip_count FROM playlist")
+            cursor.execute("SELECT url, dislike, like FROM playlist")
             data = cursor.fetchall()
     finally:
         conn.close()
     db_playlist = [t for t in data]
-    _max = max([i for _, i in db_playlist]) + 1
-    db_playlist = [(url, _max - s) for url, s in db_playlist]
+    db_playlist = [(url, int(like / dislike) for url, dislike, like in db_playlist]
     return db_playlist
 
 
@@ -147,7 +146,7 @@ class Music(commands.Cog):
     def get_song_from_rnd_playlist(self):
         if len(self.random_playlist) == 0:
             self.refresh_playlist()
-        cum_weights = list(itertools.accumulate([s for url, s in self.random_playlist]))
+        cum_weights = list(itertools.accumulate([rating for url, rating in self.random_playlist]))
         song = random.choices(self.random_playlist, cum_weights=cum_weights, k=1)[0]
         self.random_playlist.remove(song)
         return song[0]
