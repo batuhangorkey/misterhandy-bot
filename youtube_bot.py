@@ -36,7 +36,10 @@ player_emojis = {
     'play_pause': u'\u23EF',
     'next_track': u'\u23ED',
     'backward': u'\u21AA',
-    'forward': u'\u21A9',
+    'forward': u'\u21A9'
+}
+
+playlist_emojis = {
     'dislike': u'\U0001F44E',
     'like': u'\U0001F44D'
 }
@@ -162,6 +165,10 @@ class Music(commands.Cog):
                                     value=_.value)
         await self.manage_last(await _ctx.send(embed=embed))
         for _ in player_emojis.values():
+            await self.last_message.add_reaction(_)
+        if not self.play_random:
+            return 
+        for _ in playlist_emojis.values():
             await self.last_message.add_reaction(_)
 
     async def manage_last(self, msg):
