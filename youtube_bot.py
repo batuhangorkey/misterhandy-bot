@@ -167,7 +167,7 @@ class Music(commands.Cog):
         for _ in player_emojis.values():
             await self.last_message.add_reaction(_)
         if not self.play_random:
-            return 
+            return
         for _ in playlist_emojis.values():
             await self.last_message.add_reaction(_)
 
