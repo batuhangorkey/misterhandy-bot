@@ -163,7 +163,7 @@ class Music(commands.Cog):
                     embed.add_field(name=str(self.queue.qsize()),
                                     value=_.value)
         await self.manage_last(await _ctx.send(embed=embed))
-        if not self.play_random:
+        if self.play_random:
             for _ in playlist_emojis.values():
                 await self.last_message.add_reaction(_)
         for _ in player_emojis.values():
@@ -386,7 +386,7 @@ class Music(commands.Cog):
 
                 cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(url))
                 conn.commit()
-                
+
                 cursor.execute('SELECT url FROM playlist where url="{}"'.format(url))
                 data = cursor.fetchone()
 
