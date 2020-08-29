@@ -121,7 +121,6 @@ class Music(commands.Cog):
         self.time_cursor = None
         self.time_setting = 30
 
-        # self.bot.loop.create_task(self.audio_player())
         self.task = None
         self.search_list = []
         self._random_playlist = None
@@ -164,11 +163,10 @@ class Music(commands.Cog):
                     embed.add_field(name=str(self.queue.qsize()),
                                     value=_.value)
         await self.manage_last(await _ctx.send(embed=embed))
-        for _ in player_emojis.values():
-            await self.last_message.add_reaction(_)
         if not self.play_random:
-            return
-        for _ in playlist_emojis.values():
+            for _ in playlist_emojis.values():
+                await self.last_message.add_reaction(_)
+        for _ in player_emojis.values():
             await self.last_message.add_reaction(_)
 
     async def manage_last(self, msg):
