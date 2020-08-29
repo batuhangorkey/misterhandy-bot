@@ -382,28 +382,26 @@ class Music(commands.Cog):
         except youtube_dl.utils.DownloadError as error:
             print(error)
             return
-        entries = [(_.get('webpage_url'), _.get('title')) for _ in data.get('entries')]
+        entries = [_ for _ in data.get('entries')]
         conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
         try:
             for entry in entries:
-                url = entry[0]
-                title = entry[1]
-                if url in self._random_playlist:
-                    return await ctx.send('Bu şarkı listede var. {}'.format(title))
+                if entry.get('webpage_url') in self._random_playlist:
+                    return await ctx.send('Bu şarkı listede var. {}'.format(entry.get('title')))
                 with conn.cursor() as cursor:
-                    cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(url))
+                    cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(entry.get('webpage_url')))
                     conn.commit()
 
-                    cursor.execute('SELECT url FROM playlist where url="{}"'.format(url))
+                    cursor.execute('SELECT url FROM playlist where url="{}"'.format(entry.get('webpage_url')))
                     data = cursor.fetchone()
 
                 if data:
-                    self.refresh_playlist()
-                    await ctx.send('Şarkı eklendi. Teşekkürler {}'.format(title))
+                    await ctx.send('Şarkı eklendi. Teşekkürler {}'.format(entry.get('title')))
                 else:
-                    await ctx.send('Şarkı eklenemedi. {}'.format(title))
+                    await ctx.send('Şarkı eklenemedi. {}'.format(entry.get('title')))
         finally:
             conn.close()
+            self.refresh_playlist()
 
         # if len(url) != 43 or not url.startswith('https://www.youtube.com/watch?v='):
         #     return await ctx.send('Linkini kontrol et. Tam link atmalısın')
