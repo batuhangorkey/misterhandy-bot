@@ -383,6 +383,8 @@ class Music(commands.Cog):
             print(error)
             return
         entries = [_ for _ in data.get('entries')]
+        added_songs = []
+        fail_songs = []
         conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
         try:
             for entry in entries:
@@ -396,15 +398,15 @@ class Music(commands.Cog):
                     data = cursor.fetchone()
 
                 if data:
-                    entry['added'] = True
+                    added_songs.append(entry.get('title'))
                 else:
-                    entry['added'] = False
+                    fail_songs.append(entry.get('title'))
         finally:
             await ctx.send('Eklenen şarkılar:\n'
-                           '```{}```\n'
-                           'Başına birşey gelen şarkılar:\n'
-                           '```{}```'.format('\n'.join([_['webpage_url'] for _ in entries if _['added']]),
-                                             '\n'.join([_['webpage_url'] for _ in entries if not _['added']])))
+                           '```{}```'.format('\n'.join(added_songs)))
+            if len(fail_songs) != 0:
+                await ctx.send('\nBaşına bir şey gelen şarkılar:\n'
+                               '```{}```'.format('\n'.join(fail_songs)))
             conn.close()
             self.refresh_playlist()
 
