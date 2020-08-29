@@ -387,7 +387,7 @@ class Music(commands.Cog):
         try:
             for entry in entries:
                 if entry.get('webpage_url') in self._random_playlist:
-                    return await ctx.send('Bu şarkı listede var. {}'.format(entry.get('title')))
+                    return await ctx.send('Bu şarkı listede var: {}'.format(entry.get('title')))
                 with conn.cursor() as cursor:
                     cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(entry.get('webpage_url')))
                     conn.commit()
@@ -396,10 +396,15 @@ class Music(commands.Cog):
                     data = cursor.fetchone()
 
                 if data:
-                    await ctx.send('Şarkı eklendi. Teşekkürler {}'.format(entry.get('title')))
+                    entry['added'] = True
                 else:
-                    await ctx.send('Şarkı eklenemedi. {}'.format(entry.get('title')))
+                    entry['added'] = False
         finally:
+            await ctx.send('Eklenen şarkılar:\n'
+                           '```{}```\n'
+                           'Başına birşey gelen şarkılar:\n'
+                           '```{}```'.format('\n'.join([_['webpage_url'] for _ in entries if _['added']]),
+                                             '\n'.join([_['webpage_url'] for _ in entries if not _['added']])))
             conn.close()
             self.refresh_playlist()
 
