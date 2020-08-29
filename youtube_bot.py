@@ -378,15 +378,15 @@ class Music(commands.Cog):
     async def add_link(self, ctx, url: str):
         if len(url) != 43 or not url.startswith('https://www.youtube.com/watch?v='):
             return await ctx.send('Linkini kontrol et. Tam link atmalısın')
+        if url in self._random_playlist:
+            return await ctx.send('Bu şarkı listede var.')
         conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
         try:
             with conn.cursor() as cursor:
-                if url in self._random_playlist:
-                    return await ctx.send('Bu şarkı listede var.')
 
-                cursor.execute('INSERT INTO playlist (url, skip_count) VALUES ("{}")'.format(url))
+                cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(url))
                 conn.commit()
-
+                
                 cursor.execute('SELECT url FROM playlist where url="{}"'.format(url))
                 data = cursor.fetchone()
 
