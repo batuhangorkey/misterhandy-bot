@@ -376,27 +376,56 @@ class Music(commands.Cog):
 
     @commands.command(help='Adds song to bot playlist')
     async def add_link(self, ctx, url: str):
-        if len(url) != 43 or not url.startswith('https://www.youtube.com/watch?v='):
-            return await ctx.send('Linkini kontrol et. Tam link atmalısın')
-        if url in self._random_playlist:
-            return await ctx.send('Bu şarkı listede var.')
+        try:
+            with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
+                data = await self.bot.loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
+        except youtube_dl.utils.DownloadError as error:
+            print(error)
+            return
+        entries = [(_.get('webpage_url'), _.get('title')) for _ in data.get('entries')]
         conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
         try:
-            with conn.cursor() as cursor:
+            for entry in entries:
+                url = entry[0]
+                title = entry[1]
+                if url in self._random_playlist:
+                    return await ctx.send('Bu şarkı listede var. {}'.format(title))
+                with conn.cursor() as cursor:
+                    cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(url))
+                    conn.commit()
 
-                cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(url))
-                conn.commit()
+                    cursor.execute('SELECT url FROM playlist where url="{}"'.format(url))
+                    data = cursor.fetchone()
 
-                cursor.execute('SELECT url FROM playlist where url="{}"'.format(url))
-                data = cursor.fetchone()
-
-            if data:
-                self.refresh_playlist()
-                await ctx.send('Şarkı eklendi. Teşekkürler')
-            else:
-                await ctx.send('Şarkı eklenemedi.')
+                if data:
+                    self.refresh_playlist()
+                    await ctx.send('Şarkı eklendi. Teşekkürler {}'.format(title))
+                else:
+                    await ctx.send('Şarkı eklenemedi. {}'.format(title))
         finally:
             conn.close()
+
+        # if len(url) != 43 or not url.startswith('https://www.youtube.com/watch?v='):
+        #     return await ctx.send('Linkini kontrol et. Tam link atmalısın')
+        # if url in self._random_playlist:
+        #     return await ctx.send('Bu şarkı listede var.')
+        # conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
+        # try:
+        #     with conn.cursor() as cursor:
+        #
+        #         cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(url))
+        #         conn.commit()
+        #
+        #         cursor.execute('SELECT url FROM playlist where url="{}"'.format(url))
+        #         data = cursor.fetchone()
+        #
+        #     if data:
+        #         self.refresh_playlist()
+        #         await ctx.send('Şarkı eklendi. Teşekkürler')
+        #     else:
+        #         await ctx.send('Şarkı eklenemedi.')
+        # finally:
+        #     conn.close()
 
     @commands.command(help='Go to the time on the video')
     async def goto(self, ctx, target_time: int):
