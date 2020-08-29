@@ -381,7 +381,7 @@ class Music(commands.Cog):
                 data = await self.bot.loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
         except youtube_dl.utils.DownloadError as error:
             print(error)
-            return
+            return await ctx.send('Yanlış bir şeyler oldu.')
         entries = [_ for _ in data.get('entries')]
         added_songs = []
         fail_songs = []
