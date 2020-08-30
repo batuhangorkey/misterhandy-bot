@@ -153,8 +153,10 @@ class Music(commands.Cog):
                               description=description,
                               colour=0x8B0000)
         embed.set_thumbnail(url=source.thumbnail)
-        footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {} - {}'
-        embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı', self.bot.version_name))
+        footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {} ({}) - {}'
+        embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı',
+                                            len(self._random_playlist),
+                                            self.bot.version_name))
         if self.last_message:
             _embed = self.last_message.embeds[0]
             if len(_embed.fields) > 1:
