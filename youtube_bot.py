@@ -234,6 +234,7 @@ class Music(commands.Cog):
     @commands.command(help="Plays from a url.")
     async def yt(self, ctx, *, url):
         async with ctx.typing():
+            print('Requested: {}'.format(url))
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
             if player is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
@@ -313,8 +314,10 @@ class Music(commands.Cog):
             self.play_random = not self.play_random
             if self.last_message:
                 _embed = self.last_message.embeds[0]
-                footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {}'
-                _embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı'))
+                footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {} ({}) - {}'
+                _embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı',
+                                                     len(self._random_playlist),
+                                                     self.bot.version_name))
                 await self.last_message.edit(embed=_embed)
 
     @yt.before_invoke
