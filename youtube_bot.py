@@ -387,11 +387,14 @@ class Music(commands.Cog):
         except youtube_dl.utils.DownloadError as error:
             print(error)
             return await ctx.send('Yanlış bir şeyler oldu.')
-        entries = [_ for _ in data.get('entries')]
         added_songs = []
         fail_songs = []
         conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
         try:
+            if 'entries' in data:
+                entries = [_ for _ in data.get('entries')]
+            else:
+                entries = data
             for entry in entries:
                 if entry.get('webpage_url') in self._random_playlist:
                     return await ctx.send('Bu şarkı listede var: {}'.format(entry.get('title')))
@@ -545,6 +548,7 @@ class Events(commands.Cog):
         if index < 1 or 10 < index:
             return
         music = self.bot.get_cog('Music')
+        print(msg.content)
         await self.ctx.invoke(music.bot.get_command('yt'), url=music.search_list[index - 1])
         music.search_list.clear()
         self.bot.remove_cog('Events')
