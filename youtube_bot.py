@@ -300,6 +300,8 @@ class Music(commands.Cog):
             i = i + 1
         async with ctx.typing():
             await ctx.send(embed=embed, delete_after=20)
+        if self.bot.get_cog('Events'):
+            self.bot.remove_cog('Events')
         self.bot.add_cog(Events(self.bot, ctx))
 
     @commands.command(help='Plays random songs')
