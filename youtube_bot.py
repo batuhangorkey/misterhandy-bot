@@ -399,7 +399,8 @@ class Music(commands.Cog):
                 entries = list(data)
             for entry in entries:
                 if entry.get('webpage_url') in self._random_playlist:
-                    return await ctx.send('Bu şarkı listede var: {}'.format(entry.get('title')))
+                    await ctx.send('Bu şarkı listede var: {}'.format(entry.get('title')))
+                    continue
                 with conn.cursor() as cursor:
                     cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(entry.get('webpage_url')))
                     conn.commit()
