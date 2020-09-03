@@ -390,16 +390,27 @@ class Music(commands.Cog):
             print(error)
             return await ctx.send('Yanlış bir şeyler oldu.')
         added_songs = []
-        fail_songs = []
+        failed_songs = []
         conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
         try:
             if 'entries' in data:
                 entries = [_ for _ in data.get('entries')]
+                for entry in entries:
+                    if entry.get('webpage_url') in self._random_playlist:
+                        return await ctx.send('Bu şarkı listede var: {}'.format(entry.get('title')))
+                    with conn.cursor() as cursor:
+                        cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(entry.get('webpage_url')))
+                        conn.commit()
+
+                        cursor.execute('SELECT url FROM playlist where url="{}"'.format(entry.get('webpage_url')))
+                        data = cursor.fetchone()
+
+                    if data:
+                        added_songs.append(entry.get('title'))
+                    else:
+                        failed_songs.append(entry.get('title'))
             else:
-                entries = data
-            for entry in entries:
-                if entry.get('webpage_url') in self._random_playlist:
-                    return await ctx.send('Bu şarkı listede var: {}'.format(entry.get('title')))
+                entry = data.copy()
                 with conn.cursor() as cursor:
                     cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(entry.get('webpage_url')))
                     conn.commit()
@@ -410,13 +421,13 @@ class Music(commands.Cog):
                 if data:
                     added_songs.append(entry.get('title'))
                 else:
-                    fail_songs.append(entry.get('title'))
+                    failed_songs.append(entry.get('title'))
         finally:
             await ctx.send('Eklenen şarkılar:\n'
                            '```{}```'.format('\n'.join(added_songs)))
-            if len(fail_songs) != 0:
+            if len(failed_songs) > 0:
                 await ctx.send('\nBaşına bir şey gelen şarkılar:\n'
-                               '```{}```'.format('\n'.join(fail_songs)))
+                               '```{}```'.format('\n'.join(failed_songs)))
             conn.close()
             self.refresh_playlist()
 
