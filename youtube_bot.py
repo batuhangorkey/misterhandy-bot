@@ -396,7 +396,7 @@ class Music(commands.Cog):
             if 'entries' in data:
                 entries = [_ for _ in data.get('entries')]
             else:
-                entries = list(data)
+                entries = [data]
             for entry in entries:
                 if entry.get('webpage_url') in self._random_playlist:
                     await ctx.send('Bu şarkı listede var: {}'.format(entry.get('title')))
