@@ -3,6 +3,7 @@ import random
 import discord
 import pymysql
 import time
+import subprocess
 from minigame import Minigame
 from youtube_bot import Music
 # from kaiser import Kaiser
@@ -124,8 +125,9 @@ async def delete(ctx, limit: int = None):
 @bot.command(help='Refreshes music cog.')
 async def refresh(ctx):
     async with ctx.typing():
-        bot.remove_cog('Music')
-        bot.add_cog(Music(bot))
-        await ctx.send('Oynatıcı baştan yüklendi.')
+        subprocess.call(["touch demo"])
+        subprocess.call(["git add demo"])
+        subprocess.call(["git commit", "-m 'a'"])
+        subprocess.call(["git push"])
 
 bot.run(TOKEN)
