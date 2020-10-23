@@ -125,8 +125,8 @@ async def delete(ctx, limit: int = None):
 @bot.command(help='Refreshes music cog.')
 async def refresh(ctx):
     async with ctx.typing():
-        subprocess.call(["touch demo"])
-        subprocess.call(["git add demo"])
+        subprocess.call(["touch demo.txt"])
+        subprocess.call(["git add demo.txt"])
         subprocess.call(["git commit", "-m 'a'"])
         subprocess.call(["git push"])
 
