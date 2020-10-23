@@ -4,7 +4,7 @@ import discord
 import pymysql
 import time
 import subprocess
-import pathlib import Path
+from pathlib import Path
 from minigame import Minigame
 from youtube_bot import Music
 # from kaiser import Kaiser
