@@ -12,12 +12,12 @@ from dotenv import load_dotenv
 from discord.ext import commands
 
 load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
+TOKEN = "NzE3NzIzMjcyMTc0NjMzMDUw.Xtp_oA.4GhzqrLGXkCNTz79mHIU7RpECto"
 GUILD = os.getenv('DISCORD_GUILD')
-HOST = os.getenv('HOST')
-USER_ID = os.getenv('USER_ID')
-PASSWORD = os.getenv('PASSWORD')
-DATABASE_NAME = os.getenv('DATABASE_NAME')
+HOST = "eu-cdbr-west-03.cleardb.net"
+USER_ID = "b6b5ef43e35530"
+PASSWORD = "2671ab3d"
+DATABASE_NAME = "heroku_b59451981400453"
 
 # client = discord.Client()
 
@@ -132,4 +132,4 @@ async def refresh(ctx):
         subprocess.call(["git commit", "-m 'a'"])
         subprocess.call(["git push"])
 
-bot.run(TOKEN)
+bot.run("NzE3NzIzMjcyMTc0NjMzMDUw.Xtp_oA.4GhzqrLGXkCNTz79mHIU7RpECto")
