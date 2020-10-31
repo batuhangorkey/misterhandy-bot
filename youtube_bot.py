@@ -7,11 +7,11 @@ import youtube_dl
 import random
 import itertools
 import time
-import os
 import pymysql
 from discord.ext import commands
 from youtube_search import YoutubeSearch
 from dotenv import load_dotenv
+from bot import bot_data
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
@@ -51,12 +51,12 @@ playlist_emojis = {
 youtube_dl.utils.bug_reports_message = lambda: ''
 
 load_dotenv()
-TOKEN = "NzE3NzIzMjcyMTc0NjMzMDUw.Xtp_oA.4GhzqrLGXkCNTz79mHIU7RpECto"
-GUILD = os.getenv('DISCORD_GUILD')
-HOST = "eu-cdbr-west-03.cleardb.net"
-USER_ID = "b6b5ef43e35530"
-PASSWORD = "2671ab3d"
-DATABASE_NAME = "heroku_b59451981400453"
+
+TOKEN = bot_data["TOKEN"]
+HOST = bot_data["HOST"]
+USER_ID = bot_data["USER_ID"]
+PASSWORD = bot_data["PASSWORD"]
+DATABASE_NAME = bot_data["DATABASE_NAME"]
 
 
 def get_random_playlist():

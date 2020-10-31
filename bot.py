@@ -1,4 +1,3 @@
-import os
 import random
 import discord
 import pymysql
@@ -8,18 +7,21 @@ from pathlib import Path
 from minigame import Minigame
 from youtube_bot import Music
 # from kaiser import Kaiser
-from dotenv import load_dotenv
 from discord.ext import commands
 
-load_dotenv()
-TOKEN = "NzE3NzIzMjcyMTc0NjMzMDUw.Xted4g.oEAKmkr3cMLYQjvm3yC0_83v9I8"
-GUILD = os.getenv('DISCORD_GUILD')
-HOST = "eu-cdbr-west-03.cleardb.net"
-USER_ID = "b6b5ef43e35530"
-PASSWORD = "2671ab3d"
-DATABASE_NAME = "heroku_b59451981400453"
+bot_data = {
+    "TOKEN": "NzE3NzIzMjcyMTc0NjMzMDUw.Xted4g.oEAKmkr3cMLYQjvm3yC0_83v9I8",
+    "HOST": "eu-cdbr-west-03.cleardb.net",
+    "USER_ID": "b6b5ef43e35530",
+    "PASSWORD": "2671ab3d",
+    "DATABASE_NAME": "heroku_b59451981400453"
+}
 
-# client = discord.Client()
+TOKEN = bot_data["TOKEN"]
+HOST = bot_data["HOST"]
+USER_ID = bot_data["USER_ID"]
+PASSWORD = bot_data["PASSWORD"]
+DATABASE_NAME = bot_data["DATABASE_NAME"]
 
 
 class CustomBot(commands.Bot):
