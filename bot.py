@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from discord.ext import commands
 
 load_dotenv()
-TOKEN = "NzE3NzIzMjcyMTc0NjMzMDUw.Xtp_oA.4GhzqrLGXkCNTz79mHIU7RpECto"
+TOKEN = "NzE3NzIzMjcyMTc0NjMzMDUw.Xted4g.oEAKmkr3cMLYQjvm3yC0_83v9I8"
 GUILD = os.getenv('DISCORD_GUILD')
 HOST = "eu-cdbr-west-03.cleardb.net"
 USER_ID = "b6b5ef43e35530"
