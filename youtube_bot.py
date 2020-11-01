@@ -187,7 +187,8 @@ class Music(commands.Cog):
                         if self.play_random and _ctx.voice_client is not None:
                             async with _ctx.typing():
                                 player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(),
-                                                                   loop=self.bot.loop)
+                                                                   loop=self.bot.loop,
+                                                                   stream=True)
                                 if player:
                                     await self.queue.put((_ctx, player))
                                 else:
@@ -306,7 +307,9 @@ class Music(commands.Cog):
         async with ctx.typing():
             if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
                 if not self.play_random:
-                        player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(), loop=self.bot.loop)
+                        player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(),
+                                                           loop=self.bot.loop,
+                                                           stream=True)
                         if player is None:
                             return await ctx.send('Bir şeyler yanlış. Bir daha dene')
                         await self.queue.put((ctx, player))
@@ -549,6 +552,6 @@ class Events(commands.Cog):
             return
         music = self.bot.get_cog('Music')
         print(msg.content)
-        await self.ctx.invoke(music.bot.get_command('yt'), url=music.search_list[index - 1])
+        await self.ctx.invoke(music.bot.get_command('stream'), url=music.search_list[index - 1])
         music.search_list.clear()
         self.bot.remove_cog('Events')
