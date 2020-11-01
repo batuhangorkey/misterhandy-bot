@@ -6,16 +6,9 @@ import subprocess
 from pathlib import Path
 from minigame import Minigame
 from youtube_bot import Music
+from bot_data import bot_data
 # from kaiser import Kaiser
 from discord.ext import commands
-
-bot_data = {
-    "TOKEN": "NzE3NzIzMjcyMTc0NjMzMDUw.Xted4g.oEAKmkr3cMLYQjvm3yC0_83v9I8",
-    "HOST": "eu-cdbr-west-03.cleardb.net",
-    "USER_ID": "b6b5ef43e35530",
-    "PASSWORD": "2671ab3d",
-    "DATABASE_NAME": "heroku_b59451981400453"
-}
 
 TOKEN = bot_data["TOKEN"]
 HOST = bot_data["HOST"]
@@ -134,4 +127,4 @@ async def refresh(ctx):
         subprocess.call(["git commit", "-m 'a'"])
         subprocess.call(["git push"])
 
-bot.run("NzE3NzIzMjcyMTc0NjMzMDUw.Xtp_oA.4GhzqrLGXkCNTz79mHIU7RpECto")
+bot.run(TOKEN)

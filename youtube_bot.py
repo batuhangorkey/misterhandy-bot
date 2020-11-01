@@ -11,7 +11,7 @@ import pymysql
 from discord.ext import commands
 from youtube_search import YoutubeSearch
 from dotenv import load_dotenv
-from bot import bot_data
+from bot_data import bot_data
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
