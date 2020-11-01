@@ -43,9 +43,9 @@ playlist_emojis = {
     'like': u'\U0001F44D'
 }
 
-if not discord.opus.is_loaded():
-    discord.opus.load_opus('opus')
-ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
+# if not discord.opus.is_loaded():
+#     discord.opus.load_opus('opus')
+# ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
