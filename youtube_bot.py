@@ -50,8 +50,6 @@ playlist_emojis = {
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
-load_dotenv()
-
 TOKEN = bot_data["TOKEN"]
 HOST = bot_data["HOST"]
 USER_ID = bot_data["USER_ID"]
