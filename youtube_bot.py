@@ -239,7 +239,7 @@ class Music(commands.Cog):
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
             if player is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
-            _file = discord.File(open(player.filename, "rb"))
+            _file = discord.File(open(player.filename, "rb"), filename=player.title)
             await ctx.send(content="İndirilen dosya: ", file=_file)
             os.remove(player.filename)
 
