@@ -79,6 +79,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.uploader = data.get('uploader')
         self.duration = data.get('duration')
         self.start_time = data.get('start_time')
+        self.filename = data.get('filename')
 
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False, start_time=0):
@@ -93,6 +94,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             data = data['entries'][0]
         with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
             filename = data['url'] if stream else ytdl.prepare_filename(data)
+        data['filename'] = filename
         data['start_time'] = start_time
         data['duration'] = time.strftime('%M:%S', time.gmtime(data.get('duration')))
         if start_time != 0:
@@ -229,22 +231,14 @@ class Music(commands.Cog):
         await channel.connect()
 
     # Şarkı oynatma komutları
-    @commands.command(help="Plays from a url.")
-    async def yt(self, ctx, *, url):
+    @commands.command(help="Downloads audio from a url.")
+    async def download(self, ctx, *, url):
         async with ctx.typing():
             print('Requested: {}'.format(url))
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
             if player is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
-            # sıraya ekle
-            await self.queue.put((ctx, player))
-            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
-                embed = self.last_message.embeds[0]
-                embed.add_field(name=str(self.queue.qsize()),
-                                value=player.title)
-                await self.manage_last(await ctx.send(embed=embed))
-                for _ in player_emojis.values():
-                    await self.last_message.add_reaction(_)
+            await ctx.send(content="İndirilen dosya: ", file=player.filename)
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
@@ -322,7 +316,6 @@ class Music(commands.Cog):
                                                      self.bot.version_name))
                 await self.last_message.edit(embed=_embed)
 
-    @yt.before_invoke
     @stream.before_invoke
     @play.before_invoke
     @search.before_invoke
