@@ -238,8 +238,10 @@ class Music(commands.Cog):
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
             if player is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
+            await ctx.send(player.filename)
+            await ctx.send("{}.webm".format(player.filename))
             await ctx.send(content="İndirilen dosya: ", file=open(player.filename, "rb"))
-    
+
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
         async with ctx.typing():
