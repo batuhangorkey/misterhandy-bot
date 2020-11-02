@@ -1,15 +1,13 @@
 import random
-import os
 import pymysql
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
+from bot_data import bot_data
 
-load_dotenv()
-HOST = os.getenv('HOST')
-USER_ID = os.getenv('USER_ID')
-PASSWORD = os.getenv('PASSWORD')
-DATABASE_NAME = os.getenv('DATABASE_NAME')
+HOST = bot_data["HOST"]
+USER_ID = bot_data["USER_ID"]
+PASSWORD = bot_data["PASSWORD"]
+DATABASE_NAME = bot_data["DATABASE_NAME"]
 
 messages = []
 
