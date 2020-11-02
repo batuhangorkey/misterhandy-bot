@@ -239,8 +239,7 @@ class Music(commands.Cog):
             if player is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
             await ctx.send(player.filename)
-            await ctx.send("{}.webm".format(player.filename))
-            await ctx.send(content="İndirilen dosya: ", file=open(player.filename, "rb"))
+            await ctx.send(content="İndirilen dosya: ", file=open("./{}".format(player.filename), "rb"))
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
