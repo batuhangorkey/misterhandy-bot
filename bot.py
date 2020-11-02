@@ -2,8 +2,6 @@ import random
 import discord
 import pymysql
 import time
-import subprocess
-from pathlib import Path
 from minigame import Minigame
 from youtube_bot import Music
 from bot_data import bot_data
@@ -120,11 +118,7 @@ async def delete(ctx, limit: int = None):
 
 @bot.command(help='Refreshes music cog.')
 async def refresh(ctx):
-    async with ctx.typing():
-        # subprocess.call(["touch demo"])
-        Path('demo.txt').touch()
-        subprocess.call(["git add demo.txt"])
-        subprocess.call(["git commit", "-m 'a'"])
-        subprocess.call(["git push"])
+    await ctx.send("Hoşçakalın")
+    exit()
 
 bot.run(TOKEN)
