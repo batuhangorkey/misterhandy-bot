@@ -239,7 +239,8 @@ class Music(commands.Cog):
             if player is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
             await ctx.send(player.filename)
-            await ctx.send(content="İndirilen dosya: ", file=open("./{}".format(player.filename), "rb"))
+            _file = discord.File(open(player.filename, "rb"))
+            await ctx.send(content="İndirilen dosya: ", file=_file)
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
