@@ -241,7 +241,10 @@ class Music(commands.Cog):
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
             _file = discord.File(open(player.filename, "rb"), filename=player.title)
             await ctx.send(content="İndirilen dosya: ", file=_file)
-            os.remove(player.filename)
+            try:
+                os.remove(player.filename)
+            finally:
+                print("Deleted {}".format(player.filename))
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
