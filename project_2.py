@@ -64,8 +64,8 @@ rooms = [
 rooms[0].exits = Exit(["kadın", "erkek"], rooms[1], True)
 rooms[1].exits = Exit("evet", rooms[2])
 
-storyteller = StoryTeller(rooms[0])
-
-print(storyteller.view_room())
-storyteller.progress("kadın")
-print(storyteller.view_room())
+# storyteller = StoryTeller(rooms[0])
+#
+# print(storyteller.view_room())
+# storyteller.progress("kadın")
+# print(storyteller.view_room())
