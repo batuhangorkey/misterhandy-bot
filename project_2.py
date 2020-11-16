@@ -16,7 +16,7 @@ class Project2(commands.Cog):
             await ctx.send(self.storyteller.view_room())
 
     @commands.command(help='Start anew')
-    async def reset(self):
+    async def reset(self, ctx):
         self.storyteller = StoryTeller(room1)
 
 
