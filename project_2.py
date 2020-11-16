@@ -45,7 +45,7 @@ class Exit:
 
 
 class Room:
-    def __init__(self, description, *exits):
+    def __init__(self, description, exits=None):
         self.description = description
         self.exits = exits
 
@@ -61,11 +61,11 @@ rooms = [
     Room("Güzel bir geceydi.")
 ]
 
-rooms[0].exits = Exit(["kadın", "erkek"], rooms[1], True)
-rooms[1].exits = Exit("evet", rooms[2])
+rooms[0].exits += Exit(["kadın", "erkek"], rooms[1], True)
+rooms[1].exits += Exit("evet", rooms[2])
 
-# storyteller = StoryTeller(rooms[0])
-#
-# print(storyteller.view_room())
-# storyteller.progress("kadın")
-# print(storyteller.view_room())
+storyteller = StoryTeller(rooms[0])
+
+print(storyteller.view_room())
+storyteller.progress("kadın")
+print(storyteller.view_room())
