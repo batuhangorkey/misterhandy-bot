@@ -76,7 +76,7 @@ async def on_ready():
                                                         name='wasteland with sensors offline'))
     bot.add_cog(Minigame(bot, user_table=fetch_user_tables()[0]))
     # bot.add_cog(Kaiser(bot, kaiser_points=fetch_user_tables()[1]))
-    bot.add_cog(Project2)
+    bot.add_cog(Project2(bot))
     bot.add_cog(Music(bot))
 
 
