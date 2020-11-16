@@ -99,7 +99,7 @@ async def zar(ctx, modifier: int = 0):
     await ctx.send(', '.join(map(str, dice)) + ' + {} = {}   **{}**'.format(modifier, _sum, adj[_sum]))
 
 
-@bot.command(help='Tries to purge max 50 messages by the bot.')
+@bot.command(help='Tries to purge max 50 messages sent by the bot.')
 async def del_bot(ctx):
     def is_me(m):
         return m.author == bot.user
@@ -118,7 +118,7 @@ async def delete(ctx, limit: int = None):
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
-@bot.command(help='Refreshes music cog.')
+@bot.command(help='Refreshes bot.')
 async def refresh(ctx):
     await ctx.send("Hoşçakalın")
     exit()
