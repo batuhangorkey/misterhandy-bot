@@ -2,27 +2,22 @@ import random
 from discord.ext import commands
 
 
-class Project2(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-        self.storyteller = storyteller
-        self.on_going_story = False
-
-    @commands.command(help='Generate random text')
-    async def bar(self, ctx):
-        self.on_going_story = not self.on_going_story
-        await ctx.send(self.storyteller.view_room())
-
-    @commands.Cog.listener()
-    async def on_message(self, msg):
-        if msg.author == self.bot.user:
-            return 
-        self.storyteller.progress(msg.content.lower())
-        await msg.channel.send(self.storyteller.view_room())
-
-    @commands.command(help='Start anew')
-    async def reset(self, ctx):
-        self.storyteller = StoryTeller(rooms[0])
+# class Project2(commands.Cog):
+#     def __init__(self, bot):
+#         self.bot = bot
+#         self.storyteller = StoryTeller(rooms[0])
+#
+#     @commands.command(help='Start anew')
+#     async def bar(self, ctx):
+#         self.storyteller = StoryTeller(rooms[0])
+#         await ctx.send(self.storyteller.view_room())
+#
+#     @commands.Cog.listener()
+#     async def on_message(self, msg):
+#         if msg.author == self.bot.user:
+#             return
+#         self.storyteller.progress(msg.content.lower())
+#         await msg.channel.send(self.storyteller.view_room())
 
 
 class StoryTeller:
@@ -43,7 +38,8 @@ class StoryTeller:
     def view_room(self):
         if rooms.index(self.current_room) == 1:
             return self.current_room.description.format("Hanımefendi" if self.gender else "Beyefendi")
-        return self.current_room.description
+        penis_desc = " Penisi {} santim.".format(random.randint(10, 25)) if self.gender else ""
+        return self.current_room.description.format(penis_desc=penis_desc)
 
 
 class Exit:
@@ -60,21 +56,21 @@ class Room:
         self.format = _format
 
 
-def change_gender(_storyteller, text_input):
+def change_gender(self, text_input):
     if text_input == "erkek":
-        _storyteller.gender = 0
+        self.gender = 0
     else:
-        _storyteller.gender = 1
+        self.gender = 1
 
 
 rooms = [
     Room("Barda beğendiğin güzel bir hanımefendi ve bir beyefendi var. Hangisine yaklaşıyorsun?"),
-    Room("{} evine davet etti. Evine gidiyor musun?"),
-    Room("Evdesiniz. Trans olduğunu öğreniyorsun. Devam ediyor musun?"),
+    Room("Birbirinizle mükemmel uyuşuyorsunuz. {} evine davet ediyor. Evine gidiyor musun?"),
+    Room("Yatak odasına kadar ilerlediniz. Trans olduğunu öğreniyorsun.{penis_desc} Devam ediyor musun?"),
     Room("Ağzına almanı istiyor. Devam ediyor musun?"),
     Room("Sana arkadan girmek istiyor. Devam ediyor musun?"),
     Room("Ağzına boşalmak istiyor. Devam ediyor musun?"),
-    Room("Davet eder gibi arkasını dönüp yatağa uzanıyor. Devam ediyor musun?"),
+    Room("Ona arkadan girmeni istiyor. Devam ediyor musun?"),
     Room("Güzel bir geceydi."),
     Room("Evine yalnız dönüyorsun.")
 ]
@@ -90,18 +86,18 @@ rooms[1].exits.append(Exit(["hayır"], rooms[8]))
 
 storyteller = StoryTeller(rooms[0])
 
-# print(storyteller.view_room())
-# storyteller.progress("kadın")
-# print(storyteller.view_room())
-# storyteller.progress("evet")
-# print(storyteller.view_room())
-# storyteller.progress("evet")
-# print(storyteller.view_room())
-# storyteller.progress("evet")
-# print(storyteller.view_room())
-# storyteller.progress("evet")
-# print(storyteller.view_room())
-# storyteller.progress("evet")
-# print(storyteller.view_room())
-# storyteller.progress("evet")
-# print(storyteller.view_room())
+print(storyteller.view_room())
+storyteller.progress("kadın")
+print(storyteller.view_room())
+storyteller.progress("evet")
+print(storyteller.view_room())
+storyteller.progress("evet")
+print(storyteller.view_room())
+storyteller.progress("evet")
+print(storyteller.view_room())
+storyteller.progress("evet")
+print(storyteller.view_room())
+storyteller.progress("evet")
+print(storyteller.view_room())
+storyteller.progress("evet")
+print(storyteller.view_room())
