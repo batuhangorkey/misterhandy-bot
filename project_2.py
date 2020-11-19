@@ -2,22 +2,22 @@ import random
 from discord.ext import commands
 
 
-# class Project2(commands.Cog):
-#     def __init__(self, bot):
-#         self.bot = bot
-#         self.storyteller = StoryTeller(rooms[0])
-#
-#     @commands.command(help='Start anew')
-#     async def bar(self, ctx):
-#         self.storyteller = StoryTeller(rooms[0])
-#         await ctx.send(self.storyteller.view_room())
-#
-#     @commands.Cog.listener()
-#     async def on_message(self, msg):
-#         if msg.author == self.bot.user:
-#             return
-#         self.storyteller.progress(msg.content.lower())
-#         await msg.channel.send(self.storyteller.view_room())
+class Project2(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.storyteller = StoryTeller(rooms[0])
+
+    @commands.command(help='Start anew')
+    async def bar(self, ctx):
+        self.storyteller = StoryTeller(rooms[0])
+        await ctx.send(self.storyteller.view_room())
+
+    @commands.Cog.listener()
+    async def on_message(self, msg):
+        if msg.author == self.bot.user:
+            return
+        self.storyteller.progress(msg.content.lower())
+        await msg.channel.send(self.storyteller.view_room())
 
 
 class StoryTeller:
@@ -84,20 +84,20 @@ rooms[5].exits.append(Exit(["evet"], rooms[6]))
 rooms[6].exits.append(Exit(["evet"], rooms[7]))
 rooms[1].exits.append(Exit(["hayır"], rooms[8]))
 
-storyteller = StoryTeller(rooms[0])
-
-print(storyteller.view_room())
-storyteller.progress("kadın")
-print(storyteller.view_room())
-storyteller.progress("evet")
-print(storyteller.view_room())
-storyteller.progress("evet")
-print(storyteller.view_room())
-storyteller.progress("evet")
-print(storyteller.view_room())
-storyteller.progress("evet")
-print(storyteller.view_room())
-storyteller.progress("evet")
-print(storyteller.view_room())
-storyteller.progress("evet")
-print(storyteller.view_room())
+# storyteller = StoryTeller(rooms[0])
+#
+# print(storyteller.view_room())
+# storyteller.progress("kadın")
+# print(storyteller.view_room())
+# storyteller.progress("evet")
+# print(storyteller.view_room())
+# storyteller.progress("evet")
+# print(storyteller.view_room())
+# storyteller.progress("evet")
+# print(storyteller.view_room())
+# storyteller.progress("evet")
+# print(storyteller.view_room())
+# storyteller.progress("evet")
+# print(storyteller.view_room())
+# storyteller.progress("evet")
+# print(storyteller.view_room())
