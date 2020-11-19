@@ -6,13 +6,17 @@ class Project2(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.storyteller = storyteller
+        self.on_going_story = False
 
     @commands.command(help='Generate random text')
     async def bar(self, ctx):
+        self.on_going_story = not self.on_going_story
         await ctx.send(self.storyteller.view_room())
 
     @commands.Cog.listener()
     async def on_message(self, msg):
+        if msg.author == self.bot.user:
+            return 
         self.storyteller.progress(msg.content.lower())
         await msg.channel.send(self.storyteller.view_room())
 
