@@ -11,6 +11,7 @@ class Project2(commands.Cog):
     async def bar(self, ctx):
         async with ctx.typing():
             self.storyteller = StoryTeller(rooms[1])
+            await ctx.send(self.storyteller.view_room())
 
     @commands.Cog.listener()
     async def on_message(self, msg):
@@ -19,7 +20,6 @@ class Project2(commands.Cog):
         if self.storyteller is None:
             return
         self.storyteller.progress(msg.content.lower())
-        await msg.channel.send(self.storyteller.view_room())
 
 
 class StoryTeller:
