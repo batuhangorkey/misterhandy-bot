@@ -9,8 +9,8 @@ class Project2(commands.Cog):
 
     @commands.command(help='Start anew')
     async def bar(self, ctx):
-        self.storyteller = StoryTeller(rooms[0])
-        await ctx.send(self.storyteller.view_room())
+        async with ctx.typing():
+            self.storyteller = StoryTeller(rooms[1])
 
     @commands.Cog.listener()
     async def on_message(self, msg):
@@ -98,7 +98,7 @@ rooms = {
 
 rooms[1].exits.append(Exit(["kadın", "erkek"], rooms[2], change_gender))
 rooms[2].exits.append(Exit(["evet"], rooms[3]))
-rooms[3].exits.append(Exit(["evet", "sevişiyorum", "sikiyorum", "seks yapıyorum"], rooms[3]))
+rooms[3].exits.append(Exit(["evet", "sevişiyorum", "sikiyorum", "seks yapıyorum"], rooms[4]))
 rooms[3].exits.append(Exit(["kaçıyorum"], rooms[10]))
 rooms[10].exits.append(Exit(["evet", "eminim"], rooms[11]))
 rooms[4].exits.append(Exit(["evet"], rooms[5]))
