@@ -25,7 +25,7 @@ class StoryTeller:
         self.current_room = starting_room
         self.partner = {
             "penis_size": random.randint(10, 25),
-            "gender": 0,
+            "gender": 0
         }
 
     def progress(self, input_text):
@@ -72,7 +72,7 @@ def change_gender(self: StoryTeller, text_input):
 rooms = [
     Room("Barda beğendiğin güzel bir hanımefendi ve bir beyefendi var. Hangisine yaklaşıyorsun?"),
     Room(["Birbirinizle mükemmel uyuşuyorsunuz. Beyefendi evine davet ediyor. Evine gidiyor musun?",
-          "Birbirinizle mükemmel uyuşuyorsunuz. Hanımefendi evine davet ediyor. Evine gidiyor musun"],
+          "Birbirinizle mükemmel uyuşuyorsunuz. Hanımefendi evine davet ediyor. Evine gidiyor musun?"],
          [0, 1],
          "gender"),
     Room(["Yatak odasına kadar ilerlediniz. Trans olduğunu öğreniyorsun. Devam ediyor musun?",
