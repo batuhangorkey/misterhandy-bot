@@ -20,6 +20,7 @@ class Project2(commands.Cog):
         if self.storyteller is None:
             return
         self.storyteller.progress(msg.content.lower())
+        await msg.channel.send(self.storyteller.view_room())
 
 
 class StoryTeller:
