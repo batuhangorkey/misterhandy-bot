@@ -11,3 +11,6 @@ __pycache__/minigame.cpython-37.pyc
 heroku_logs.bat
 db_scripts/get_playlist.py
 db_scripts/upload_links.py
+__pycache__/bot_data.cpython-37.pyc
+__pycache__/project_2.cpython-37.pyc
+__pycache__/youtube_bot.cpython-37.pyc
