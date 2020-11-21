@@ -5,7 +5,7 @@ from discord.ext import commands
 class Project2(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.storyteller = StoryTeller(rooms[0])
+        self.storyteller = None
 
     @commands.command(help='Start anew')
     async def bar(self, ctx):
@@ -15,6 +15,8 @@ class Project2(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, msg):
         if msg.author == self.bot.user:
+            return
+        if self.storyteller is None:
             return
         self.storyteller.progress(msg.content.lower())
         await msg.channel.send(self.storyteller.view_room())
