@@ -88,15 +88,15 @@ rooms = [
     Room("Evine yalnız dönüyorsun.")
 ]
 
-# rooms[0].exits.append(Exit(["kadın", "erkek"], rooms[1], change_gender))
-# rooms[1].exits.append(Exit(["evet"], rooms[2]))
-# rooms[2].exits.append(Exit(["evet"], rooms[3]))
-# rooms[3].exits.append(Exit(["evet"], rooms[4]))
-# rooms[4].exits.append(Exit(["evet"], rooms[5]))
-# rooms[5].exits.append(Exit(["evet"], rooms[6]))
-# rooms[6].exits.append(Exit(["evet"], rooms[7]))
-# rooms[1].exits.append(Exit(["hayır"], rooms[8]))
-#
+rooms[0].exits.append(Exit(["kadın", "erkek"], rooms[1], change_gender))
+rooms[1].exits.append(Exit(["evet"], rooms[2]))
+rooms[2].exits.append(Exit(["evet"], rooms[3]))
+rooms[3].exits.append(Exit(["evet"], rooms[4]))
+rooms[4].exits.append(Exit(["evet"], rooms[5]))
+rooms[5].exits.append(Exit(["evet"], rooms[6]))
+rooms[6].exits.append(Exit(["evet"], rooms[7]))
+rooms[1].exits.append(Exit(["hayır"], rooms[8]))
+
 # storyteller = StoryTeller(rooms[0])
 #
 # print(storyteller.view_room())
