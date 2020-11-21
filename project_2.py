@@ -105,7 +105,10 @@ rooms[4].exits.append(Exit(["evet"], rooms[5]))
 rooms[5].exits.append(Exit(["evet"], rooms[6]))
 rooms[6].exits.append(Exit(["evet"], rooms[7]))
 rooms[7].exits.append(Exit(["evet"], rooms[8]))
-rooms[8].exits.append(Exit(["hayır"], rooms[9]))
+rooms[4].exits.append(Exit(["hayır", "etmiyorum", "olmaz"], rooms[5]))
+rooms[5].exits.append(Exit(["hayır", "etmiyorum", "olmaz"], rooms[6]))
+rooms[6].exits.append(Exit(["hayır", "etmiyorum", "olmaz"], rooms[7]))
+rooms[7].exits.append(Exit(["hayır", "etmiyorum", "olmaz"], rooms[8]))
 
 # storyteller = StoryTeller(rooms[0])
 #
