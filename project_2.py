@@ -19,16 +19,17 @@ class Project2(commands.Cog):
             return
         if self.storyteller is None:
             return
-        self.storyteller.progress(msg.content.lower())
-        await msg.channel.send(self.storyteller.view_room())
+        if self.storyteller.progress(msg.content.lower()):
+            await msg.channel.send(self.storyteller.view_room())
 
 
 class StoryTeller:
     def __init__(self, starting_room):
         self.current_room = starting_room
         self.partner = {
+            "race": random.choice(["zenci", "asyalı", "beyaz"]),
             "penis_size": random.randint(10, 25),
-            "gender": 0
+            "genital": 0
         }
 
     def progress(self, input_text):
@@ -65,11 +66,11 @@ class Room:
         self.switch = switch
 
 
-def change_gender(self: StoryTeller, text_input):
+def change_genital(self: StoryTeller, text_input):
     if text_input == "erkek":
-        self.partner["gender"] = 0
+        self.partner["genital"] = 0
     else:
-        self.partner["gender"] = 1
+        self.partner["genital"] = 1
 
 
 rooms = {
@@ -77,17 +78,17 @@ rooms = {
     2: Room(["Birbirinizle mükemmel uyuşuyorsunuz. Beyefendi evine davet ediyor. Evine gidiyor musun?",
              "Birbirinizle mükemmel uyuşuyorsunuz. Hanımefendi evine davet ediyor. Evine gidiyor musun?"],
             [0, 1],
-            "gender"),
+            "genital"),
     3: Room(["Yatak odasına kadar ilerlediniz. Trans olduğunu öğreniyorsun. Devam ediyor musun?",
              "Yatak odasına kadar ilerlediniz. Trans olduğunu öğreniyorsun. Penisi {penis_size} santim."
              " Ne yapıyorsun?"],
             [0, 1],
-            "gender"),
+            "genital"),
     4: Room("Ağzına almanı istiyor. Devam ediyor musun?"),
     5: Room(["Sana arkadan straponla girmek istiyor. Devam ediyor musun?",
              "{penis_size} santimlik penisiyle sana arkadan girmek istiyor. Alıyor musun?"],
             [0, 1],
-            "gender"),
+            "genital"),
     6: Room("Ağzına boşalmak istiyor. Devam ediyor musun?"),
     7: Room("Ona arkadan girmeni istiyor. Devam ediyor musun?"),
     8: Room("Güzel bir geceydi."),
@@ -97,8 +98,8 @@ rooms = {
     11: Room("Evden hızlıca çıkıyorsun.")
 }
 
-rooms[1].exits.append(Exit(["kadın", "erkek"], rooms[2], change_gender))
-rooms[2].exits.append(Exit(["evet"], rooms[3]))
+rooms[1].exits.append(Exit(["kadın", "erkek"], rooms[2], change_genital))
+rooms[2].exits.append(Exit(["evet", "gidiyorum"], rooms[3]))
 rooms[3].exits.append(Exit(["evet", "sevişiyorum", "sikiyorum", "seks yapıyorum"], rooms[4]))
 rooms[3].exits.append(Exit(["kaçıyorum"], rooms[10]))
 rooms[10].exits.append(Exit(["evet", "eminim"], rooms[11]))
