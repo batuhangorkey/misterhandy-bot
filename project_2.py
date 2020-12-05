@@ -27,15 +27,15 @@ class StoryTeller:
     def __init__(self, starting_room):
         self.current_room = starting_room
         self.partner = {
-            "race": random.choice(["zenci", "asyalı", "beyaz"]),
+            "race": random.choice(["Zenci", "Asyalı", "Beyaz"]),
             "penis_size": random.randint(10, 25),
-            "genital": 0
+            "genital": None
         }
 
-    def progress(self, input_text):
+    def progress(self, input_text: str):
         for _ in self.current_room.exits:
             for key in _.keys:
-                if input_text == key:
+                if input_text.find(key) > -1:
                     self.current_room = _.room
                     if _.action is not None:
                         _.action(self, key)
@@ -67,10 +67,12 @@ class Room:
 
 
 def change_genital(self: StoryTeller, text_input):
-    if text_input == "erkek":
-        self.partner["genital"] = 0
-    else:
+    fem = ["kadın", "hanfendi", "hanımefendi", "bayan"]
+    men = ["erkek", "beyfendi", "beyefendi", "adam"]
+    if text_input in fem:
         self.partner["genital"] = 1
+    elif text_input in men:
+        self.partner["genital"] = 0
 
 
 rooms = {
@@ -98,7 +100,8 @@ rooms = {
     11: Room("Evden hızlıca çıkıyorsun.")
 }
 
-rooms[1].exits.append(Exit(["kadın", "erkek"], rooms[2], change_genital))
+rooms[1].exits.append(Exit(["kadın", "hanfendi", "hanımefendi", "bayan", "erkek", "beyfendi", "beyefendi", "adam"],
+                           rooms[2], change_genital))
 rooms[2].exits.append(Exit(["evet", "gidiyorum"], rooms[3]))
 rooms[3].exits.append(Exit(["evet", "sevişiyorum", "sikiyorum", "seks yapıyorum"], rooms[4]))
 rooms[3].exits.append(Exit(["kaçıyorum"], rooms[10]))
@@ -112,7 +115,7 @@ rooms[5].exits.append(Exit(["hayır", "etmiyorum", "olmaz"], rooms[6]))
 rooms[6].exits.append(Exit(["hayır", "etmiyorum", "olmaz"], rooms[7]))
 rooms[7].exits.append(Exit(["hayır", "etmiyorum", "olmaz"], rooms[8]))
 
-# storyteller = StoryTeller(rooms[0])
+# storyteller = StoryTeller(rooms[1])
 #
 # print(storyteller.view_room())
 # storyteller.progress("kadın")
