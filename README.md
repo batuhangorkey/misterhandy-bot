@@ -1,1 +1,4 @@
-# Hacking minigame from Fallout and sound player from youtube for discord 
+# A general discord bot written in Python
+The bot has a Youtube player script and a minigame from Fallout games. It could be a good exampe for people writing their first discord bot.  
+
+The Youtube player has queue system, skip song and skip to seconds functions. It also has a user submitted playlist from which it plays semi-randomly according to like and dislike ratio. Playlist and misc data is stored in a sql database. Unfortunately it has been written for usage in a single discord server.
