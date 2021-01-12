@@ -257,17 +257,19 @@ class Music(commands.Cog):
 
     @commands.command(help='Disconnects the bot from voice channel.')
     async def stop(self, ctx):
-        self.handlers[ctx.guild.id].play_random = False
-        self.handlers[ctx.guild.id].refresh_playlist()
-        for _ in range(self.handlers[ctx.guild.id].queue.qsize()):
-            self.handlers[ctx.guild.id].queue.get_nowait()
-            self.handlers[ctx.guild.id].queue.task_done()
+        handler = self.handlers.get(ctx.guild.id)
+        if handler is not None:
+            handler.play_random = False
+            handler.refresh_playlist()
+            for _ in range(handler.queue.qsize()):
+                handler.queue.get_nowait()
+                handler.queue.task_done()
+            if handler.task:
+                handler.task.cancel()
         try:
             await ctx.voice_client.disconnect()
         except AttributeError as error:
             print(error)
-        if self.handlers[ctx.guild.id].task:
-            self.handlers[ctx.guild.id].task.cancel()
         await self.bot.change_presence(activity=self.default_presence)
 
     @commands.command(help='Adds song to bot playlist')
