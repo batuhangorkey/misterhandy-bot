@@ -5,7 +5,7 @@ import time
 from discord.ext import commands
 from minigame import Minigame
 from youtube_bot import Music
-from project_2 import Project2
+from story_teller import Project2
 from bot_data import bot_data
 # from kaiser import Kaiser
 
