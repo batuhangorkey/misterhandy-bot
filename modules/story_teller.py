@@ -26,7 +26,11 @@ class Project2(commands.Cog):
 class StoryTeller:
     def __init__(self, starting_room):
         self.current_room = starting_room
-        self.partner = Partner()
+        self.partner = {
+            'body': None,
+            'penis': False,
+            'penis_size': random.randint(10, 18)
+        }
 
     def progress(self, input_text: str):
         for _ in self.current_room.exits:
@@ -47,13 +51,16 @@ class StoryTeller:
         return self.current_room.description.format(**self.partner)
 
 
-class Partner:
-    @classmethod
-    def __init__(cls):
-        cls.genital = random.randint(0, 1)
-        cls.body = random.randint(0, 1)
-        cls.skin_tone = random.randint(0, 3)
-        cls.penis_size = random.randint(10, 25)
+class Body:
+    pass
+
+
+class Female(Body):
+    pass
+
+
+class Masculine(Body):
+    pass
 
 
 class Exit:
@@ -75,9 +82,9 @@ def change_genital(self: StoryTeller, text_input):
     fem = ["kadın", "hanfendi", "hanımefendi", "bayan"]
     men = ["erkek", "beyfendi", "beyefendi", "adam"]
     if text_input in fem:
-        self.partner["genital"] = 1
+        self.partner['body'] = Female
     elif text_input in men:
-        self.partner["genital"] = 0
+        self.partner['body'] = Masculine
 
 
 rooms = {
