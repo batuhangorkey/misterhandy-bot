@@ -26,11 +26,7 @@ class Project2(commands.Cog):
 class StoryTeller:
     def __init__(self, starting_room):
         self.current_room = starting_room
-        self.partner = {
-            "race": random.choice(["Zenci", "Asyalı", "Beyaz"]),
-            "penis_size": random.randint(10, 25),
-            "genital": None
-        }
+        self.partner = Partner()
 
     def progress(self, input_text: str):
         for _ in self.current_room.exits:
@@ -49,6 +45,15 @@ class StoryTeller:
                     index = self.current_room.trigger.index(_)
                     return self.current_room.description[index].format(**self.partner)
         return self.current_room.description.format(**self.partner)
+
+
+class Partner:
+    @classmethod
+    def __init__(cls):
+        cls.genital = random.randint(0, 1)
+        cls.body = random.randint(0, 1)
+        cls.skin_tone = random.randint(0, 3)
+        cls.penis_size = random.randint(10, 25)
 
 
 class Exit:

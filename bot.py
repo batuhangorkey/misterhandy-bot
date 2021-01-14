@@ -3,9 +3,9 @@ import discord
 import pymysql
 import time
 from discord.ext import commands
-from minigame import Minigame
-from youtube_bot import Music
-from story_teller import Project2
+from modules.minigame import Minigame
+from modules.youtube_bot import Music
+from modules.story_teller import Project2
 from bot_data import bot_data
 # from kaiser import Kaiser
 
