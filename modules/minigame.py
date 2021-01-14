@@ -16,7 +16,7 @@ def get_raw_word_list():
     global f
     _raw_word_list = []
     try:
-        f = open('../words.txt', 'r')
+        f = open('modules/words.txt', 'r')
         word = ''
         for var in f.readline():
             if var != ' ':
