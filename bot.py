@@ -83,7 +83,9 @@ async def on_ready():
     # bot.add_cog(Kaiser(bot, kaiser_points=fetch_user_tables()[1]))
     bot.add_cog(Project2(bot))
     bot.add_cog(Music(bot))
-    print('Method: {} | Elapsed time: {}'.format(on_ready.__name__, time.process_time() - start))
+    end = time.process_time() - start
+    import inspect
+    print('Method: {} | Elapsed time: {}'.format(inspect.currentframe().f_code.co_name, end))
 
 
 @bot.command(help='Roll dice.')

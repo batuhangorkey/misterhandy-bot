@@ -176,7 +176,7 @@ class Music(commands.Cog):
                 await self.handlers[ctx.guild.id].manage_last(await ctx.send(embed=embed))
                 for _ in player_emojis.values():
                     await self.handlers[ctx.guild.id].last_message.add_reaction(_)
-        print('Method: {} | Elapsed time: {}'.format(Music.play.__qualname__, time.process_time() - start))
+        print('Method: {} | Elapsed time: {}'.format(self.play.__qualname__, time.process_time() - start))
 
     @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
