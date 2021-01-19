@@ -162,8 +162,7 @@ class Music(commands.Cog):
             try:
                 url = 'https://www.youtube.com' + result[0]['url_suffix']
             except IndexError:
-                await ctx.send('Video bulamadım. Bir daha dene')
-                return
+                return await ctx.send('Video bulamadım. Bir daha dene')
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
             if player is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
@@ -176,10 +175,11 @@ class Music(commands.Cog):
                 await self.handlers[ctx.guild.id].manage_last(await ctx.send(embed=embed))
                 for _ in player_emojis.values():
                     await self.handlers[ctx.guild.id].last_message.add_reaction(_)
-        print('Method: {} | Elapsed time: {}'.format(self.play.__qualname__, time.process_time() - start))
+        print('Method: {} | Elapsed time: {}'.format(Music.play.__name__, time.process_time() - start))
 
     @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
+        start = time.process_time()
         self.handlers[ctx.guild.id].search_list.clear()
         results = YoutubeSearch(search_string, max_results=10).to_dict()
         embed = discord.Embed(colour=0x8B0000)
@@ -195,6 +195,7 @@ class Music(commands.Cog):
         if self.bot.get_cog('Events'):
             self.bot.remove_cog('Events')
         self.bot.add_cog(Events(self.bot, ctx))
+        print('Method: {} | Elapsed time: {}'.format('search', time.process_time() - start))
 
     @commands.command(help='Plays random songs')
     async def playrandom(self, ctx):

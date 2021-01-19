@@ -3,6 +3,7 @@ import discord
 import pymysql
 import time
 import datetime
+import subprocess
 from discord.ext import commands
 from modules.minigame import Minigame
 from modules.youtube_bot import Music
@@ -68,10 +69,15 @@ def fetch_user_tables():
     return user_table, kaiser_points
 
 
+def get_git_version():
+    return subprocess.check_output(['git', 'describe']).strip()
+
+
 @bot.event
 async def on_ready():
     start = time.process_time()
     print('Back online')
+    print('{}'.format(get_git_version()))
     print('{0.name} with id: {0.id} has connected to Discord at {time}'.format(bot.user,
                                                                                time=time.ctime(time.time() + 10800)))
     async for guild in bot.fetch_guilds():
