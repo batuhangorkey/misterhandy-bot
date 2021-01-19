@@ -70,6 +70,8 @@ def fetch_user_tables():
 
 @bot.event
 async def on_ready():
+    start = time.process_time()
+    print('Back online')
     print('{0.name} with id: {0.id} has connected to Discord at {time}'.format(bot.user,
                                                                                time=time.ctime(time.time() + 10800)))
     async for guild in bot.fetch_guilds():
@@ -81,6 +83,7 @@ async def on_ready():
     # bot.add_cog(Kaiser(bot, kaiser_points=fetch_user_tables()[1]))
     bot.add_cog(Project2(bot))
     bot.add_cog(Music(bot))
+    print('Method: {} | Elapsed time: {}'.format(on_ready.__name__, time.process_time() - start))
 
 
 @bot.command(help='Roll dice.')
@@ -130,7 +133,7 @@ async def refresh(ctx):
 
 @bot.command(help='Pings bot')
 async def ping(ctx):
-    delta = datetime.datetime.now() - ctx.message.created_at
-    await ctx.send("Elapsed seconds: {}".format(delta))
+    delta = datetime.datetime.utcnow() - ctx.message.created_at
+    await ctx.send("Elapsed seconds: {}".format(delta.total_seconds()))
 
 bot.run(TOKEN)

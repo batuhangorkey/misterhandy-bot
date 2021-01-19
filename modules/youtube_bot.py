@@ -156,6 +156,7 @@ class Music(commands.Cog):
 
     @commands.command(help='Plays the first result from a search string.')
     async def play(self, ctx, *, search_string):
+        start = time.process_time()
         async with ctx.typing():
             result = YoutubeSearch(search_string, max_results=1).to_dict()
             try:
@@ -175,6 +176,7 @@ class Music(commands.Cog):
                 await self.handlers[ctx.guild.id].manage_last(await ctx.send(embed=embed))
                 for _ in player_emojis.values():
                     await self.handlers[ctx.guild.id].last_message.add_reaction(_)
+        print('Method: {} | Elapsed time: {}'.format(Music.play.__qualname__, time.process_time() - start))
 
     @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
