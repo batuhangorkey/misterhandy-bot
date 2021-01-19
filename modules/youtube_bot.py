@@ -1,4 +1,4 @@
-# Buildpack'ler
+# Buildpacks
 # https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git
 # https://github.com/xrisk/heroku-opus.git
 import asyncio
@@ -105,6 +105,10 @@ class YTDLSource(discord.PCMVolumeTransformer):
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
+# TO BE IMPLEMENTED:
+# DJ ROLE
+# SPOTIFY CONNECTION
+# CLEAR QUEUE METHOD
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -120,7 +124,6 @@ class Music(commands.Cog):
             return await ctx.author.voice.channel.connect()
         await channel.connect()
 
-    # Şarkı oynatma komutları
     @commands.command(help="Downloads audio from a url.")
     async def download(self, ctx, *, url):
         async with ctx.typing():
@@ -196,12 +199,12 @@ class Music(commands.Cog):
         async with ctx.typing():
             if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
                 if not self.handlers[ctx.guild.id].play_random:
-                        player = await YTDLSource.from_url(self.handlers[ctx.guild.id].get_song_from_rnd_playlist(),
-                                                           loop=self.bot.loop,
-                                                           stream=True)
-                        if player is None:
-                            return await ctx.send('Bir şeyler yanlış. Bir daha dene')
-                        await self.handlers[ctx.guild.id].queue.put((ctx, player))
+                    player = await YTDLSource.from_url(self.handlers[ctx.guild.id].get_song_from_rnd_playlist(),
+                                                       loop=self.bot.loop,
+                                                       stream=True)
+                    if player is None:
+                        return await ctx.send('Bir şeyler yanlış. Bir daha dene')
+                    await self.handlers[ctx.guild.id].queue.put((ctx, player))
             self.handlers[ctx.guild.id].play_random = not self.handlers[ctx.guild.id].play_random
             if self.handlers[ctx.guild.id].last_message:
                 _embed = self.handlers[ctx.guild.id].last_message.embeds[0]
@@ -210,20 +213,6 @@ class Music(commands.Cog):
                                                      len(self.handlers[ctx.guild.id].static_random_playlist),
                                                      self.bot.version_name))
                 await self.handlers[ctx.guild.id].last_message.edit(embed=_embed)
-
-    @stream.before_invoke
-    @play.before_invoke
-    @search.before_invoke
-    @playrandom.before_invoke
-    async def ensure_voice(self, ctx):
-        if ctx.voice_client is None:
-            if ctx.author.voice:
-                await ctx.author.voice.channel.connect()
-                self.handlers[ctx.guild.id] = Handler(self.bot)
-                self.handlers[ctx.guild.id].create_task()
-            else:
-                await ctx.send('Ses kanalında değilsin.')
-                raise commands.CommandError('Author not connected to a voice channel.')
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
@@ -350,16 +339,35 @@ class Music(commands.Cog):
                 self.handlers[ctx.guild.id].queue.task_done()
                 self.handlers[ctx.guild.id].queue.put_nowait(a)
 
+    @commands.command(help='Set backward forward time value')
+    async def set_skip_time(self, ctx, time_set: int):
+        async with ctx.typing():
+            self.handlers[ctx.guild.id].time_setting = time_set
+
+    # TO BE IMPLEMENTED
+    @commands.command(help='Switch fancy player message format')
+    async def fancy_player(self, ctx):
+        pass
+
     @goto.before_invoke
     async def ensure_source(self, ctx):
         if ctx.voice_client.source is None:
             await ctx.send('Ortada ileri alınacak video yok.')
             raise commands.CommandError('Audio source empty.')
 
-    @commands.command(help='Set backward forward time value')
-    async def set_skip_time(self, ctx, time_set: int):
-        async with ctx.typing():
-            self.handlers[ctx.guild.id].time_setting = time_set
+    @stream.before_invoke
+    @play.before_invoke
+    @search.before_invoke
+    @playrandom.before_invoke
+    async def ensure_voice(self, ctx):
+        if ctx.voice_client is None:
+            if ctx.author.voice:
+                await ctx.author.voice.channel.connect()
+                self.handlers[ctx.guild.id] = Handler(self.bot)
+                self.handlers[ctx.guild.id].create_task()
+            else:
+                await ctx.send('Ses kanalında değilsin.')
+                raise commands.CommandError('Author not connected to a voice channel.')
 
     # Player events
     @commands.Cog.listener()
