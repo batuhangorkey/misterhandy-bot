@@ -105,10 +105,10 @@ class YTDLSource(discord.PCMVolumeTransformer):
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
-# TO BE IMPLEMENTED:
-# DJ ROLE
-# SPOTIFY CONNECTION
-# CLEAR QUEUE METHOD
+# TODO:
+#  DJ ROLE
+#  SPOTIFY CONNECTION
+#  CLEAR QUEUE METHOD
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -344,7 +344,7 @@ class Music(commands.Cog):
         async with ctx.typing():
             self.handlers[ctx.guild.id].time_setting = time_set
 
-    # TO BE IMPLEMENTED
+    # TODO: Write this method
     @commands.command(help='Switch fancy player message format')
     async def fancy_player(self, ctx):
         pass
@@ -369,7 +369,6 @@ class Music(commands.Cog):
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
 
-    # Player events
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
         if user.bot:

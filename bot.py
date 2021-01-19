@@ -2,6 +2,7 @@ import random
 import discord
 import pymysql
 import time
+import datetime
 from discord.ext import commands
 from modules.minigame import Minigame
 from modules.youtube_bot import Music
@@ -39,6 +40,10 @@ adj = {
     -3: 'Rezalet',
     -4: 'Felaket'
 }
+# TODO:
+#  Organize all to a class
+#  Add auto moderation function
+#  Discord role manupulation
 
 
 def fetch_user_tables():
@@ -121,5 +126,11 @@ async def refresh(ctx):
     await ctx.send("Hoşçakalın")
     print("Going offine")
     exit()
+
+
+@bot.command(help='Pings bot')
+async def ping(ctx):
+    delta = datetime.datetime.now() - ctx.message.created_at
+    await ctx.send("Elapsed seconds: {}".format(delta))
 
 bot.run(TOKEN)
