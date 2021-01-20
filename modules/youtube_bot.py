@@ -426,7 +426,6 @@ class Events(commands.Cog):
         if index < 1 or 10 < index:
             return
         music = self.bot.get_cog('Music')
-        print(msg.content)
         await self.ctx.invoke(music.bot.get_command('stream'), url=music.search_list[index - 1])
         music.search_list.clear()
         self.bot.remove_cog('Events')

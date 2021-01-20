@@ -86,13 +86,22 @@ async def on_ready():
 
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                         name='wasteland with sensors offline'))
-    bot.add_cog(Minigame(bot, user_table=fetch_user_tables()[0]))
     # bot.add_cog(Kaiser(bot, kaiser_points=fetch_user_tables()[1]))
     bot.add_cog(Project2(bot))
     bot.add_cog(Music(bot))
     end = time.process_time() - start
     import inspect
     print('Method: {} | Elapsed time: {}'.format(inspect.currentframe().f_code.co_name, end))
+
+
+@bot.command(help='Enable minigame')
+async def minigame(ctx):
+    try:
+        if bot.get_cog('Minigame'):
+            bot.remove_cog('Minigame')
+        bot.add_cog(Minigame(bot, user_table=fetch_user_tables()[0]))
+    finally:
+        await ctx.send('Enabled minigame')
 
 
 @bot.command(help='Roll dice.')
