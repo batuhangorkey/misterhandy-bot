@@ -112,8 +112,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.default_presence = discord.Activity(type=discord.ActivityType.listening,
-                                                 name='wasteland with sensors offline')
         self.handlers = {}
 
     @commands.command(help='Joins authors voice channel.')
@@ -262,7 +260,7 @@ class Music(commands.Cog):
             await ctx.voice_client.disconnect()
         except AttributeError as error:
             print(error)
-        await self.bot.change_presence(activity=self.default_presence)
+        await self.bot.default_presence()
 
     @commands.command(help='Adds song to bot playlist')
     async def add_link(self, ctx, url: str):
