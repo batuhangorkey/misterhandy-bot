@@ -168,7 +168,7 @@ class Music(commands.Cog):
                 await self.handlers[ctx.guild.id].manage_last(await ctx.send(embed=embed))
                 for _ in player_emojis.values():
                     await self.handlers[ctx.guild.id].last_message.add_reaction(_)
-        print('Method: {} | Elapsed time: {}'.format(Music.play.__name__, time.process_time() - start))
+        print('Method: {} | Elapsed time: {}'.format('play', time.process_time() - start))
 
     @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
@@ -449,13 +449,6 @@ class Handler:
     def ctx(self):
         return self._ctx
 
-    @ctx.setter
-    def ctx(self, new_ctx):
-        if isinstance(new_ctx, commands.Context):
-            self._ctx = new_ctx
-        else:
-            print('Bad context')
-
     def create_task(self):
         self.task = self.bot.loop.create_task(self.audio_player())
 
@@ -512,15 +505,14 @@ class Handler:
 
     async def audio_player(self):
         try:
-            ctx = self.ctx
             while True:
                 self.play_next.clear()
                 self.time_cursor = 0
 
                 try:
                     if self.queue.qsize() == 0:
-                        if self.play_random and ctx.voice_client is not None:
-                            async with ctx.typing():
+                        if self.play_random and self.ctx.voice_client is not None:
+                            async with self.ctx.typing():
                                 audio = await YTDLSource.from_url(self.get_song_from_rnd_playlist(),
                                                                   loop=self.bot.loop,
                                                                   stream=True)
@@ -538,10 +530,12 @@ class Handler:
                     pass
 
                 current = await self.queue.get()
-                ctx, audio = current
-                ctx.voice_client.play(audio, after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
+                _ctx, audio = current
+                self._ctx = _ctx
+                self.ctx.voice_client.play(audio,
+                                           after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
                 self.source_start_tme = time.time()
-                async with ctx.typing():
+                async with self.ctx.typing():
                     await self.send_player_embed(audio)
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(audio.title)))
@@ -559,7 +553,10 @@ class Handler:
         url = self.ctx.voice_client.source.url
         if url not in [url for url, s in self._random_playlist]:
             return
-        conn = pymysql.connect(self.bot.database_config)
+        conn = pymysql.connect(self.bot.database_config['host'],
+                               self.bot.database_config['userid'],
+                               self.bot.database_config['password'],
+                               self.bot.database_config['databasename'])
         try:
             with conn.cursor() as cursor:
                 cursor.execute('UPDATE playlist SET dislike = dislike + 1 WHERE url = "{}"'.format(url))
@@ -574,7 +571,10 @@ class Handler:
         url = self.ctx.voice_client.source.url
         if url not in [url for url, s in self._random_playlist]:
             return await self.ctx.send('Sadece şarkı listesindeki şarkılar beğenilebilir.')
-        conn = pymysql.connect(self.bot.database_config)
+        conn = pymysql.connect(self.bot.database_config['host'],
+                               self.bot.database_config['userid'],
+                               self.bot.database_config['password'],
+                               self.bot.database_config['databasename'])
         try:
             with conn.cursor() as cursor:
                 cursor.execute('UPDATE playlist SET like_count = like_count + 1 WHERE url = "{}"'.format(url))
