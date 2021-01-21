@@ -4,18 +4,16 @@ import pymysql
 import time
 import datetime
 import subprocess
+import configparser
 from discord.ext import commands
 from modules.minigame import Minigame
 from modules.youtube_bot import Music
 from modules.story_teller import Project2
-from bot_data import bot_data
-# from kaiser import Kaiser
 
-TOKEN = bot_data["TOKEN"]
-HOST = bot_data["HOST"]
-USER_ID = bot_data["USER_ID"]
-PASSWORD = bot_data["PASSWORD"]
-DATABASE_NAME = bot_data["DATABASE_NAME"]
+config = configparser.ConfigParser()
+config.read('config.ini')
+bot_token = config.get('Bot', 'Token')
+database_config = dict(config.items('Database'))
 
 presences = [
     'wasteland with sensors offline',
@@ -46,10 +44,11 @@ def fetch_user_tables():
     user_table = {}
     kaiser_points = {}
 
-    conn = pymysql.connect(str(HOST),
-                           str(USER_ID),
-                           str(PASSWORD),
-                           str(DATABASE_NAME))
+    conn = pymysql.connect(database_config['host'],
+                           database_config['userid'],
+                           database_config['password'],
+                           database_config['databasename'])
+
     with conn.cursor() as cursor:
         cursor.execute('SELECT VERSION()')
         data = cursor.fetchone()
@@ -60,7 +59,6 @@ def fetch_user_tables():
 
     for _, b, k in data:
         user_table[int(_)] = int(b)
-        # kaiser_points[int(_)] = int(k)
     return user_table, kaiser_points
 
 
@@ -72,6 +70,16 @@ class CustomBot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix='!')
         self.version_name = 'v{}'.format(get_git_version())
+        self._token = bot_token
+        self._database_config = database_config
+
+    @property
+    def token(self):
+        return self._token
+
+    @property
+    def database_config(self):
+        return self._database_config
 
     async def default_presence(self):
         await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
@@ -81,7 +89,7 @@ class CustomBot(commands.Bot):
 bot = CustomBot()
 
 # TODO:
-#  Organize all to a class
+#  Organize all to a single class
 #  Add auto moderation function
 #  Discord role manupulation
 
@@ -97,7 +105,6 @@ async def on_ready():
         print('Operating on {} with id: {}'.format(guild.name, guild.id))
 
     await bot.default_presence()
-    # bot.add_cog(Kaiser(bot, kaiser_points=fetch_user_tables()[1]))
     bot.add_cog(Project2(bot))
     bot.add_cog(Music(bot))
     end = time.process_time() - start
@@ -165,4 +172,4 @@ async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
     await ctx.send("Elapsed seconds: {}".format(delta.total_seconds()))
 
-bot.run(TOKEN)
+bot.run(bot.token)

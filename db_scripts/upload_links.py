@@ -1,12 +1,14 @@
 import pymysql
-from bot_data import bot_data
+import configparser
 
-HOST = bot_data["HOST"]
-USER_ID = bot_data["USER_ID"]
-PASSWORD = bot_data["PASSWORD"]
-DATABASE_NAME = bot_data["DATABASE_NAME"]
+config = configparser.ConfigParser()
+config.read('../config.ini')
+database_config = dict(config.items('Database'))
 
-conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
+conn = pymysql.connect(database_config['host'],
+                       database_config['userid'],
+                       database_config['password'],
+                       database_config['databasename'])
 
 try:
     with conn.cursor() as cursor:

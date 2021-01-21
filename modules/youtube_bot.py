@@ -11,7 +11,6 @@ import pymysql
 import os
 from discord.ext import commands
 from youtube_search import YoutubeSearch
-from bot_data import bot_data
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
@@ -49,25 +48,6 @@ playlist_emojis = {
 # ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
 youtube_dl.utils.bug_reports_message = lambda: ''
-
-TOKEN = bot_data["TOKEN"]
-HOST = bot_data["HOST"]
-USER_ID = bot_data["USER_ID"]
-PASSWORD = bot_data["PASSWORD"]
-DATABASE_NAME = bot_data["DATABASE_NAME"]
-
-
-def get_random_playlist():
-    conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT url, dislike, like_count FROM playlist")
-            data = cursor.fetchall()
-    finally:
-        conn.close()
-    db_playlist = [t for t in data]
-    db_playlist = [(url, int(like / dislike)) for url, dislike, like in db_playlist]
-    return db_playlist
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -113,6 +93,21 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.handlers = {}
+
+    def get_random_playlist(self):
+        conn = pymysql.connect(self.bot.database_config['host'],
+                               self.bot.database_config['userid'],
+                               self.bot.database_config['password'],
+                               self.bot.database_config['databasename'])
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT url, dislike, like_count FROM playlist")
+                data = cursor.fetchall()
+        finally:
+            conn.close()
+        db_playlist = [t for t in data]
+        db_playlist = [(url, int(like / dislike)) for url, dislike, like in db_playlist]
+        return db_playlist
 
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel = None):
@@ -272,7 +267,7 @@ class Music(commands.Cog):
             return await ctx.send('Yanlış bir şeyler oldu.')
         added_songs = []
         failed_songs = []
-        conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
+        conn = pymysql.connect(self.bot.database_config)
         try:
             if 'entries' in data:
                 entries = [_ for _ in data.get('entries')]
@@ -411,7 +406,11 @@ class Music(commands.Cog):
 class Events(commands.Cog):
     def __init__(self, bot, ctx):
         self.bot = bot
-        self.ctx = ctx
+        self._ctx = ctx
+
+    @property
+    def ctx(self):
+        return self._ctx
 
     @commands.Cog.listener()
     async def on_message(self, msg):
@@ -432,10 +431,10 @@ class Events(commands.Cog):
 class Handler:
     def __init__(self, bot):
         self.bot = bot
-        self.queue = asyncio.Queue(loop=self.bot.loop)
-        self.play_next = asyncio.Event(loop=self.bot.loop)
+        self.queue = asyncio.Queue(loop=bot.loop)
+        self.play_next = asyncio.Event(loop=bot.loop)
         self.play_random = False
-        self.static_ctx = None
+        self._ctx = None
         self.last_message = None
         self.task = None
         self.search_list = []
@@ -446,11 +445,22 @@ class Handler:
         self.random_playlist = None
         self.refresh_playlist()
 
+    @property
+    def ctx(self):
+        return self._ctx
+
+    @ctx.setter
+    def ctx(self, new_ctx):
+        if isinstance(new_ctx, commands.Context):
+            self._ctx = new_ctx
+        else:
+            print('Bad context')
+
     def create_task(self):
         self.task = self.bot.loop.create_task(self.audio_player())
 
     def refresh_playlist(self):
-        self.static_random_playlist = get_random_playlist()
+        self.static_random_playlist = self.bot.get_random_playlist()
         self.random_playlist = self.static_random_playlist.copy()
 
     def toggle_next(self):
@@ -478,7 +488,7 @@ class Handler:
                 for _ in _embed.fields:
                     embed.add_field(name=str(self.queue.qsize()),
                                     value=_.value)
-        await self.manage_last(await _ctx.send(embed=embed))
+        await self.manage_last(await self.ctx.send(embed=embed))
         if self.play_random:
             for _ in playlist_emojis.values():
                 await self.last_message.add_reaction(_)
@@ -502,23 +512,23 @@ class Handler:
 
     async def audio_player(self):
         try:
-            global _ctx
+            ctx = self.ctx
             while True:
                 self.play_next.clear()
                 self.time_cursor = 0
 
                 try:
                     if self.queue.qsize() == 0:
-                        if self.play_random and _ctx.voice_client is not None:
-                            async with _ctx.typing():
-                                player = await YTDLSource.from_url(self.get_song_from_rnd_playlist(),
-                                                                   loop=self.bot.loop,
-                                                                   stream=True)
-                                if player:
-                                    await self.queue.put((_ctx, player))
+                        if self.play_random and ctx.voice_client is not None:
+                            async with ctx.typing():
+                                audio = await YTDLSource.from_url(self.get_song_from_rnd_playlist(),
+                                                                  loop=self.bot.loop,
+                                                                  stream=True)
+                                if audio:
+                                    await self.queue.put((self.ctx, audio))
                                 else:
-                                    await _ctx.invoke(self.bot.get_command('play_random'))
-                                    await _ctx.send('Birşeyler kırıldı.')
+                                    await self.ctx.invoke(self.bot.get_command('play_random'))
+                                    await self.ctx.send('Birşeyler kırıldı.')
                         elif self.last_message:
                             await self.bot.change_presence(activity=self.bot.default_presence)
                             embed = self.last_message.embeds[0]
@@ -528,15 +538,13 @@ class Handler:
                     pass
 
                 current = await self.queue.get()
-                _ctx, player = current
-                self.static_ctx = _ctx
-                _ctx.voice_client.play(player,
-                                       after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
+                ctx, audio = current
+                ctx.voice_client.play(audio, after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
                 self.source_start_tme = time.time()
-                async with _ctx.typing():
-                    await self.send_player_embed(player)
+                async with ctx.typing():
+                    await self.send_player_embed(audio)
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                         name=format(player.title)))
+                                                                         name=format(audio.title)))
                 await self.play_next.wait()
         except AttributeError as error:
             print(error)
@@ -546,12 +554,12 @@ class Handler:
             print(error)
 
     def dislike(self):
-        if _ctx.voice_client.source is None:
+        if self.ctx.voice_client.source is None:
             return
-        url = _ctx.voice_client.source.url
+        url = self.ctx.voice_client.source.url
         if url not in [url for url, s in self.static_random_playlist]:
             return
-        conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
+        conn = pymysql.connect(self.bot.database_config)
         try:
             with conn.cursor() as cursor:
                 cursor.execute('UPDATE playlist SET dislike = dislike + 1 WHERE url = "{}"'.format(url))
@@ -561,12 +569,12 @@ class Handler:
             return
 
     async def like(self):
-        if _ctx.voice_client.source is None:
+        if self.ctx.voice_client.source is None:
             return
-        url = _ctx.voice_client.source.url
+        url = self.ctx.voice_client.source.url
         if url not in [url for url, s in self.static_random_playlist]:
-            return await self.static_ctx.send('Sadece şarkı listesindeki şarkılar beğenilebilir.')
-        conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
+            return await self.ctx.send('Sadece şarkı listesindeki şarkılar beğenilebilir.')
+        conn = pymysql.connect(self.bot.database_config)
         try:
             with conn.cursor() as cursor:
                 cursor.execute('UPDATE playlist SET like_count = like_count + 1 WHERE url = "{}"'.format(url))

@@ -2,14 +2,6 @@ import random
 import pymysql
 import discord
 from discord.ext import commands
-from bot_data import bot_data
-
-HOST = bot_data["HOST"]
-USER_ID = bot_data["USER_ID"]
-PASSWORD = bot_data["PASSWORD"]
-DATABASE_NAME = bot_data["DATABASE_NAME"]
-
-messages = []
 
 
 def get_raw_word_list():
@@ -29,10 +21,8 @@ def get_raw_word_list():
     return _raw_word_list
 
 
-raw_word_list = get_raw_word_list()
-
-
 def initialize(word_length):
+    raw_word_list = get_raw_word_list()
     words = []
     final_list = []
     for word in raw_word_list:
@@ -58,42 +48,45 @@ class Scene:
     def __init__(self, filtered_list, difficulty):
         self.list = filtered_list
         self.attempts = 5
-        self.diff = difficulty
+        self.difficulty = difficulty
         self.state = 0
         self.reward = difficulty * 10
 
 
 class Minigame(commands.Cog):
-    def __init__(self, _bot, user_table):
-        self.bot = _bot
+    def __init__(self, bot, user_table):
+        self.bot = bot
         self.user_table = user_table
-        self._last_member = None
+        self.messages = []
 
     @commands.command(help='Starts the mini game.')
     async def start(self, ctx, difficulty: int):
         global scene
         game_list = initialize(difficulty)
-        messages.append(ctx.message)
+        self.messages.append(ctx.message)
         if game_list is not None:
             scene = Scene(game_list, difficulty)
             words = [f'{i + 1} -  {scene.list[i][0]}' for i in range(0, 9)]
             words.append(f'10 - {scene.list[9][0]}')
-            if len(messages) > 0:
+            if len(self.messages) > 0:
                 if type(ctx.channel) != discord.DMChannel:
-                    await ctx.channel.delete_messages(messages)
-                messages.clear()
-            messages.append(await ctx.send('```Terminal: \n ' + '\n '.join(words) + '```'))
+                    await ctx.channel.delete_messages(self.messages)
+                self.messages.clear()
+            self.messages.append(await ctx.send('```Terminal: \n ' + '\n '.join(words) + '```'))
         else:
-            messages.append(await ctx.send('Hoppala bir daha dene uşağım.'))
+            self.messages.append(await ctx.send('Hoppala bir daha dene uşağım.'))
 
     @commands.command(help='Enter key to the terminal.')
     async def enter(self, ctx, index: int):
         user = ctx.message.author
-        messages.append(ctx.message)
-        if scene.list[index - 1][1] == scene.diff and scene.state == 0 and scene.attempts > 0:
+        self.messages.append(ctx.message)
+        if scene.list[index - 1][1] == scene.difficulty and scene.state == 0 and scene.attempts > 0:
             scene.state = 1
 
-            conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
+            conn = pymysql.connect(self.bot.database_config['host'],
+                                   self.bot.database_config['userid'],
+                                   self.bot.database_config['password'],
+                                   self.bot.database_config['databasename'])
             try:
                 with conn.cursor() as cursor:
                     if user.id in self.user_table:
@@ -108,33 +101,36 @@ class Minigame(commands.Cog):
 
             await ctx.message.add_reaction('\N{WHITE HEAVY CHECK MARK}')
             await ctx.send(f'Sistemin içindeyiz. {user.name} +{scene.reward} Lirabit ({self.user_table.get(user.id)})')
-            if len(messages) > 0:
+            if len(self.messages) > 0:
                 if type(ctx.channel) != discord.DMChannel:
-                    await ctx.channel.delete_messages(messages)
-                messages.clear()
+                    await ctx.channel.delete_messages(self.messages)
+                self.messages.clear()
         elif scene.state == 1:
-            messages.append(await ctx.send('Sistem hacklendi.'))
+            self.messages.append(await ctx.send('Sistem hacklendi.'))
         else:
             scene.attempts -= 1
             if scene.attempts > 0:
                 await ctx.message.add_reaction('\N{CROSS MARK}')
-                messages.append(await ctx.send('Benzerlik: ' + str(scene.list[index - 1][1]) +
-                                               '\nKalan deneme sayısı: ' + str(scene.attempts)))
+                self.messages.append(await ctx.send('Benzerlik: ' + str(scene.list[index - 1][1]) +
+                                                    '\nKalan deneme sayısı: ' + str(scene.attempts)))
             else:
                 await ctx.message.add_reaction('\N{CROSS MARK}')
-                messages.append(await ctx.send('Sistem kitlendi.'))
+                self.messages.append(await ctx.send('Sistem kitlendi.'))
 
     @commands.command(help='Get another attempt. Cost: 50 * difficulty / 4')
     async def rebank(self, ctx):
         if scene.state == 1:
-            cost = 50 * scene.diff / 4
+            cost = 50 * scene.difficulty / 4
             user = ctx.message.author.id
             if user in self.user_table:
                 if self.user_table.get(user) > 50:
                     self.user_table[user] -= cost
                     scene.attempts += 1
 
-                    conn = pymysql.connect(str(HOST), str(USER_ID), str(PASSWORD), str(DATABASE_NAME))
+                    conn = pymysql.connect(self.bot.database_config['host'],
+                                           self.bot.database_config['userid'],
+                                           self.bot.database_config['password'],
+                                           self.bot.database_config['databasename'])
                     with conn.cursor() as cursor:
                         cursor.execute(f"UPDATE main SET Unit = Unit - {cost} WHERE UserID = {user}")
                     conn.commit()
