@@ -116,7 +116,7 @@ async def on_ready():
     print('Back online')
     print('Running git hash: {}'.format(bot.get_git_version()))
     print('{0.name} with id: {0.id} has connected to Discord at {time}'.format(bot.user,
-                                                                               time=time.ctime(time.time() + 10800)))
+                                                                               time=time.ctime(time.time())))
     async for guild in bot.fetch_guilds():
         print('Operating on {} with id: {}'.format(guild.name, guild.id))
 
