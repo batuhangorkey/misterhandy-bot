@@ -107,6 +107,7 @@ class Music(commands.Cog):
             conn.close()
         db_playlist = [t for t in data]
         db_playlist = [(url, int(like / dislike)) for url, dislike, like in db_playlist]
+        print('Random playlist length: {}'.format(len(db_playlist)))
         return db_playlist
 
     @commands.command(help='Joins authors voice channel.')
@@ -159,8 +160,9 @@ class Music(commands.Cog):
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
             if player is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
-            # sıraya ekle
+            print('play: Half way in')
             await self.handlers[ctx.guild.id].queue.put((ctx, player))
+            print('Queue put successful')
             if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
                 embed = self.handlers[ctx.guild.id].last_message.embeds[0]
                 embed.add_field(name=str(self.handlers[ctx.guild.id].queue.qsize()),
@@ -505,6 +507,7 @@ class Handler:
 
     async def audio_player(self):
         try:
+            print('Started audio player in channel name: {}'.format(self.ctx.voice_client.channel.name))
             while True:
                 self.play_next.clear()
                 self.time_cursor = 0
