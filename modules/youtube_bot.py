@@ -357,24 +357,24 @@ class Music(commands.Cog):
         guild_id = reaction.message.guild.id
         if reaction.message.id == self.handlers[guild_id].last_message.id:
             if reaction.emoji == player_emojis['next_track']:
-                return await self.handlers[guild_id].static_ctx.invoke(self.bot.get_command('skip'))
+                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('skip'))
             if reaction.emoji == player_emojis['play_pause']:
-                return await self.handlers[guild_id].static_ctx.invoke(self.bot.get_command('pause'))
+                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('pause'))
             if reaction.emoji == player_emojis['stop']:
-                return await self.handlers[guild_id].static_ctx.invoke(self.bot.get_command('stop'))
+                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('stop'))
             if reaction.emoji == player_emojis['backward']:
                 delta_time = time.time() - self.handlers[guild_id].source_start_tme
                 target_time = self.handlers[guild_id].time_cursor + delta_time - self.handlers[guild_id].time_setting
-                return await self.handlers[guild_id].static_ctx.invoke(self.bot.get_command('goto'),
-                                                                       target_time=target_time)
+                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('goto'),
+                                                                target_time=target_time)
             if reaction.emoji == player_emojis['forward']:
                 delta_time = time.time() - self.handlers[guild_id].source_start_tme
                 target_time = self.handlers[guild_id].time_cursor + delta_time + self.handlers[guild_id].time_setting
-                return await self.handlers[guild_id].static_ctx.invoke(self.bot.get_command('goto'),
-                                                                       target_time=target_time)
+                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('goto'),
+                                                                target_time=target_time)
             if reaction.emoji == playlist_emojis['dislike']:
                 self.handlers[guild_id].dislike()
-                return await self.handlers[guild_id].static_ctx.invoke(self.bot.get_command('skip'))
+                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('skip'))
             if reaction.emoji == playlist_emojis['like']:
                 await self.handlers[guild_id].like()
 
@@ -385,7 +385,7 @@ class Music(commands.Cog):
         guild_id = reaction.message.guild.id
         if reaction.message.id == self.handlers[guild_id].last_message.id:
             if reaction.emoji == player_emojis['play_pause']:
-                return await self.handlers[guild_id].static_ctx.invoke(self.bot.get_command('resume'))
+                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('resume'))
 
 
 class Events(commands.Cog):
