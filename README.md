@@ -5,11 +5,11 @@ The music player has a queue system, skip song and skip to seconds functions. It
 
 It can work in multiple discord servers.
 
-It needs a config.ini file in main directory. The config.ini structure is as follows:
-[Bot]
-Token=
-[Database]
-Host=
-UserID=
-Password=
-DatabaseName=
+It needs a config.ini file in main directory. The config.ini structure is as follows:  
+[Bot]  
+Token=  
+[Database]  
+Host=  
+UserID=  
+Password=  
+DatabaseName=  
