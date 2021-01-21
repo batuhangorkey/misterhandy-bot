@@ -12,3 +12,4 @@ heroku_logs.bat
 __pycache__/bot_data.cpython-37.pyc
 __pycache__/project_2.cpython-37.pyc
 __pycache__/youtube_bot.cpython-37.pyc
+config.ini
