@@ -359,7 +359,7 @@ class Music(commands.Cog):
         if ctx.voice_client is None:
             if ctx.author.voice:
                 await ctx.author.voice.channel.connect()
-                self.handlers[ctx.guild.id] = Handler(self.bot)
+                self.handlers[ctx.guild.id] = Handler(self.bot, ctx)
                 self.handlers[ctx.guild.id].create_task()
             else:
                 await ctx.send('Ses kanalında değilsin.')
@@ -429,20 +429,20 @@ class Events(commands.Cog):
 
 
 class Handler:
-    def __init__(self, bot):
+    def __init__(self, bot, ctx):
+        self._ctx = ctx
+        self._random_playlist = []
         self.bot = bot
         self.queue = asyncio.Queue(loop=bot.loop)
         self.play_next = asyncio.Event(loop=bot.loop)
         self.play_random = False
-        self._ctx = None
         self.last_message = None
         self.task = None
         self.search_list = []
         self.source_start_tme = None
         self.time_cursor = None
         self.time_setting = 30
-        self.static_random_playlist = None
-        self.random_playlist = None
+        self.random_playlist = []
         self.refresh_playlist()
 
     @property
@@ -460,8 +460,8 @@ class Handler:
         self.task = self.bot.loop.create_task(self.audio_player())
 
     def refresh_playlist(self):
-        self.static_random_playlist = self.bot.get_random_playlist()
-        self.random_playlist = self.static_random_playlist.copy()
+        self._random_playlist = self.bot.get_random_playlist()
+        self.random_playlist = self._random_playlist.copy()
 
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
@@ -479,7 +479,7 @@ class Handler:
         embed.set_thumbnail(url=source.thumbnail)
         footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {} ({}) - {}'
         embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı',
-                                            len(self.static_random_playlist),
+                                            len(self._random_playlist),
                                             self.bot.version_name))
         if self.last_message:
             _embed = self.last_message.embeds[0]
@@ -557,7 +557,7 @@ class Handler:
         if self.ctx.voice_client.source is None:
             return
         url = self.ctx.voice_client.source.url
-        if url not in [url for url, s in self.static_random_playlist]:
+        if url not in [url for url, s in self._random_playlist]:
             return
         conn = pymysql.connect(self.bot.database_config)
         try:
@@ -572,7 +572,7 @@ class Handler:
         if self.ctx.voice_client.source is None:
             return
         url = self.ctx.voice_client.source.url
-        if url not in [url for url, s in self.static_random_playlist]:
+        if url not in [url for url, s in self._random_playlist]:
             return await self.ctx.send('Sadece şarkı listesindeki şarkılar beğenilebilir.')
         conn = pymysql.connect(self.bot.database_config)
         try:
