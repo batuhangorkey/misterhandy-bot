@@ -40,38 +40,15 @@ adj = {
 }
 
 
-def fetch_user_tables():
-    user_table = {}
-    kaiser_points = {}
-
-    conn = pymysql.connect(database_config['host'],
-                           database_config['userid'],
-                           database_config['password'],
-                           database_config['databasename'])
-
-    with conn.cursor() as cursor:
-        cursor.execute('SELECT VERSION()')
-        data = cursor.fetchone()
-        print(f'Database version: {data[0]}')
-        cursor.execute("SELECT * FROM main")
-        data = cursor.fetchall()
-    conn.close()
-
-    for _, b, k in data:
-        user_table[int(_)] = int(b)
-    return user_table, kaiser_points
-
-
-def get_git_version():
-    return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
-
-
 class CustomBot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix='!')
-        self.version_name = 'v{}'.format(get_git_version())
         self._token = bot_token
         self._database_config = database_config
+
+    @staticmethod
+    def get_git_version():
+        return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
 
     @property
     def token(self):
@@ -80,6 +57,32 @@ class CustomBot(commands.Bot):
     @property
     def database_config(self):
         return self._database_config
+
+    @property
+    def version_name(self):
+        return 'v{}'.format(self.get_git_version())
+
+    def get_pymysql_connection(self):
+        conn = pymysql.connect(self.database_config['host'],
+                               self.database_config['userid'],
+                               self.database_config['password'],
+                               self.database_config['databasename'])
+        return conn
+
+    def fetch_user_tables(self):
+        user_table = {}
+        kaiser_points = {}
+        conn = self.get_pymysql_connection()
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT VERSION()')
+            data = cursor.fetchone()
+            print(f'Database version: {data[0]}')
+            cursor.execute("SELECT * FROM main")
+            data = cursor.fetchall()
+        conn.close()
+        for _, b, k in data:
+            user_table[int(_)] = int(b)
+        return user_table, kaiser_points
 
     async def default_presence(self):
         await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
@@ -98,7 +101,7 @@ bot = CustomBot()
 async def on_ready():
     start = time.process_time()
     print('Back online')
-    print('Running git hash: {}'.format(get_git_version()))
+    print('Running git hash: {}'.format(bot.get_git_version()))
     print('{0.name} with id: {0.id} has connected to Discord at {time}'.format(bot.user,
                                                                                time=time.ctime(time.time() + 10800)))
     async for guild in bot.fetch_guilds():
@@ -117,7 +120,7 @@ async def minigame(ctx):
     try:
         if bot.get_cog('Minigame'):
             bot.remove_cog('Minigame')
-        bot.add_cog(Minigame(bot, user_table=fetch_user_tables()[0]))
+        bot.add_cog(Minigame(bot, user_table=bot.fetch_user_tables()[0]))
     finally:
         await ctx.send('Enabled minigame')
 

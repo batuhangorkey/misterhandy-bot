@@ -7,7 +7,6 @@ import youtube_dl
 import random
 import itertools
 import time
-import pymysql
 import os
 from discord.ext import commands
 from youtube_search import YoutubeSearch
@@ -95,10 +94,7 @@ class Music(commands.Cog):
         self.handlers = {}
 
     def get_random_playlist(self):
-        conn = pymysql.connect(self.bot.database_config['host'],
-                               self.bot.database_config['userid'],
-                               self.bot.database_config['password'],
-                               self.bot.database_config['databasename'])
+        conn = self.bot.get_pymysql_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT url, dislike, like_count FROM playlist")
@@ -269,7 +265,7 @@ class Music(commands.Cog):
             return await ctx.send('Yanlış bir şeyler oldu.')
         added_songs = []
         failed_songs = []
-        conn = pymysql.connect(self.bot.database_config)
+        conn = self.bot.get_pymysql_connection()
         try:
             if 'entries' in data:
                 entries = [_ for _ in data.get('entries')]
@@ -556,10 +552,7 @@ class Handler:
         url = self.ctx.voice_client.source.url
         if url not in [url for url, s in self._random_playlist]:
             return
-        conn = pymysql.connect(self.bot.database_config['host'],
-                               self.bot.database_config['userid'],
-                               self.bot.database_config['password'],
-                               self.bot.database_config['databasename'])
+        conn = self.bot.get_pymysql_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute('UPDATE playlist SET dislike = dislike + 1 WHERE url = "{}"'.format(url))
@@ -574,10 +567,7 @@ class Handler:
         url = self.ctx.voice_client.source.url
         if url not in [url for url, s in self._random_playlist]:
             return await self.ctx.send('Sadece şarkı listesindeki şarkılar beğenilebilir.')
-        conn = pymysql.connect(self.bot.database_config['host'],
-                               self.bot.database_config['userid'],
-                               self.bot.database_config['password'],
-                               self.bot.database_config['databasename'])
+        conn = self.bot.get_pymysql_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute('UPDATE playlist SET like_count = like_count + 1 WHERE url = "{}"'.format(url))
