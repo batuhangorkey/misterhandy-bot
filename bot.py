@@ -84,6 +84,19 @@ class CustomBot(commands.Bot):
             user_table[int(_)] = int(b)
         return user_table, kaiser_points
 
+    def get_random_playlist(self):
+        conn = self.get_pymysql_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT url, dislike, like_count FROM playlist")
+                data = cursor.fetchall()
+        finally:
+            conn.close()
+        db_playlist = [t for t in data]
+        db_playlist = [(url, int(like / dislike)) for url, dislike, like in db_playlist]
+        print('Random playlist length: {}'.format(len(db_playlist)))
+        return db_playlist
+
     async def default_presence(self):
         await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                              name=random.choice(presences)))

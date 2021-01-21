@@ -93,19 +93,6 @@ class Music(commands.Cog):
         self.bot = bot
         self.handlers = {}
 
-    def get_random_playlist(self):
-        conn = self.bot.get_pymysql_connection()
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT url, dislike, like_count FROM playlist")
-                data = cursor.fetchall()
-        finally:
-            conn.close()
-        db_playlist = [t for t in data]
-        db_playlist = [(url, int(like / dislike)) for url, dislike, like in db_playlist]
-        print('Random playlist length: {}'.format(len(db_playlist)))
-        return db_playlist
-
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel = None):
         if ctx.voice_client:
@@ -544,6 +531,8 @@ class Handler:
         except discord.errors.HTTPException as error:
             print(error)
         except asyncio.CancelledError as error:
+            print(error)
+        except Exception as error:
             print(error)
 
     def dislike(self):
