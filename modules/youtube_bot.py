@@ -465,7 +465,7 @@ class Handler:
     async def send_player_embed(self, source):
         self.queue_value.append(source.title)
         if self.queue.qsize() > 0:
-            if self.last_message.embeds:
+            if self.last_message:
                 embed = self.last_message.embeds[0]
                 embed.add_field(name=str(self.queue.qsize()),
                                 value=source.title)
