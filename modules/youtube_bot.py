@@ -173,7 +173,7 @@ class Music(commands.Cog):
                         return await ctx.send('Bir şeyler yanlış. Bir daha dene')
                     await self.handlers[ctx.guild.id].queue.put((ctx, audio))
             self.handlers[ctx.guild.id].play_random = not self.handlers[ctx.guild.id].play_random
-            await self.handlers[ctx.guild.id].edit_footer()
+        await self.handlers[ctx.guild.id].edit_footer()
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
@@ -207,18 +207,20 @@ class Music(commands.Cog):
 
     @commands.command(help='Disconnects the bot from voice channel.')
     async def stop(self, ctx):
-        handler = self.handlers.get(ctx.guild.id)
-        if handler is not None:
-            handler.play_random = False
-            handler.refresh_playlist()
-            for _ in range(handler.queue.qsize()):
-                handler.queue.get_nowait()
-                handler.queue.task_done()
-            if handler.task:
-                handler.task.cancel()
-        if ctx.voice_client is not None:
-            await ctx.voice_client.disconnect()
-        await self.bot.default_presence()
+        try:
+            handler = self.handlers.get(ctx.guild.id)
+            if handler is not None:
+                handler.play_random = False
+                handler.refresh_playlist()
+                for _ in range(handler.queue.qsize()):
+                    handler.queue.get_nowait()
+                    handler.queue.task_done()
+                if handler.task:
+                    handler.task.cancel()
+        finally:
+            if ctx.voice_client is not None:
+                await ctx.voice_client.disconnect()
+            await self.bot.default_presence()
 
     @commands.command(help='Adds song to bot playlist')
     async def add_link(self, ctx, url: str):
