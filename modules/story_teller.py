@@ -10,7 +10,7 @@ class Project2(commands.Cog):
     @commands.command(help='Start anew')
     async def bar(self, ctx):
         async with ctx.typing():
-            self.storyteller = StoryTeller(rooms[1])
+            self.storyteller = StoryTeller()
             await ctx.send(self.storyteller.view_room())
 
     @commands.Cog.listener()

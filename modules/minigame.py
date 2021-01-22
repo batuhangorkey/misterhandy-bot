@@ -1,47 +1,6 @@
 import random
-import pymysql
 import discord
 from discord.ext import commands
-
-
-def get_raw_word_list():
-    global f
-    _raw_word_list = []
-    try:
-        f = open('modules/words.txt', 'r')
-        word = ''
-        for var in f.readline():
-            if var != ' ':
-                word += var
-            else:
-                _raw_word_list.append(word)
-                word = ''
-    finally:
-        f.close()
-    return _raw_word_list
-
-
-def initialize(word_length):
-    raw_word_list = get_raw_word_list()
-    words = []
-    final_list = []
-    for word in raw_word_list:
-        if len(word) == word_length:
-            words.append(word)
-    if word_length < 15:
-        word_list = random.sample(words, 10)
-        correct_word = random.choice(word_list)
-        for var in word_list:
-            counter = 0
-            k = 0
-            for char in var:
-                if char == correct_word[k]:
-                    counter += 1
-                k += 1
-            final_list.append((var, counter))
-        return final_list
-    else:
-        return None
 
 
 class Scene:
@@ -59,10 +18,50 @@ class Minigame(commands.Cog):
         self.user_table = user_table
         self.messages = []
 
+    @staticmethod
+    def get_raw_word_list():
+        global f
+        _raw_word_list = []
+        try:
+            f = open('modules/words.txt', 'r')
+            word = ''
+            for var in f.readline():
+                if var != ' ':
+                    word += var
+                else:
+                    _raw_word_list.append(word)
+                    word = ''
+        finally:
+            f.close()
+        return _raw_word_list
+
+    @staticmethod
+    def initialize(word_length):
+        raw_word_list = Minigame.get_raw_word_list()
+        words = []
+        final_list = []
+        for word in raw_word_list:
+            if len(word) == word_length:
+                words.append(word)
+        if word_length < 15:
+            word_list = random.sample(words, 10)
+            correct_word = random.choice(word_list)
+            for var in word_list:
+                counter = 0
+                k = 0
+                for char in var:
+                    if char == correct_word[k]:
+                        counter += 1
+                    k += 1
+                final_list.append((var, counter))
+            return final_list
+        else:
+            return None
+
     @commands.command(help='Starts the mini game.')
     async def start(self, ctx, difficulty: int):
         global scene
-        game_list = initialize(difficulty)
+        game_list = Minigame.initialize(difficulty)
         self.messages.append(ctx.message)
         if game_list is not None:
             scene = Scene(game_list, difficulty)
@@ -83,10 +82,7 @@ class Minigame(commands.Cog):
         if scene.list[index - 1][1] == scene.difficulty and scene.state == 0 and scene.attempts > 0:
             scene.state = 1
 
-            conn = pymysql.connect(self.bot.database_config['host'],
-                                   self.bot.database_config['userid'],
-                                   self.bot.database_config['password'],
-                                   self.bot.database_config['databasename'])
+            conn = self.bot.get_pymysql_connection()
             try:
                 with conn.cursor() as cursor:
                     if user.id in self.user_table:
@@ -127,10 +123,7 @@ class Minigame(commands.Cog):
                     self.user_table[user] -= cost
                     scene.attempts += 1
 
-                    conn = pymysql.connect(self.bot.database_config['host'],
-                                           self.bot.database_config['userid'],
-                                           self.bot.database_config['password'],
-                                           self.bot.database_config['databasename'])
+                    conn = self.bot.get_pymysql_connection()
                     with conn.cursor() as cursor:
                         cursor.execute(f"UPDATE main SET Unit = Unit - {cost} WHERE UserID = {user}")
                     conn.commit()

@@ -118,18 +118,12 @@ class Music(commands.Cog):
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
         async with ctx.typing():
-            player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-            if player is None:
+            audio = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+            if audio is None:
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
             # sıraya ekle
-            await self.handlers[ctx.guild.id].queue.put((ctx, player))
-            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
-                embed = self.handlers[ctx.guild.id].last_message.embeds[0]
-                embed.add_field(name=str(self.handlers[ctx.guild.id].queue.qsize()),
-                                value=player.title)
-                await self.handlers[ctx.guild.id].manage_last(await ctx.send(embed=embed))
-                for _ in player_emojis.values():
-                    await self.handlers[ctx.guild.id].last_message.add_reaction(_)
+            await self.handlers[ctx.guild.id].queue.put((ctx, audio))
+            await self.handlers[ctx.guild.id].send_player_embed(audio)
 
     @commands.command(help='Plays the first result from a search string.')
     async def play(self, ctx, *, search_string):
@@ -140,19 +134,11 @@ class Music(commands.Cog):
                 url = 'https://www.youtube.com' + result[0]['url_suffix']
             except IndexError:
                 return await ctx.send('Video bulamadım. Bir daha dene')
-            player = await YTDLSource.from_url(url, loop=self.bot.loop)
-            if player is None:
+            audio = await YTDLSource.from_url(url, loop=self.bot.loop)
+            if audio is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
-            print('play: Half way in')
-            await self.handlers[ctx.guild.id].queue.put((ctx, player))
-            print('Queue put successful')
-            if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
-                embed = self.handlers[ctx.guild.id].last_message.embeds[0]
-                embed.add_field(name=str(self.handlers[ctx.guild.id].queue.qsize()),
-                                value=player.title)
-                await self.handlers[ctx.guild.id].manage_last(await ctx.send(embed=embed))
-                for _ in player_emojis.values():
-                    await self.handlers[ctx.guild.id].last_message.add_reaction(_)
+            await self.handlers[ctx.guild.id].queue.put((ctx, audio))
+            await self.handlers[ctx.guild.id].send_player_embed(audio)
         print('Method: {} | Elapsed time: {}'.format('play', time.process_time() - start))
 
     @commands.command(help='Searches youtube. 10 results')
@@ -180,7 +166,7 @@ class Music(commands.Cog):
         async with ctx.typing():
             if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
                 if not self.handlers[ctx.guild.id].play_random:
-                    player = await YTDLSource.from_url(self.handlers[ctx.guild.id].get_song_from_rnd_playlist(),
+                    player = await YTDLSource.from_url(self.handlers[ctx.guild.id].get_song(),
                                                        loop=self.bot.loop,
                                                        stream=True)
                     if player is None:
@@ -280,7 +266,7 @@ class Music(commands.Cog):
             if len(failed_songs) > 0:
                 await ctx.send('\nBaşına bir şey gelen şarkılar:\n'
                                '```{}```'.format('\n'.join(failed_songs)))
-            self.handlers[ctx.guild.id].refresh_playlist()
+            self.handlers[ctx.guild.id].reset_playlist()
 
         # if len(url) != 43 or not url.startswith('https://www.youtube.com/watch?v='):
         #     return await ctx.send('Linkini kontrol et. Tam link atmalısın')
@@ -309,12 +295,11 @@ class Music(commands.Cog):
         async with ctx.typing():
             self.handlers[ctx.guild.id].time_cursor = target_time
             ctx.voice_client.pause()
-            player = await YTDLSource.from_url(url=ctx.voice_client.source.url,
-                                               loop=self.bot.loop,
-                                               start_time=target_time)
-            ctx.voice_client.source = player
-            self.handlers[ctx.guild.id].source_start_tme = time.time()
-            await self.handlers[ctx.guild.id].send_player_embed(player)
+            url = ctx.voice_client.source.url
+            audio = await YTDLSource.from_url(url=url, loop=self.bot.loop, start_time=target_time)
+            ctx.voice_client.source = audio
+            self.handlers[ctx.guild.id].source_start_time = time.time()
+            await self.handlers[ctx.guild.id].send_player_embed(audio)
             for _ in range(self.handlers[ctx.guild.id].queue.qsize() - 1):
                 a = self.handlers[ctx.guild.id].queue.get_nowait()
                 self.handlers[ctx.guild.id].queue.task_done()
@@ -363,12 +348,12 @@ class Music(commands.Cog):
             if reaction.emoji == player_emojis['stop']:
                 return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('stop'))
             if reaction.emoji == player_emojis['backward']:
-                delta_time = time.time() - self.handlers[guild_id].source_start_tme
+                delta_time = time.time() - self.handlers[guild_id].source_start_time
                 target_time = self.handlers[guild_id].time_cursor + delta_time - self.handlers[guild_id].time_setting
                 return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('goto'),
                                                                 target_time=target_time)
             if reaction.emoji == player_emojis['forward']:
-                delta_time = time.time() - self.handlers[guild_id].source_start_tme
+                delta_time = time.time() - self.handlers[guild_id].source_start_time
                 target_time = self.handlers[guild_id].time_cursor + delta_time + self.handlers[guild_id].time_setting
                 return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('goto'),
                                                                 target_time=target_time)
@@ -408,7 +393,7 @@ class Events(commands.Cog):
         if index < 1 or 10 < index:
             return
         music = self.bot.get_cog('Music')
-        await self.ctx.invoke(music.bot.get_command('stream'), url=music.search_list[index - 1])
+        await self.ctx.invoke(music.bot.get_command('play'), url=music.search_list[index - 1])
         music.search_list.clear()
         self.bot.remove_cog('Events')
 
@@ -417,72 +402,85 @@ class Handler:
     def __init__(self, bot, ctx):
         self._ctx = ctx
         self._random_playlist = []
+        self._last_message = None
         self.bot = bot
         self.queue = asyncio.Queue(loop=bot.loop)
         self.play_next = asyncio.Event(loop=bot.loop)
         self.play_random = False
-        self.last_message = None
         self.task = None
         self.search_list = []
-        self.source_start_tme = None
+        self.source_start_time = None
         self.time_cursor = None
         self.time_setting = 30
         self.random_playlist = []
-        self.refresh_playlist()
+        self.reset_playlist()
+        self.fancy_format = True
+        self.queue_value = []
 
     @property
     def ctx(self):
         return self._ctx
 
+    @property
+    def last_message(self):
+        return self._last_message
+
     def create_task(self):
         self.task = self.bot.loop.create_task(self.audio_player())
 
-    def refresh_playlist(self):
+    def reset_playlist(self):
         self._random_playlist = self.bot.get_random_playlist()
         self.random_playlist = self._random_playlist.copy()
 
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
 
-    async def send_player_embed(self, source):
-        if source.start_time != 0:
+    def get_player_message_body(self, audio):
+        if audio.start_time != 0:
             description = 'Şimdi oynatılıyor - {} dan başladı'.format(time.strftime('%M:%S',
-                                                                                    time.gmtime(source.start_time)))
+                                                                                    time.gmtime(audio.start_time)))
         else:
             description = 'Şimdi oynatılıyor'
-        embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(source),
-                              url=source.url,
+        embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(audio),
+                              url=audio.url,
                               description=description,
                               colour=0x8B0000)
-        embed.set_thumbnail(url=source.thumbnail)
-        footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {} ({}) - {}'
+        embed.set_thumbnail(url=audio.thumbnail)
+        footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - {}'
         embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı',
                                             len(self._random_playlist),
                                             self.bot.version_name))
-        if self.last_message:
-            _embed = self.last_message.embeds[0]
-            if len(_embed.fields) > 1:
-                _embed.remove_field(0)
-                for _ in _embed.fields:
-                    embed.add_field(name=str(self.queue.qsize()),
-                                    value=_.value)
-        await self.manage_last(await self.ctx.send(embed=embed))
+        return embed
+
+    def attach_queue(self, embed):
+        for name, value in list(enumerate(self.queue_value)):
+            embed.add_field(name=str(name + 1), value=value)
+        return embed
+
+    async def send_player_embed(self, source):
+        self.queue_value.append(source.title)
+        embed = self.last_message.embeds[0]
+        if self.queue.qsize() > 0:
+            if embed:
+                embed.add_field(name=str(self.queue.qsize()),
+                                value=source.title)
+            else:
+                embed = self.get_player_message_body(source)
+                embed = self.attach_queue(embed)
+        else:
+            embed = self.get_player_message_body(source)
+        if self._last_message is not None:
+            await self._last_message.delete()
+        self._last_message = await self.ctx.send(embed=embed)
         if self.play_random:
             for _ in playlist_emojis.values():
                 await self.last_message.add_reaction(_)
         for _ in player_emojis.values():
             await self.last_message.add_reaction(_)
 
-    async def manage_last(self, msg):
-        try:
-            if self.last_message:
-                await self.last_message.delete()
-        finally:
-            self.last_message = msg
-
-    def get_song_from_rnd_playlist(self):
+    def get_song(self):
         if len(self.random_playlist) == 0:
-            self.refresh_playlist()
+            self.reset_playlist()
         cum_weights = list(itertools.accumulate([rating for url, rating in self.random_playlist]))
         song = random.choices(self.random_playlist, cum_weights=cum_weights, k=1)[0]
         self.random_playlist.remove(song)
@@ -490,16 +488,14 @@ class Handler:
 
     async def audio_player(self):
         try:
-            print('Started audio player in channel name: {}'.format(self.ctx.voice_client.channel.name))
             while True:
-                self.play_next.clear()
-                self.time_cursor = 0
-
                 try:
+                    self.play_next.clear()
+                    self.time_cursor = 0
                     if self.queue.qsize() == 0:
                         if self.play_random and self.ctx.voice_client is not None:
                             async with self.ctx.typing():
-                                audio = await YTDLSource.from_url(self.get_song_from_rnd_playlist(),
+                                audio = await YTDLSource.from_url(self.get_song(),
                                                                   loop=self.bot.loop,
                                                                   stream=True)
                                 if audio:
@@ -512,15 +508,18 @@ class Handler:
                             embed = self.last_message.embeds[0]
                             embed.description = 'Video bitti'
                             await self.last_message.edit(embed=embed)
+                    else:
+                        self.queue_value.pop(0)
                 except NameError:
+                    pass
+                finally:
                     pass
 
                 current = await self.queue.get()
-                _ctx, audio = current
-                self._ctx = _ctx
+                self._ctx, audio = current
                 self.ctx.voice_client.play(audio,
                                            after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
-                self.source_start_tme = time.time()
+                self.source_start_time = time.time()
                 async with self.ctx.typing():
                     await self.send_player_embed(audio)
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
