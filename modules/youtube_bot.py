@@ -166,20 +166,14 @@ class Music(commands.Cog):
         async with ctx.typing():
             if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
                 if not self.handlers[ctx.guild.id].play_random:
-                    player = await YTDLSource.from_url(self.handlers[ctx.guild.id].get_song(),
-                                                       loop=self.bot.loop,
-                                                       stream=True)
-                    if player is None:
+                    audio = await YTDLSource.from_url(self.handlers[ctx.guild.id].get_song(),
+                                                      loop=self.bot.loop,
+                                                      stream=True)
+                    if audio is None:
                         return await ctx.send('Bir şeyler yanlış. Bir daha dene')
-                    await self.handlers[ctx.guild.id].queue.put((ctx, player))
+                    await self.handlers[ctx.guild.id].queue.put((ctx, audio))
             self.handlers[ctx.guild.id].play_random = not self.handlers[ctx.guild.id].play_random
-            if self.handlers[ctx.guild.id].last_message:
-                _embed = self.handlers[ctx.guild.id].last_message.embeds[0]
-                footer = 'Ozan: Yerli ve Milli İlk Video Oynatıcısı - Rastgele çalma {} ({}) - {}'
-                _embed.set_footer(text=footer.format('açık' if self.handlers[ctx.guild.id].play_random else 'kapalı',
-                                                     len(self.handlers[ctx.guild.id].static_random_playlist),
-                                                     self.bot.version_name))
-                await self.handlers[ctx.guild.id].last_message.edit(embed=_embed)
+            await self.handlers[ctx.guild.id].edit_footer()
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
@@ -222,10 +216,8 @@ class Music(commands.Cog):
                 handler.queue.task_done()
             if handler.task:
                 handler.task.cancel()
-        try:
+        if ctx.voice_client is not None:
             await ctx.voice_client.disconnect()
-        except AttributeError as error:
-            print(error)
         await self.bot.default_presence()
 
     @commands.command(help='Adds song to bot playlist')
@@ -445,7 +437,11 @@ class Handler:
                               url=audio.url,
                               description=description,
                               colour=0x8B0000)
+        embed = self.set_footer(embed)
         embed.set_thumbnail(url=audio.thumbnail)
+        return embed
+
+    def set_footer(self, embed):
         footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - {}'
         embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı',
                                             len(self._random_playlist),
@@ -456,6 +452,13 @@ class Handler:
         for name, value in list(enumerate(self.queue_value)):
             embed.add_field(name=str(name + 1), value=value)
         return embed
+
+    async def edit_footer(self):
+        if self.last_message:
+            embed = self.set_footer(self.last_message.embeds[0])
+            await self.last_message.edit(embed=embed)
+        else:
+            await self.send_player_embed(self.ctx.voice_client.source)
 
     async def send_player_embed(self, source):
         self.queue_value.append(source.title)
