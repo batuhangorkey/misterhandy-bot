@@ -173,7 +173,7 @@ class Music(commands.Cog):
                         return await ctx.send('Bir şeyler yanlış. Bir daha dene')
                     await self.handlers[ctx.guild.id].queue.put((ctx, audio))
             self.handlers[ctx.guild.id].play_random = not self.handlers[ctx.guild.id].play_random
-        await self.handlers[ctx.guild.id].edit_footer()
+        await self.handlers[ctx.guild.id].send_player_embed()
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
@@ -460,20 +460,12 @@ class Handler:
             embed = self.set_footer(self.last_message.embeds[0])
             await self.last_message.edit(embed=embed)
         else:
-            await self.send_player_embed(self.ctx.voice_client.source)
+            await self.send_player_embed()
 
-    async def send_player_embed(self, source):
-        self.queue_value.append(source.title)
-        if self.queue.qsize() > 0:
-            if self.last_message:
-                embed = self.last_message.embeds[0]
-                embed.add_field(name=str(self.queue.qsize()),
-                                value=source.title)
-            else:
-                embed = self.get_player_message_body(source)
-                embed = self.attach_queue(embed)
-        else:
-            embed = self.get_player_message_body(source)
+    async def send_player_embed(self):
+        embed = self.get_player_message_body(self.ctx.voice_client.source)
+        embed = self.attach_queue(embed)
+
         if self._last_message is not None:
             await self._last_message.delete()
         self._last_message = await self.ctx.send(embed=embed)
@@ -526,7 +518,7 @@ class Handler:
                                            after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
                 self.source_start_time = time.time()
                 async with self.ctx.typing():
-                    await self.send_player_embed(audio)
+                    await self.send_player_embed()
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=format(audio.title)))
                 await self.play_next.wait()
