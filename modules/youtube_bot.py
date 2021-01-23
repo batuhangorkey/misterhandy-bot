@@ -135,6 +135,8 @@ class Music(commands.Cog):
                 url = 'https://www.youtube.com' + result[0]['url_suffix']
             except IndexError:
                 return await ctx.send('Video bulamadım. Bir daha dene')
+            except Exception as error:
+                return print(error)
             audio = await YTDLSource.from_url(url, loop=self.bot.loop)
             if audio is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
@@ -149,13 +151,11 @@ class Music(commands.Cog):
         self.handlers[ctx.guild.id].search_list.clear()
         results = YoutubeSearch(search_string, max_results=10).to_dict()
         embed = discord.Embed(colour=0x8B0000)
-        i = 1
-        for _ in results:
+        for _, i in list(enumerate(results)):
             k = '[{} - {}](https://www.youtube.com{})'
-            embed.add_field(name=' - '.join([str(i), _['title']]),
+            embed.add_field(name=' - '.join([str(i + 1), _['title']]),
                             value=k.format(_['channel'], _['duration'], _['url_suffix']))
             self.handlers[ctx.guild.id].search_list.append('https://www.youtube.com{}'.format(_['url_suffix']))
-            i = i + 1
         async with ctx.typing():
             await ctx.send(embed=embed, delete_after=20)
         if self.bot.get_cog('Events'):
