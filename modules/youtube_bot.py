@@ -467,9 +467,9 @@ class Handler:
     async def send_player_embed(self, audio=None):
         try:
             if audio:
-                embed = self.get_player_message_body(self.ctx.voice_client.source)
-            else:
                 embed = self.get_player_message_body(audio)
+            else:
+                embed = self.get_player_message_body(self.ctx.voice_client.source)
 
             if self._last_message is not None:
                 await self._last_message.delete()
