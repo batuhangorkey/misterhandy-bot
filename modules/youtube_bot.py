@@ -420,6 +420,8 @@ class Handler:
         return self._last_message
 
     def create_task(self):
+        if self.task:
+            self.task.cancel()
         self.task = self.bot.loop.create_task(self.audio_player())
 
     def reset_playlist(self):
