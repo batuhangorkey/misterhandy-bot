@@ -126,7 +126,7 @@ async def on_ready():
     bot.add_cog(Project2(bot))
     bot.add_cog(Music(bot))
     map(lambda e: os.remove(e), glob.glob('*.webm'))
-    os.listdir('./')
+    map(lambda e: print(e), os.listdir('./'))
     end = time.process_time() - start
     print('Method: {} | Elapsed time: {}'.format('on_ready', end))
 
