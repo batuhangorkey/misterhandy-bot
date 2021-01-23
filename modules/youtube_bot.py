@@ -463,16 +463,19 @@ class Handler:
             await self.send_player_embed()
 
     async def send_player_embed(self):
-        embed = self.get_player_message_body(self.ctx.voice_client.source)
+        try:
+            embed = self.get_player_message_body(self.ctx.voice_client.source)
 
-        if self._last_message is not None:
-            await self._last_message.delete()
-        self._last_message = await self.ctx.send(embed=embed)
-        if self.play_random:
-            for _ in playlist_emojis.values():
+            if self._last_message is not None:
+                await self._last_message.delete()
+            self._last_message = await self.ctx.send(embed=embed)
+            if self.play_random:
+                for _ in playlist_emojis.values():
+                    await self.last_message.add_reaction(_)
+            for _ in player_emojis.values():
                 await self.last_message.add_reaction(_)
-        for _ in player_emojis.values():
-            await self.last_message.add_reaction(_)
+        except Exception as error:
+            print(error)
 
     def get_song(self):
         if len(self.random_playlist) == 0:
