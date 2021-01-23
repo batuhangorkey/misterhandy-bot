@@ -219,6 +219,8 @@ class Music(commands.Cog):
                     handler.queue.task_done()
                 if handler.task:
                     handler.task.cancel()
+        except Exception as error:
+            print(error)
         finally:
             if ctx.voice_client is not None:
                 await ctx.voice_client.disconnect()
