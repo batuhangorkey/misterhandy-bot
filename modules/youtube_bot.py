@@ -2,12 +2,13 @@
 # https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git
 # https://github.com/xrisk/heroku-opus.git
 import asyncio
+import itertools
+import os
+import random
+import time
+
 import discord
 import youtube_dl
-import random
-import itertools
-import time
-import os
 from discord.ext import commands
 from youtube_search import YoutubeSearch
 
@@ -510,8 +511,8 @@ class Handler:
                                 embed = self.last_message.embeds[0]
                                 embed.description = 'Video bitti'
                                 await self.last_message.edit(embed=embed)
-                    except NameError as e:
-                        print(e)
+                    except NameError as error:
+                        print(error)
                     finally:
                         pass
 
