@@ -464,6 +464,8 @@ class Handler:
 
     async def send_player_embed(self):
         try:
+            if self.ctx.voice_client.source:
+                print('Source is empty')
             embed = self.get_player_message_body(self.ctx.voice_client.source)
 
             if self._last_message is not None:
