@@ -6,7 +6,6 @@ import datetime
 import subprocess
 import configparser
 import os
-import glob
 from discord.ext import commands
 from modules.minigame import Minigame
 from modules.youtube_bot import Music
@@ -114,24 +113,27 @@ bot = CustomBot()
 
 @bot.event
 async def on_ready():
-    start = time.process_time()
-    print('Back online')
-    print('Running git hash: {}'.format(bot.get_git_version()))
-    print('{0.name} with id: {0.id} has connected to Discord at {time}'.format(bot.user,
-                                                                               time=time.ctime(time.time() + 7200)))
-    async for guild in bot.fetch_guilds():
-        print('Operating on {} with id: {}'.format(guild.name, guild.id))
+    try:
+        start = time.process_time()
+        print('Back online')
+        print('Running git hash: {}'.format(bot.get_git_version()))
+        print('{0.name} with id: {0.id} has connected to Discord at {time}'.format(bot.user,
+                                                                                   time=time.ctime(time.time() + 7200)))
+        async for guild in bot.fetch_guilds():
+            print('Operating on {} with id: {}'.format(guild.name, guild.id))
 
-    await bot.default_presence()
-    bot.add_cog(Project2(bot))
-    bot.add_cog(Music(bot))
-    for item in os.listdir('./'):
-        if item.endswith('.webm'):
-            os.remove(item)
-    for item in os.listdir('./'):
-        print(item)
-    end = time.process_time() - start
-    print('Method: {} | Elapsed time: {}'.format('on_ready', end))
+        await bot.default_presence()
+        bot.add_cog(Project2(bot))
+        bot.add_cog(Music(bot))
+        for item in os.listdir('./'):
+            if item.endswith(('.webm', '.m4a')):
+                os.remove(item)
+        for item in os.listdir('./'):
+            print(item)
+        end = time.process_time() - start
+        print('Method: {} | Elapsed time: {}'.format('on_ready', end))
+    except Exception as e:
+        print(e)
 
 
 @bot.command(help='Enable minigame')
@@ -183,7 +185,7 @@ async def delete(ctx, limit: int = None):
 
 
 @bot.command(help='Refreshes bot.')
-async def refresh(ctx):
+async def reset(ctx):
     await ctx.send("Hoşçakalın")
     print("Going offine")
     exit()
