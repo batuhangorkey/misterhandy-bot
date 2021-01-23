@@ -138,6 +138,7 @@ class Music(commands.Cog):
             if audio is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
             await self.handlers[ctx.guild.id].queue.put((ctx, audio))
+            await self.handlers[ctx.guild.id].queue_value.append(audio.title)
             await self.handlers[ctx.guild.id].send_player_embed(audio)
         print('Method: {} | Elapsed time: {}'.format('play', time.process_time() - start))
 
@@ -465,22 +466,19 @@ class Handler:
             await self.send_player_embed()
 
     async def send_player_embed(self, audio=None):
-        try:
-            if audio:
-                embed = self.get_player_message_body(audio)
-            else:
-                embed = self.get_player_message_body(self.ctx.voice_client.source)
+        if audio:
+            embed = self.get_player_message_body(audio)
+        else:
+            embed = self.get_player_message_body(self.ctx.voice_client.source)
 
-            if self._last_message is not None:
-                await self._last_message.delete()
-            self._last_message = await self.ctx.send(embed=embed)
-            if self.play_random:
-                for _ in playlist_emojis.values():
-                    await self.last_message.add_reaction(_)
-            for _ in player_emojis.values():
+        if self._last_message is not None:
+            await self._last_message.delete()
+        self._last_message = await self.ctx.send(embed=embed)
+        if self.play_random:
+            for _ in playlist_emojis.values():
                 await self.last_message.add_reaction(_)
-        except Exception as error:
-            print(error)
+        for _ in player_emojis.values():
+            await self.last_message.add_reaction(_)
 
     def get_song(self):
         if len(self.random_playlist) == 0:
@@ -491,52 +489,52 @@ class Handler:
         return song[0]
 
     async def audio_player(self):
-        try:
-            while True:
-                try:
-                    self.play_next.clear()
-                    self.time_cursor = 0
-                    if self.queue.qsize() == 0:
-                        if self.play_random and self.ctx.voice_client is not None:
-                            async with self.ctx.typing():
-                                audio = await YTDLSource.from_url(self.get_song(),
-                                                                  loop=self.bot.loop,
-                                                                  stream=True)
-                                if audio:
-                                    await self.queue.put((self.ctx, audio))
-                                else:
-                                    await self.ctx.invoke(self.bot.get_command('play_random'))
-                                    await self.ctx.send('Birşeyler kırıldı.')
-                        elif self.last_message:
-                            await self.bot.change_presence(activity=self.bot.default_presence)
-                            embed = self.last_message.embeds[0]
-                            embed.description = 'Video bitti'
-                            await self.last_message.edit(embed=embed)
-                    else:
-                        self.queue_value.pop(0)
-                except NameError:
-                    pass
-                finally:
-                    pass
+        while True:
+            try:
+                    try:
+                        self.play_next.clear()
+                        self.time_cursor = 0
+                        if self.queue.qsize() == 0:
+                            if self.play_random and self.ctx.voice_client is not None:
+                                async with self.ctx.typing():
+                                    audio = await YTDLSource.from_url(self.get_song(),
+                                                                      loop=self.bot.loop,
+                                                                      stream=True)
+                                    if audio:
+                                        await self.queue.put((self.ctx, audio))
+                                    else:
+                                        await self.ctx.invoke(self.bot.get_command('play_random'))
+                                        await self.ctx.send('Birşeyler kırıldı.')
+                            elif self.last_message:
+                                await self.bot.change_presence(activity=self.bot.default_presence)
+                                embed = self.last_message.embeds[0]
+                                embed.description = 'Video bitti'
+                                await self.last_message.edit(embed=embed)
+                    except NameError as e:
+                        print(e)
+                    finally:
+                        pass
 
-                current = await self.queue.get()
-                self._ctx, audio = current
-                self.ctx.voice_client.play(audio,
-                                           after=lambda e: print('Player error: %s' % e) if e else self.toggle_next())
-                self.source_start_time = time.time()
-                async with self.ctx.typing():
-                    await self.send_player_embed()
-                await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                         name=format(audio.title)))
-                await self.play_next.wait()
-        except AttributeError as error:
-            print(error)
-        except discord.errors.HTTPException as error:
-            print(error)
-        except asyncio.CancelledError as error:
-            print(error)
-        except Exception as error:
-            print(error)
+                    current = await self.queue.get()
+                    self.queue_value.pop(0)
+                    self._ctx, audio = current
+                    self.ctx.voice_client.play(audio,
+                                               after=lambda e: print('Player error: %s' % e)
+                                               if e else self.toggle_next())
+                    self.source_start_time = time.time()
+                    async with self.ctx.typing():
+                        await self.send_player_embed()
+                    await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
+                                                                             name=format(audio.title)))
+                    await self.play_next.wait()
+            except AttributeError as error:
+                print(error)
+            except discord.errors.HTTPException as error:
+                print(error)
+            except asyncio.CancelledError as error:
+                print(error)
+            except Exception as error:
+                print(error)
 
     def dislike(self):
         if self.ctx.voice_client.source is None:
