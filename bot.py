@@ -1,15 +1,17 @@
+import configparser
+import datetime
+import os
 import random
+import subprocess
+import time
+
 import discord
 import pymysql
-import time
-import datetime
-import subprocess
-import configparser
-import os
 from discord.ext import commands
+
 from modules.minigame import Minigame
-from modules.youtube_bot import Music
 from modules.story_teller import Project2
+from modules.youtube_bot import Music
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -125,11 +127,14 @@ async def on_ready():
         await bot.default_presence()
         bot.add_cog(Project2(bot))
         bot.add_cog(Music(bot))
+
         for item in os.listdir('./'):
             if item.endswith(('.webm', '.m4a')):
                 os.remove(item)
+
+        print(os.path.abspath(os.path.dirname(__file__)))
         for item in os.listdir('./'):
-            print(item)
+            print('\t{}'.format(item))
         end = time.process_time() - start
         print('Method: {} | Elapsed time: {}'.format('on_ready', end))
     except Exception as e:

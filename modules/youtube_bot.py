@@ -536,6 +536,8 @@ class Handler:
                 print(error)
             except Exception as error:
                 print(error)
+            finally:
+                break
 
     def dislike(self):
         if self.ctx.voice_client.source is None:
