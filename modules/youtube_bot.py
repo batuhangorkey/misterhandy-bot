@@ -138,7 +138,7 @@ class Music(commands.Cog):
             if audio is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
             await self.handlers[ctx.guild.id].queue.put((ctx, audio))
-            await self.handlers[ctx.guild.id].send_player_embed()
+            await self.handlers[ctx.guild.id].send_player_embed(audio)
         print('Method: {} | Elapsed time: {}'.format('play', time.process_time() - start))
 
     @commands.command(help='Searches youtube. 10 results')
@@ -462,11 +462,12 @@ class Handler:
         else:
             await self.send_player_embed()
 
-    async def send_player_embed(self):
+    async def send_player_embed(self, audio=None):
         try:
-            if self.ctx.voice_client.source:
-                print('Source is empty')
-            embed = self.get_player_message_body(self.ctx.voice_client.source)
+            if audio:
+                embed = self.get_player_message_body(self.ctx.voice_client.source)
+            else:
+                embed = self.get_player_message_body(audio)
 
             if self._last_message is not None:
                 await self._last_message.delete()

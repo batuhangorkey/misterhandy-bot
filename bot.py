@@ -125,9 +125,8 @@ async def on_ready():
     await bot.default_presence()
     bot.add_cog(Project2(bot))
     bot.add_cog(Music(bot))
-    for item in os.listdir('./'):
-        if item.endswith('.webm'):
-            print(item)
+    map(lambda e: os.remove(e), glob.glob('*.webm'))
+    os.listdir('./')
     end = time.process_time() - start
     print('Method: {} | Elapsed time: {}'.format('on_ready', end))
 
