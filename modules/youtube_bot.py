@@ -213,18 +213,18 @@ class Music(commands.Cog):
             handler = self.handlers.get(ctx.guild.id)
             if handler is not None:
                 handler.play_random = False
-                handler.refresh_playlist()
+                handler.reset_playlist()
                 for _ in range(handler.queue.qsize()):
                     handler.queue.get_nowait()
                     handler.queue.task_done()
                 if handler.task:
                     handler.task.cancel()
+            await self.bot.default_presence()
         except Exception as error:
             print(error)
         finally:
             if ctx.voice_client is not None:
                 await ctx.voice_client.disconnect()
-            await self.bot.default_presence()
 
     @commands.command(help='Adds song to bot playlist')
     async def add_link(self, ctx, url: str):
@@ -265,28 +265,6 @@ class Music(commands.Cog):
                 await ctx.send('\nBaşına bir şey gelen şarkılar:\n'
                                '```{}```'.format('\n'.join(failed_songs)))
             self.handlers[ctx.guild.id].reset_playlist()
-
-        # if len(url) != 43 or not url.startswith('https://www.youtube.com/watch?v='):
-        #     return await ctx.send('Linkini kontrol et. Tam link atmalısın')
-        # if url in self._random_playlist:
-        #     return await ctx.send('Bu şarkı listede var.')
-        # conn = pymysql.connect(HOST, USER_ID, PASSWORD, DATABASE_NAME)
-        # try:
-        #     with conn.cursor() as cursor:
-        #
-        #         cursor.execute('INSERT INTO playlist (url) VALUES ("{}")'.format(url))
-        #         conn.commit()
-        #
-        #         cursor.execute('SELECT url FROM playlist where url="{}"'.format(url))
-        #         data = cursor.fetchone()
-        #
-        #     if data:
-        #         self.refresh_playlist()
-        #         await ctx.send('Şarkı eklendi. Teşekkürler')
-        #     else:
-        #         await ctx.send('Şarkı eklenemedi.')
-        # finally:
-        #     conn.close()
 
     @commands.command(help='Go to the time on the video')
     async def goto(self, ctx, target_time: int):
@@ -494,42 +472,38 @@ class Handler:
     async def audio_player(self):
         while True:
             try:
-                    try:
-                        self.play_next.clear()
-                        self.time_cursor = 0
-                        if self.queue.qsize() == 0:
-                            if self.play_random and self.ctx.voice_client is not None:
-                                async with self.ctx.typing():
-                                    audio = await YTDLSource.from_url(self.get_song(),
-                                                                      loop=self.bot.loop,
-                                                                      stream=True)
-                                    if audio:
-                                        await self.queue.put((self.ctx, audio))
-                                    else:
-                                        await self.ctx.invoke(self.bot.get_command('play_random'))
-                                        await self.ctx.send('Birşeyler kırıldı.')
-                            elif self.last_message:
-                                await self.bot.change_presence(activity=self.bot.default_presence)
-                                embed = self.last_message.embeds[0]
-                                embed.description = 'Video bitti'
-                                await self.last_message.edit(embed=embed)
-                    except NameError as error:
-                        print(error)
-                    finally:
-                        pass
+                self.play_next.clear()
+                self.time_cursor = 0
 
-                    current = await self.queue.get()
-                    self.queue_value.pop(0)
-                    self._ctx, audio = current
-                    self.ctx.voice_client.play(audio,
-                                               after=lambda e: print('Player error: %s' % e)
-                                               if e else self.toggle_next())
-                    self.source_start_time = time.time()
-                    async with self.ctx.typing():
-                        await self.send_player_embed()
-                    await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                             name=format(audio.title)))
-                    await self.play_next.wait()
+                if self.queue.qsize() == 0:
+                    if self.play_random and self.ctx.voice_client is not None:
+                        async with self.ctx.typing():
+                            audio = await YTDLSource.from_url(self.get_song(),
+                                                              loop=self.bot.loop,
+                                                              stream=True)
+                            if audio:
+                                await self.queue.put((self.ctx, audio))
+                            else:
+                                await self.ctx.invoke(self.bot.get_command('play_random'))
+                                await self.ctx.send('Birşeyler kırıldı.')
+                    elif self.last_message:
+                        await self.bot.change_presence(activity=self.bot.default_presence)
+                        embed = self.last_message.embeds[0]
+                        embed.description = 'Video bitti'
+                        await self.last_message.edit(embed=embed)
+
+                current = await self.queue.get()
+                self.queue_value.pop(0)
+                self._ctx, audio = current
+                self.ctx.voice_client.play(audio,
+                                           after=lambda e: print('Player error: %s' % e)
+                                           if e else self.toggle_next())
+                self.source_start_time = time.time()
+                async with self.ctx.typing():
+                    await self.send_player_embed()
+                await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
+                                                                         name=audio.title))
+                await self.play_next.wait()
             except AttributeError as error:
                 print(error)
             except discord.errors.HTTPException as error:

@@ -122,7 +122,7 @@ async def on_ready():
         print('{0.name} with id: {0.id} has connected to Discord at {time}'.format(bot.user,
                                                                                    time=time.ctime(time.time() + 7200)))
         async for guild in bot.fetch_guilds():
-            print('Operating on {} with id: {}'.format(guild.name, guild.id))
+            print('\tOperating on {} with id: {}'.format(guild.name, guild.id))
 
         await bot.default_presence()
         bot.add_cog(Project2(bot))
