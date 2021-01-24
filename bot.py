@@ -14,8 +14,13 @@ from modules.minigame import Minigame
 from modules.story_teller import Project2
 from modules.youtube_bot import Music
 
-FORMAT = '%(asctime)s %(levelname)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+try:
+    FORMAT = '%(asctime)s %(levelname)s %(message)s'
+    logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+except Exception as error:
+    print(error)
+logging.info('Test')
+
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -126,7 +131,7 @@ async def on_connect():
 async def on_ready():
     try:
         start = time.process_time()
-        logging.error('Back online')
+        logging.info('Back online')
         logging.info('Running git hash: {}'.format(bot.get_git_version()))
         logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
 
