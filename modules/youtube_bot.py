@@ -144,7 +144,7 @@ class Music(commands.Cog):
         except IndexError:
             await ctx.send('Video bulamadım. Bir daha dene')
         except Exception as error:
-            log.error(error, extra={'user': ctx.author.name})
+            log.error(error)
         finally:
             log.info('Method: {} | Elapsed time: {}'.format('play', time.process_time() - start))
 
