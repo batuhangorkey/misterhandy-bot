@@ -3,6 +3,7 @@
 # https://github.com/xrisk/heroku-opus.git
 import asyncio
 import itertools
+import logging
 import os
 import random
 import time
@@ -49,6 +50,10 @@ playlist_emojis = {
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
+FORMAT = '%(asctime)s %(levelname)s %(user)s %(message)s'
+logging.basicConfig(format=FORMAT)
+log = logging.getLogger(__name__)
+
 
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
@@ -69,8 +74,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
                 data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
         except youtube_dl.utils.DownloadError as error:
-            print(error)
-            return
+            return log.error(error)
         if 'entries' in data:
             data = data['entries'][0]
         with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
@@ -105,7 +109,7 @@ class Music(commands.Cog):
     @commands.command(help="Downloads audio from a url.")
     async def download(self, ctx, *, url):
         async with ctx.typing():
-            print('Requested: {}'.format(url))
+            log.info('Requested: {}'.format(url))
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
             if player is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
@@ -114,7 +118,7 @@ class Music(commands.Cog):
             try:
                 os.remove(player.filename)
             finally:
-                print("Deleted {}".format(player.filename))
+                log.info("Deleted {}".format(player.filename))
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
@@ -129,21 +133,22 @@ class Music(commands.Cog):
     @commands.command(help='Plays the first result from a search string.')
     async def play(self, ctx, *, search_string):
         start = time.process_time()
-        async with ctx.typing():
-            result = YoutubeSearch(search_string, max_results=1).to_dict()
-            try:
+        try:
+            async with ctx.typing():
+                result = YoutubeSearch(search_string, max_results=1).to_dict()
                 url = 'https://www.youtube.com' + result[0]['url_suffix']
-            except IndexError:
-                return await ctx.send('Video bulamadım. Bir daha dene')
-            except Exception as error:
-                return print(error)
-            audio = await YTDLSource.from_url(url, loop=self.bot.loop)
-            if audio is None:
-                return await ctx.send('Bir şeyler yanlış. Bir daha dene')
-            await self.handlers[ctx.guild.id].queue.put((ctx, audio))
-            await self.handlers[ctx.guild.id].queue_value.append(audio.title)
-            await self.handlers[ctx.guild.id].send_player_embed(audio)
-        print('Method: {} | Elapsed time: {}'.format('play', time.process_time() - start))
+                audio = await YTDLSource.from_url(url, loop=self.bot.loop)
+                if audio is None:
+                    return await ctx.send('Bir şeyler yanlış. Bir daha dene')
+                await self.handlers[ctx.guild.id].queue.put((ctx, audio))
+                await self.handlers[ctx.guild.id].queue_value.append(audio.title)
+                await self.handlers[ctx.guild.id].send_player_embed()
+        except IndexError:
+            await ctx.send('Video bulamadım. Bir daha dene')
+        except Exception as error:
+            log.error(error, extra={'user': ctx.author.name})
+        finally:
+            log.info('Method: {} | Elapsed time: {}'.format('play', time.process_time() - start))
 
     @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
@@ -451,6 +456,7 @@ class Handler:
             embed = self.get_player_message_body(audio)
         else:
             embed = self.get_player_message_body(self.ctx.voice_client.source)
+        embed = self.attach_queue(embed)
 
         if self._last_message is not None:
             await self._last_message.delete()
@@ -499,8 +505,8 @@ class Handler:
                                            after=lambda e: print('Player error: %s' % e)
                                            if e else self.toggle_next())
                 self.source_start_time = time.time()
-                async with self.ctx.typing():
-                    await self.send_player_embed()
+                await self.send_player_embed()
+
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=audio.title))
                 await self.play_next.wait()
