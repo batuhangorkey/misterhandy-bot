@@ -16,6 +16,7 @@ from modules.youtube_bot import Music
 
 try:
     FORMAT = '%(asctime)s %(levelname)s %(message)s'
+    logging.root.setLevel(level=logging.DEBUG)
     logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 except Exception as error:
     print(error)
