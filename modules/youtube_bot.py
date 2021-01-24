@@ -50,8 +50,6 @@ playlist_emojis = {
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
-log = logging.getLogger('bot')
-
 
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
@@ -72,7 +70,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
                 data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
         except youtube_dl.utils.DownloadError as error:
-            return log.error(error)
+            return logging.error(error)
         if 'entries' in data:
             data = data['entries'][0]
         with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
@@ -107,7 +105,7 @@ class Music(commands.Cog):
     @commands.command(help="Downloads audio from a url.")
     async def download(self, ctx, *, url):
         async with ctx.typing():
-            log.info('Requested: {}'.format(url))
+            logging.info('Requested: {}'.format(url))
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
             if player is None:
                 return await ctx.send('Bir şeyler yanlış. Bir daha dene')
@@ -116,7 +114,7 @@ class Music(commands.Cog):
             try:
                 os.remove(player.filename)
             finally:
-                log.info("Deleted {}".format(player.filename))
+                logging.info("Deleted {}".format(player.filename))
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
@@ -144,9 +142,9 @@ class Music(commands.Cog):
         except IndexError:
             await ctx.send('Video bulamadım. Bir daha dene')
         except Exception as error:
-            log.error(error)
+            logging.error(error)
         finally:
-            log.info('Method: {} | Elapsed time: {}'.format('play', time.process_time() - start))
+            logging.info('Method: {} | Elapsed time: {}'.format('play', time.process_time() - start))
 
     @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
