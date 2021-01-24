@@ -137,8 +137,6 @@ class Music(commands.Cog):
                 if audio is None:
                     return await ctx.send('Bir şeyler yanlış. Bir daha dene')
                 await self.handlers[ctx.guild.id].queue.put((ctx, audio))
-                await self.handlers[ctx.guild.id].queue_value.append(audio.title)
-                await self.handlers[ctx.guild.id].send_player_embed()
         except IndexError:
             await ctx.send('Video bulamadım. Bir daha dene')
         except Exception as error:
@@ -495,13 +493,11 @@ class Handler:
                         await self.last_message.edit(embed=embed)
 
                 current = await self.queue.get()
-                self.queue_value.pop(0)
                 self._ctx, audio = current
                 self.ctx.voice_client.play(audio,
                                            after=lambda e: print('Player error: %s' % e)
                                            if e else self.toggle_next())
                 self.source_start_time = time.time()
-                await self.send_player_embed()
 
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=audio.title))
