@@ -17,6 +17,7 @@ from modules.youtube_bot import Music
 FORMAT = '%(asctime)s %(levelname)s %(user)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.NOTSET)
 log = logging.getLogger('bot')
+log.setLevel(logging.NOTSET)
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -119,12 +120,17 @@ bot = CustomBot()
 
 
 @bot.event
+async def on_connect():
+    pass
+
+
+@bot.event
 async def on_ready():
     try:
         start = time.process_time()
         log.info('Back online')
         log.info('Running git hash: {}'.format(bot.get_git_version()))
-        log.info('{0.name} with id: {0.id} has connected to Discord'.format(bot.user))
+        log.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
 
         async for guild in bot.fetch_guilds():
             log.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
@@ -144,6 +150,14 @@ async def on_ready():
         log.info('Method: {} | Elapsed time: {}'.format('on_ready', end))
     except Exception as e:
         log.error(e)
+
+
+@bot.event
+async def on_error(event, *args, **kwargs):
+    print(event)
+    print(args)
+    print(kwargs)
+    pass
 
 
 @bot.command(help='Enable minigame')
