@@ -21,7 +21,7 @@ try:
 except Exception as error:
     print(error)
 logging.info('Test')
-
+logging.warning('Test')
 
 config = configparser.ConfigParser()
 config.read('config.ini')
