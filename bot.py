@@ -15,7 +15,7 @@ from modules.story_teller import Project2
 from modules.youtube_bot import Music
 
 FORMAT = '%(asctime)s %(levelname)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.NOTSET)
+logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -101,7 +101,7 @@ class CustomBot(commands.Bot):
             conn.close()
         db_playlist = [t for t in data]
         db_playlist = [(url, int(like / dislike)) for url, dislike, like in db_playlist]
-        print('Random playlist length: {}'.format(len(db_playlist)))
+        logging.info('Random playlist length: {}'.format(len(db_playlist)))
         return db_playlist
 
     async def default_presence(self):
@@ -126,7 +126,7 @@ async def on_connect():
 async def on_ready():
     try:
         start = time.process_time()
-        logging.info('Back online')
+        logging.error('Back online')
         logging.info('Running git hash: {}'.format(bot.get_git_version()))
         logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
 
