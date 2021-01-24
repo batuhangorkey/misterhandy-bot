@@ -4,6 +4,7 @@ import logging
 import os
 import random
 import subprocess
+import sys
 import time
 
 import discord
@@ -14,14 +15,8 @@ from modules.minigame import Minigame
 from modules.story_teller import Project2
 from modules.youtube_bot import Music
 
-try:
-    FORMAT = '%(asctime)s %(levelname)s %(message)s'
-    logging.root.setLevel(level=logging.DEBUG)
-    logging.basicConfig(format=FORMAT, level=logging.DEBUG)
-except Exception as error:
-    print(error)
-logging.info('Test')
-logging.warning('Test')
+FORMAT = '%(asctime)s %(levelname)s %(message)s'
+logging.basicConfig(format=FORMAT, level=logging.DEBUG, stream=sys.stdout)
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -89,7 +84,7 @@ class CustomBot(commands.Bot):
         with conn.cursor() as cursor:
             cursor.execute('SELECT VERSION()')
             data = cursor.fetchone()
-            print(f'Database version: {data[0]}')
+            logging.info(f'Database version: {data[0]}')
             cursor.execute("SELECT * FROM main")
             data = cursor.fetchall()
         conn.close()
