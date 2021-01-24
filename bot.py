@@ -16,7 +16,6 @@ from modules.youtube_bot import Music
 
 FORMAT = '%(asctime)s %(levelname)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.NOTSET)
-log = logging.getLogger('bot')
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -127,12 +126,12 @@ async def on_connect():
 async def on_ready():
     try:
         start = time.process_time()
-        log.info('Back online')
-        log.info('Running git hash: {}'.format(bot.get_git_version()))
-        log.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
+        logging.info('Back online')
+        logging.info('Running git hash: {}'.format(bot.get_git_version()))
+        logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
 
         async for guild in bot.fetch_guilds():
-            log.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
+            logging.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
 
         await bot.default_presence()
         bot.add_cog(Project2(bot))
@@ -142,21 +141,22 @@ async def on_ready():
             if item.endswith(('.webm', '.m4a')):
                 os.remove(item)
 
-        log.info(os.path.abspath(os.path.dirname(__file__)))
+        logging.info(os.path.abspath(os.path.dirname(__file__)))
         for item in os.listdir('./'):
-            log.info('\t{}'.format(item))
+            logging.info('\t{}'.format(item))
         end = time.process_time() - start
-        log.info('Method: {} | Elapsed time: {}'.format('on_ready', end))
+        logging.info('Method: {} | Elapsed time: {}'.format('on_ready', end))
     except Exception as e:
-        log.error(e)
+        logging.error(e)
 
-
+'''
 @bot.event
 async def on_error(event, *args, **kwargs):
     print(event)
     print(args)
     print(kwargs)
     pass
+'''
 
 
 @bot.command(help='Enable minigame')
@@ -210,7 +210,7 @@ async def delete(ctx, limit: int = None):
 @bot.command(help='Refreshes bot.')
 async def reset(ctx):
     await ctx.send("Hoşçakalın")
-    log.info("Going offine")
+    logging.info("Going offine")
     exit()
 
 
