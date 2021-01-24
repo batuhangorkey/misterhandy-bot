@@ -14,9 +14,9 @@ from modules.minigame import Minigame
 from modules.story_teller import Project2
 from modules.youtube_bot import Music
 
-FORMAT = '%(asctime)s %(levelname)s %(message)s'
-logging.basicConfig(format=FORMAT)
-log = logging.getLogger(__name__)
+FORMAT = '%(asctime)s %(levelname)s %(user)s %(message)s'
+logging.basicConfig(format=FORMAT, level=logging.NOTSET)
+log = logging.getLogger('bot')
 
 config = configparser.ConfigParser()
 config.read('config.ini')

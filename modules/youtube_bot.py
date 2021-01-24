@@ -50,9 +50,7 @@ playlist_emojis = {
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
-FORMAT = '%(asctime)s %(levelname)s %(user)s %(message)s'
-logging.basicConfig(format=FORMAT)
-log = logging.getLogger(__name__)
+log = logging.getLogger('bot')
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
