@@ -15,7 +15,7 @@ from modules.minigame import Minigame
 from modules.story_teller import Project2
 from modules.youtube_bot import Music
 
-FORMAT = '%(asctime)s %(levelname)s %(funcname)s %(message)s'
+FORMAT = '%(asctime)s %(levelname)s %(funcName)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 
 config = configparser.ConfigParser()
