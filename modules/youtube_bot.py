@@ -381,16 +381,16 @@ class Handler:
         self.bot = bot
         self.queue = asyncio.Queue(loop=bot.loop)
         self.play_next = asyncio.Event(loop=bot.loop)
-        self.play_random = False
-        self.task = None
         self.search_list = []
+        self.random_playlist = []
+        self.queue_value = []
         self.source_start_time = None
         self.time_cursor = None
+        self.task = None
         self.time_setting = 30
-        self.random_playlist = []
-        self.reset_playlist()
         self.fancy_format = True
-        self.queue_value = []
+        self.play_random = False
+        self.reset_playlist()
 
     @property
     def ctx(self):
@@ -515,6 +515,7 @@ class Handler:
                 print(error)
             finally:
                 break
+        logging.warning('Audio player, out of while loop')
 
     def dislike(self):
         if self.ctx.voice_client.source is None:
