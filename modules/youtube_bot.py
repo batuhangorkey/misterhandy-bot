@@ -506,6 +506,7 @@ class Handler:
                 self.ctx.voice_client.play(audio,
                                            after=lambda e: print('Player error: %s' % e)
                                            if e else self.toggle_next())
+                self.queue_value.pop(0)
                 self.source_start_time = time.time()
                 await self.send_player_embed()
 
