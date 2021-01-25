@@ -214,11 +214,11 @@ class Music(commands.Cog):
             if isinstance(handler, Handler):
                 handler.play_random = False
                 handler.reset_playlist()
+                if handler.task:
+                    handler.task.cancel()
                 for _ in range(handler.queue.qsize()):
                     handler.queue.get_nowait()
                     handler.queue.task_done()
-                if handler.task:
-                    handler.task.cancel()
             await self.bot.default_presence()
         except Exception as error:
             logging.error(error)

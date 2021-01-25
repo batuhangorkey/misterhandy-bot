@@ -134,7 +134,7 @@ async def on_ready():
             logging.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
 
         await bot.default_presence()
-        # bot.add_cog(Project2(bot))
+        bot.add_cog(Project2(bot))
         bot.add_cog(Music(bot))
 
         for item in os.listdir('./'):
