@@ -16,8 +16,7 @@ from modules.story_teller import Project2
 from modules.youtube_bot import Music
 
 FORMAT = '%(asctime)s %(levelname)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.DEBUG, stream=sys.stdout)
-logging.getLogger('bot')
+logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -137,7 +136,7 @@ async def on_ready():
 
         await bot.default_presence()
         # bot.add_cog(Project2(bot))
-        # bot.add_cog(Music(bot))
+        bot.add_cog(Music(bot))
 
         for item in os.listdir('./'):
             if item.endswith(('.webm', '.m4a')):

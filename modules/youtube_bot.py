@@ -471,10 +471,9 @@ class Handler:
 
     async def audio_player(self):
         while True:
+            self.play_next.clear()
+            self.time_cursor = 0
             try:
-                self.play_next.clear()
-                self.time_cursor = 0
-
                 if self.queue.qsize() == 0:
                     if self.play_random and self.ctx.voice_client is not None:
                         async with self.ctx.typing():
@@ -491,7 +490,11 @@ class Handler:
                         embed = self.last_message.embeds[0]
                         embed.description = 'Video bitti'
                         await self.last_message.edit(embed=embed)
-
+            except Exception as error:
+                logging.error(error)
+            finally:
+                pass
+            try:
                 current = await self.queue.get()
                 self._ctx, audio = current
                 self.ctx.voice_client.play(audio,
