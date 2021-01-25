@@ -2,7 +2,6 @@ import datetime
 import logging
 import os
 import random
-import subprocess
 import sys
 import time
 from dotenv import load_dotenv
@@ -26,10 +25,6 @@ database_config = {
     'Password': os.getenv('PASSWORD'),
     'DatabaseName': os.getenv('DATABASE_NAME')
 }
-
-print('Test')
-logging.info(bot_token)
-logging.info(database_config)
 
 presences = [
     'wasteland with sensors offline',
@@ -64,7 +59,7 @@ class CustomBot(commands.Bot):
 
     @staticmethod
     def get_git_version():
-        return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
+        return ''
 
     @property
     def token(self):
@@ -214,12 +209,13 @@ async def delete(ctx, limit: int = None):
     deleted = await ctx.channel.purge(limit=limit)
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
-
+'''
 @bot.command(help='Refreshes bot.')
 async def reset(ctx):
     await ctx.send("Hoşçakalın")
     logging.info("Going offine")
     exit()
+'''
 
 
 @bot.command(help='Pings bot')
