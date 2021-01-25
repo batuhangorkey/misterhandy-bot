@@ -1,4 +1,3 @@
-import configparser
 import datetime
 import logging
 import os
@@ -18,10 +17,13 @@ from modules.youtube_bot import Music
 FORMAT = '%(asctime)s %(levelname)s %(funcName)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-bot_token = config.get('Bot', 'Token')
-database_config = dict(config.items('Database'))
+bot_token = os.getenv('DISCORD_TOKEN')
+database_config = {
+    'Host': os.getenv('HOST'),
+    'UserID': os.getenv('USER_ID'),
+    'Password': os.getenv('PASSWORD'),
+    'DatabaseName': os.getenv('DATABASE_NAME')
+}
 
 presences = [
     'wasteland with sensors offline',
