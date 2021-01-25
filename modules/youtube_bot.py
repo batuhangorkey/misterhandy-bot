@@ -220,7 +220,7 @@ class Music(commands.Cog):
                     handler.task.cancel()
             await self.bot.default_presence()
         except Exception as error:
-            print(error)
+            logging.error(error)
         finally:
             if ctx.voice_client is not None:
                 await ctx.voice_client.disconnect()
@@ -231,7 +231,7 @@ class Music(commands.Cog):
             with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
                 data = await self.bot.loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=False))
         except youtube_dl.utils.DownloadError as error:
-            print(error)
+            logging.error(error)
             return await ctx.send('Yanlış bir şeyler oldu.')
         added_songs = []
         failed_songs = []
@@ -505,17 +505,10 @@ class Handler:
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=audio.title))
                 await self.play_next.wait()
-            except AttributeError as error:
-                print(error)
-            except discord.errors.HTTPException as error:
-                print(error)
-            except asyncio.CancelledError as error:
-                print(error)
             except Exception as error:
-                print(error)
+                logging.error(error)
             finally:
-                break
-        logging.warning('Audio player, out of while loop')
+                pass
 
     def dislike(self):
         if self.ctx.voice_client.source is None:

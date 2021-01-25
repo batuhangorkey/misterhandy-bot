@@ -127,7 +127,6 @@ async def on_connect():
 async def on_ready():
     try:
         start = time.process_time()
-        logging.info('Back online')
         logging.info('Running git hash: {}'.format(bot.get_git_version()))
         logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
 
