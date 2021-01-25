@@ -20,10 +20,10 @@ logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 load_dotenv()
 bot_token = os.getenv('DISCORD_TOKEN')
 database_config = {
-    'Host': os.getenv('HOST'),
-    'UserID': os.getenv('USER_ID'),
-    'Password': os.getenv('PASSWORD'),
-    'DatabaseName': os.getenv('DATABASE_NAME')
+    'host': os.getenv('HOST'),
+    'userid': os.getenv('USER_ID'),
+    'password': os.getenv('PASSWORD'),
+    'databasename': os.getenv('DATABASE_NAME')
 }
 
 presences = [
