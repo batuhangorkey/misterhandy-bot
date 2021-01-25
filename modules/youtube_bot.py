@@ -137,6 +137,7 @@ class Music(commands.Cog):
                 if audio is None:
                     return await ctx.send('Bir şeyler yanlış. Bir daha dene')
                 await self.handlers[ctx.guild.id].queue.put((ctx, audio))
+                await self.handlers[ctx.guild.id].send_player_embed(audio)
         except IndexError:
             await ctx.send('Video bulamadım. Bir daha dene')
         except Exception as error:
@@ -210,7 +211,7 @@ class Music(commands.Cog):
     async def stop(self, ctx):
         try:
             handler = self.handlers.get(ctx.guild.id)
-            if handler is not None:
+            if isinstance(handler, Handler):
                 handler.play_random = False
                 handler.reset_playlist()
                 for _ in range(handler.queue.qsize()):
@@ -263,7 +264,7 @@ class Music(commands.Cog):
             if len(failed_songs) > 0:
                 await ctx.send('\nBaşına bir şey gelen şarkılar:\n'
                                '```{}```'.format('\n'.join(failed_songs)))
-            self.handlers[ctx.guild.id].reset_playlist()
+            self.handlers[ctx.guild.id].reset_db_playlist()
 
     @commands.command(help='Go to the time on the video')
     async def goto(self, ctx, target_time: int):
@@ -405,8 +406,11 @@ class Handler:
             self.task.cancel()
         self.task = self.bot.loop.create_task(self.audio_player())
 
-    def reset_playlist(self):
+    def reset_db_playlist(self):
         self._random_playlist = self.bot.get_random_playlist()
+        self.random_playlist = self._random_playlist.copy()
+
+    def reset_playlist(self):
         self.random_playlist = self._random_playlist.copy()
 
     def toggle_next(self):
@@ -446,6 +450,8 @@ class Handler:
             await self.send_player_embed()
 
     async def send_player_embed(self, audio=None):
+        if self.ctx.voice_client.source:
+            return self.queue_value.append(audio.title)
         if audio:
             embed = self.get_player_message_body(audio)
         else:
@@ -501,6 +507,7 @@ class Handler:
                                            after=lambda e: print('Player error: %s' % e)
                                            if e else self.toggle_next())
                 self.source_start_time = time.time()
+                await self.send_player_embed()
 
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=audio.title))
