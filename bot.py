@@ -27,6 +27,10 @@ database_config = {
     'DatabaseName': os.getenv('DATABASE_NAME')
 }
 
+print('Test')
+logging.info(bot_token)
+logging.info(database_config)
+
 presences = [
     'wasteland with sensors offline',
     'your feelings',
