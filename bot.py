@@ -5,6 +5,7 @@ import random
 import subprocess
 import sys
 import time
+from dotenv import load_dotenv
 
 import discord
 import pymysql
@@ -17,6 +18,7 @@ from modules.youtube_bot import Music
 FORMAT = '%(asctime)s %(levelname)s %(funcName)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 
+load_dotenv()
 bot_token = os.getenv('DISCORD_TOKEN')
 database_config = {
     'Host': os.getenv('HOST'),
