@@ -442,7 +442,7 @@ class Handler:
 
     async def attach_queue(self, source: YTDLSource):
         self.queue_value.append(source.title)
-        if self.ctx.voice_client.source:
+        if self.ctx.voice_client.source is not None:
             if self.last_message:
                 embed = self.last_message.embeds[0]
                 for name, value in list(enumerate(self.queue_value)):
