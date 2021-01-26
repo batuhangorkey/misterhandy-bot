@@ -236,7 +236,7 @@ async def reset(ctx):
 @bot.command(help='Pings bot')
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
-    await ctx.send("Elapsed seconds: {}".format(delta.total_seconds()))
+    await ctx.send("Elapsed seconds: {} v{}".format(delta.total_seconds(), bot.git_hash))
 
 
 @bot.check
