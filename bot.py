@@ -130,6 +130,7 @@ class CustomBot(commands.Bot):
         except Exception as error:
             logging.error(error)
 
+
 bot = CustomBot()
 
 
