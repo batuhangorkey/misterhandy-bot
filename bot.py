@@ -33,8 +33,8 @@ else:
     HEROKU = False
     config = configparser.ConfigParser()
     config.read('config.ini')
-    bot_token = config.get('Bot', 'Token')
-    database_config = dict(config.items('Database'))
+    _bot_token = config.get('Bot', 'Token')
+    _database_config = dict(config.items('Database'))
 
 
 class CustomBot(commands.Bot):
@@ -227,24 +227,16 @@ async def delete(ctx, limit: int = None):
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
-@bot.command(help='Refreshes bot.')
-async def reset(ctx):
-    await ctx.send("Hoşçakalın")
-    logging.info("Going offine")
-    exit()
-
-
 @bot.command(help='Pings bot')
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
     await ctx.send("Elapsed seconds: {} v{}".format(delta.total_seconds(), bot.git_hash))
 
 
+'''
 @bot.check
 def check_command(ctx):
-    if HEROKU:
-        return ctx.command.qualified_name not in CustomBot.heroku_banned_commands
-    return True
-
+    pass
+'''
 
 bot.run(bot.token)
