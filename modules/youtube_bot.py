@@ -440,17 +440,19 @@ class Handler:
         finally:
             pass
 
-    def attach_queue(self, source: YTDLSource):
-        if self.last_message:
-            embed = self.last_message.embeds[0]
-            for name, value in list(enumerate(self.queue_value)):
-                embed.add_field(name=str(name + 1), value=value)
-            await self.last_message.edit(embed=embed)
-        else:
-            embed = self.get_player_message_body(source)
-            for name, value in list(enumerate(self.queue_value)):
-                embed.add_field(name=str(name + 1), value=value)
-            await self.ctx.send(embed=embed)
+    async def attach_queue(self, source: YTDLSource):
+        self.queue_value.append(source.title)
+        if self.ctx.voice_client.source:
+            if self.last_message:
+                embed = self.last_message.embeds[0]
+                for name, value in list(enumerate(self.queue_value)):
+                    embed.add_field(name=str(name + 1), value=value)
+                await self.last_message.edit(embed=embed)
+            else:
+                embed = self.get_player_message_body(source)
+                for name, value in list(enumerate(self.queue_value)):
+                    embed.add_field(name=str(name + 1), value=value)
+                await self.ctx.send(embed=embed)
 
     async def send_player_embed(self, audio: YTDLSource = None):
         if audio:

@@ -233,7 +233,7 @@ async def delete(ctx, limit: int = None):
 @bot.command(help='Pings bot')
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
-    await ctx.send("Elapsed seconds: {} v{}".format(delta.total_seconds(), bot.git_hash))
+    await ctx.send("Elapsed seconds: {} | v{}".format(delta.total_seconds(), bot.git_hash))
 
 
 '''
