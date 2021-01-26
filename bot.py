@@ -5,11 +5,11 @@ import random
 import subprocess
 import sys
 import time
-from dotenv import load_dotenv
 
 import discord
 import pymysql
 from discord.ext import commands
+from dotenv import load_dotenv
 
 from modules.minigame import Minigame
 from modules.story_teller import Project2
@@ -121,6 +121,7 @@ class CustomBot(commands.Bot):
 
 bot = CustomBot()
 
+
 # TODO:
 #  Organize all to a single class
 #  Add auto moderation function
@@ -136,7 +137,7 @@ async def on_connect():
 async def on_ready():
     try:
         start = time.process_time()
-        logging.info('Running git hash: {}'.format(bot.get_git_version()))
+        logging.info('Running git hash: {}'.format('heroku'))
         logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
 
         async for guild in bot.fetch_guilds():
@@ -157,6 +158,7 @@ async def on_ready():
         logging.info('Method: {} | Elapsed time: {}'.format('on_ready', end))
     except Exception as e:
         logging.error(e)
+
 
 '''
 @bot.event
@@ -215,6 +217,7 @@ async def delete(ctx, limit: int = None):
     deleted = await ctx.channel.purge(limit=limit)
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
+
 '''
 @bot.command(help='Refreshes bot.')
 async def reset(ctx):
@@ -228,5 +231,6 @@ async def reset(ctx):
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
     await ctx.send("Elapsed seconds: {}".format(delta.total_seconds()))
+
 
 bot.run(bot.token)
