@@ -124,7 +124,7 @@ class Music(commands.Cog):
             if audio is None:
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
             # sıraya ekle
-            await self.handlers[ctx.guild.id].send_player_embed(audio)
+            await self.handlers[ctx.guild.id].attach_queue(audio)
             await self.handlers[ctx.guild.id].queue.put((ctx, audio))
 
     @commands.command(help='Plays the first result from a search string.')
@@ -136,7 +136,7 @@ class Music(commands.Cog):
                 url = 'https://www.youtube.com' + result[0]['url_suffix']
                 audio = await YTDLSource.from_url(url, loop=self.bot.loop)
                 if isinstance(audio, YTDLSource):
-                    await self.handlers[ctx.guild.id].send_player_embed(audio)
+                    await self.handlers[ctx.guild.id].attach_queue(audio)
                     await self.handlers[ctx.guild.id].queue.put((ctx, audio))
                 else:
                     return await ctx.send('Bir şeyler yanlış. Bir daha dene')
@@ -429,7 +429,10 @@ class Handler:
                                   url=audio.url,
                                   description=description,
                                   colour=0x8B0000)
-            embed = self.set_footer(embed)
+            footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - v{}'
+            embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı',
+                                                len(self._random_playlist),
+                                                self.bot.git_hash))
             embed.set_thumbnail(url=audio.thumbnail)
             return embed
         except Exception as error:
@@ -437,24 +440,17 @@ class Handler:
         finally:
             pass
 
-    def set_footer(self, embed):
-        footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - v{}'
-        embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı',
-                                            len(self._random_playlist),
-                                            self.bot.git_hash))
-        return embed
-
-    def attach_queue(self, embed):
-        for name, value in list(enumerate(self.queue_value)):
-            embed.add_field(name=str(name + 1), value=value)
-        return embed
-
-    async def edit_footer(self):
+    def attach_queue(self, source: YTDLSource):
         if self.last_message:
-            embed = self.set_footer(self.last_message.embeds[0])
+            embed = self.last_message.embeds[0]
+            for name, value in list(enumerate(self.queue_value)):
+                embed.add_field(name=str(name + 1), value=value)
             await self.last_message.edit(embed=embed)
         else:
-            await self.send_player_embed()
+            embed = self.get_player_message_body(source)
+            for name, value in list(enumerate(self.queue_value)):
+                embed.add_field(name=str(name + 1), value=value)
+            await self.ctx.send(embed=embed)
 
     async def send_player_embed(self, audio: YTDLSource = None):
         if audio:
@@ -466,7 +462,8 @@ class Handler:
                 embed = self.get_player_message_body(audio)
         else:
             embed = self.get_player_message_body(self.ctx.voice_client.source)
-        embed = self.attach_queue(embed)
+        for i, value in list(enumerate(self.queue_value)):
+            embed.add_field(name=str(i + 1), value=value)
 
         if self._last_message is not None:
             await self._last_message.delete()
