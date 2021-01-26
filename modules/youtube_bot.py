@@ -497,6 +497,11 @@ class Handler:
                             embed = self.last_message.embeds[0]
                             embed.description = 'Video bitti'
                             await self.last_message.edit(embed=embed)
+            except Exception as error:
+                    logging.error(error)
+            finally:
+                pass
+            try:
                     current = await self.queue.get()
                     self._ctx, audio = current
                     self.ctx.voice_client.play(audio,
