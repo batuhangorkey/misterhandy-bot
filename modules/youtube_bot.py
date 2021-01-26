@@ -257,6 +257,8 @@ class Music(commands.Cog):
                     added_songs.append(entry.get('title'))
                 else:
                     failed_songs.append(entry.get('title'))
+        except Exception as error:
+            logging.error(error)
         finally:
             conn.close()
             await ctx.send('Eklenen şarkılar:\n'
@@ -416,19 +418,24 @@ class Handler:
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
 
-    def get_player_message_body(self, audio):
-        if audio.start_time != 0:
-            description = 'Şimdi oynatılıyor - {} dan başladı'.format(time.strftime('%M:%S',
-                                                                                    time.gmtime(audio.start_time)))
-        else:
-            description = 'Şimdi oynatılıyor'
-        embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(audio),
-                              url=audio.url,
-                              description=description,
-                              colour=0x8B0000)
-        embed = self.set_footer(embed)
-        embed.set_thumbnail(url=audio.thumbnail)
-        return embed
+    def get_player_message_body(self, audio: YTDLSource):
+        try:
+            if audio.start_time != 0:
+                description = 'Şimdi oynatılıyor - {} dan başladı'.format(time.strftime('%M:%S',
+                                                                                        time.gmtime(audio.start_time)))
+            else:
+                description = 'Şimdi oynatılıyor'
+            embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(audio),
+                                  url=audio.url,
+                                  description=description,
+                                  colour=0x8B0000)
+            embed = self.set_footer(embed)
+            embed.set_thumbnail(url=audio.thumbnail)
+            return embed
+        except Exception as error:
+            logging.error(error)
+        finally:
+            pass
 
     def set_footer(self, embed):
         footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - v{}'
@@ -449,11 +456,14 @@ class Handler:
         else:
             await self.send_player_embed()
 
-    async def send_player_embed(self, audio=None):
-        if self.ctx.voice_client.source:
-            return self.queue_value.append(audio.title)
+    async def send_player_embed(self, audio: YTDLSource = None):
         if audio:
-            embed = self.get_player_message_body(audio)
+            if self.ctx.voice_client.source:
+                source = self.ctx.voice_client.source
+                self.queue_value.append(source.title)
+                embed = self.get_player_message_body(audio)
+            else:
+                embed = self.get_player_message_body(audio)
         else:
             embed = self.get_player_message_body(self.ctx.voice_client.source)
         embed = self.attach_queue(embed)
@@ -501,17 +511,17 @@ class Handler:
                 current = await self.queue.get()
                 self._ctx, audio = current
                 if isinstance(audio, YTDLSource):
-                    title = audio.title
                     self.ctx.voice_client.play(audio,
                                                after=lambda e: print('Player error: %s' % e)
                                                if e else self.toggle_next())
                     self.source_start_time = time.time()
-                    await self.send_player_embed()
+                    await self.send_player_embed(audio)
                     await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                             name=title))
+                                                                             name=audio.title))
                     await self.play_next.wait()
             except Exception as error:
                 logging.error(error)
+                break
             finally:
                 pass
 
