@@ -16,7 +16,7 @@ from modules.minigame import Minigame
 from modules.story_teller import Project2
 from modules.youtube_bot import Music
 
-FORMAT = '%(asctime)s %(levelname)s %(funcName)s %(message)s'
+FORMAT = '%(asctime)-15s %(levelname)-5s %(funcName)-10s %(lineno)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 
 if '.heroku' in os.listdir('./'):
@@ -123,10 +123,12 @@ class CustomBot(commands.Bot):
         return db_playlist
 
     async def default_presence(self):
-        await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                             name=random.choice(CustomBot.presences)),
-                                   status=self.git_hash)
-
+        try:
+            await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
+                                                                 name=random.choice(CustomBot.presences)),
+                                       status=self.git_hash)
+        except Exception as error:
+            logging.error(error)
 
 bot = CustomBot()
 

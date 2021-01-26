@@ -391,7 +391,7 @@ class Handler:
         self.time_setting = 30
         self.fancy_format = True
         self.play_random = False
-        self.reset_playlist()
+        self.reset_db_playlist()
 
     @property
     def ctx(self):
