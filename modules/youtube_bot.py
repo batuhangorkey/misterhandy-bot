@@ -124,8 +124,8 @@ class Music(commands.Cog):
             if audio is None:
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
             # sıraya ekle
-            await self.handlers[ctx.guild.id].attach_queue(audio)
             await self.handlers[ctx.guild.id].queue.put((ctx, audio))
+            await self.handlers[ctx.guild.id].attach_queue(audio)
 
     @commands.command(help='Plays the first result from a search string.')
     async def play(self, ctx, *, search_string):
@@ -136,8 +136,8 @@ class Music(commands.Cog):
                 url = 'https://www.youtube.com' + result[0]['url_suffix']
                 audio = await YTDLSource.from_url(url, loop=self.bot.loop)
                 if isinstance(audio, YTDLSource):
-                    await self.handlers[ctx.guild.id].attach_queue(audio)
                     await self.handlers[ctx.guild.id].queue.put((ctx, audio))
+                    await self.handlers[ctx.guild.id].attach_queue(audio)
                 else:
                     return await ctx.send('Bir şeyler yanlış. Bir daha dene')
         except Exception as error:
@@ -509,15 +509,14 @@ class Handler:
                         await self.last_message.edit(embed=embed)
                 current = await self.queue.get()
                 self._ctx, audio = current
-                if isinstance(audio, YTDLSource):
-                    self.ctx.voice_client.play(audio,
-                                               after=lambda e: print('Player error: %s' % e)
-                                               if e else self.toggle_next())
-                    await self.send_player_embed()
-                    self.source_start_time = time.time()
-                    await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                             name=audio.title))
-                    await self.play_next.wait()
+                self.ctx.voice_client.play(audio,
+                                           after=lambda e: print('Player error: %s' % e)
+                                           if e else self.toggle_next())
+                await self.send_player_embed()
+                self.source_start_time = time.time()
+                await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
+                                                                         name=audio.title))
+                await self.play_next.wait()
             except Exception as error:
                 logging.error(error)
                 break
