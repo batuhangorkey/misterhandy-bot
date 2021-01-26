@@ -441,8 +441,6 @@ class Handler:
             pass
 
     async def attach_queue(self, source: YTDLSource):
-        if self.queue.qsize() != 0:
-            self.queue_value.append(source.title)
         if self.ctx.voice_client.source is not None:
             if self.last_message:
                 embed = self.last_message.embeds[0]
@@ -454,6 +452,8 @@ class Handler:
                 for name, value in list(enumerate(self.queue_value)):
                     embed.add_field(name=str(name + 1), value=value)
                 await self.ctx.send(embed=embed)
+        if self.queue.qsize() != 0:
+            self.queue_value.append(source.title)
 
     async def send_player_embed(self, audio: YTDLSource = None):
         if audio:
