@@ -72,9 +72,9 @@ class CustomBot(commands.Bot):
     @staticmethod
     def get_git_version():
         if HEROKU:
-            return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
-        else:
             return 'heroku'
+        else:
+            return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
 
     @property
     def token(self):
