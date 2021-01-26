@@ -10,6 +10,7 @@ import time
 import discord
 import pymysql
 from discord.ext import commands
+from dotenv import load_dotenv
 
 from modules.minigame import Minigame
 from modules.story_teller import Project2
@@ -18,13 +19,25 @@ from modules.youtube_bot import Music
 FORMAT = '%(asctime)s %(levelname)s %(funcName)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 
-
-class CustomBot(commands.Bot):
+if '.heroku' in os.listdir('./'):
+    HEROKU = True
+    load_dotenv()
+    _bot_token = os.getenv('DISCORD_TOKEN')
+    _database_config = {
+        'host': os.getenv('HOST'),
+        'userid': os.getenv('USER_ID'),
+        'password': os.getenv('PASSWORD'),
+        'databasename': os.getenv('DATABASE_NAME')
+    }
+else:
+    HEROKU = False
     config = configparser.ConfigParser()
     config.read('config.ini')
-    _bot_token = config.get('Bot', 'Token')
-    _database_config = dict(config.items('Database'))
+    bot_token = config.get('Bot', 'Token')
+    database_config = dict(config.items('Database'))
 
+
+class CustomBot(commands.Bot):
     presences = [
         'wasteland with sensors offline',
         'your feelings',
@@ -49,24 +62,31 @@ class CustomBot(commands.Bot):
         -4: 'Felaket'
     }
 
+    heroku_banned_commands = [
+        'reset'
+    ]
+
     def __init__(self):
         super().__init__(command_prefix='!')
 
     @staticmethod
     def get_git_version():
-        return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
+        if HEROKU:
+            return 'heroku'
+        else:
+            return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
 
     @property
     def token(self):
-        return CustomBot._bot_token
+        return _bot_token
 
     @property
     def database_config(self):
-        return self._database_config
+        return _database_config
 
     @property
-    def version_name(self):
-        return 'v{}'.format(self.get_git_version())
+    def git_hash(self):
+        return self.get_git_version()
 
     def get_pymysql_connection(self):
         conn = pymysql.connect(self.database_config['host'],
@@ -100,7 +120,6 @@ class CustomBot(commands.Bot):
             conn.close()
         db_playlist = [t for t in data]
         db_playlist = [(url, int(like / dislike)) for url, dislike, like in db_playlist]
-        logging.info('Random playlist length: {}'.format(len(db_playlist)))
         return db_playlist
 
     async def default_presence(self):
@@ -109,6 +128,7 @@ class CustomBot(commands.Bot):
 
 
 bot = CustomBot()
+
 
 # TODO:
 #  Organize all to a single class
@@ -125,7 +145,7 @@ async def on_connect():
 async def on_ready():
     try:
         start = time.process_time()
-        logging.info('Running git hash: {}'.format(bot.get_git_version()))
+        logging.info('Running git hash: {}'.format(bot.git_hash))
         logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
 
         async for guild in bot.fetch_guilds():
@@ -146,6 +166,7 @@ async def on_ready():
         logging.info('Method: {} | Elapsed time: {}'.format('on_ready', end))
     except Exception as e:
         logging.error(e)
+
 
 '''
 @bot.event
@@ -182,9 +203,8 @@ async def zar(ctx, modifier: int = 0):
         random.choice([-1, -1, 0, 0, 1, 1])
         for _ in range(4)
     ]
-    dice_sum = sum(dice) + modifier
-    await ctx.send(', '.join(map(str, dice)) + ' + {} = {}   **{}**'.format(modifier,
-                                                                            dice_sum, CustomBot.adj[dice_sum]))
+    _sum = sum(dice) + modifier
+    await ctx.send(', '.join(map(str, dice)) + ' + {} = {}   **{}**'.format(modifier, _sum, CustomBot.adj[_sum]))
 
 
 @bot.command(help='Tries to purge max 50 messages sent by the bot.')
@@ -217,5 +237,13 @@ async def reset(ctx):
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
     await ctx.send("Elapsed seconds: {}".format(delta.total_seconds()))
+
+
+@bot.check
+def check_command(ctx):
+    if HEROKU:
+        return ctx.command.qualified_name not in CustomBot.heroku_banned_commands
+    return True
+
 
 bot.run(bot.token)
