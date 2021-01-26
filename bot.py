@@ -120,7 +120,6 @@ class CustomBot(commands.Bot):
             conn.close()
         db_playlist = [t for t in data]
         db_playlist = [(url, int(like / dislike)) for url, dislike, like in db_playlist]
-        logging.info('Random playlist length: {}'.format(len(db_playlist)))
         return db_playlist
 
     async def default_presence(self):

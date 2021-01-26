@@ -449,11 +449,12 @@ class Handler:
 
     async def send_player_embed(self, audio=None):
         if self.ctx.voice_client.source:
-            return self.queue_value.append(audio.title)
-        if audio:
+            self.queue_value.append(audio.title)
+            embed = self.get_player_message_body(self.ctx.voice_client.source)
+        elif audio:
             embed = self.get_player_message_body(audio)
         else:
-            embed = self.get_player_message_body(self.ctx.voice_client.source)
+            return
         embed = self.attach_queue(embed)
 
         if self._last_message is not None:
@@ -503,14 +504,17 @@ class Handler:
             try:
                 current = await self.queue.get()
                 self._ctx, audio = current
-                self.ctx.voice_client.play(audio,
-                                           after=lambda e: print('Player error: %s' % e)
-                                           if e else self.toggle_next())
-                self.source_start_time = time.time()
-                await self.send_player_embed()
+                if isinstance(audio, YTDLSource):
+                    self.ctx.voice_client.play(audio,
+                                               after=lambda e: print('Player error: %s' % e)
+                                               if e else self.toggle_next())
+                    self.source_start_time = time.time()
+                    await self.send_player_embed()
 
-                await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                         name=audio.title))
+                    await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
+                                                                             name=audio.title))
+                else:
+                    logging.error('Source is empty')
                 await self.play_next.wait()
             except Exception as error:
                 logging.error(error)
