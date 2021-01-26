@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import random
+import subprocess
 import sys
 import time
 from dotenv import load_dotenv
@@ -16,6 +17,11 @@ from modules.youtube_bot import Music
 
 FORMAT = '%(asctime)s %(levelname)s %(funcName)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
+
+if '.heroku' in os.listdir('./'):
+    logging.info('We are in heroku')
+else:
+    logging.info('We are in cnblgn server')
 
 load_dotenv()
 bot_token = os.getenv('DISCORD_TOKEN')
@@ -59,7 +65,7 @@ class CustomBot(commands.Bot):
 
     @staticmethod
     def get_git_version():
-        return ''
+        return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
 
     @property
     def token(self):
@@ -71,7 +77,7 @@ class CustomBot(commands.Bot):
 
     @property
     def version_name(self):
-        return 'v{}'.format(self.get_git_version())
+        return 'v{}'.format('heroku')
 
     def get_pymysql_connection(self):
         conn = pymysql.connect(self.database_config['host'],
