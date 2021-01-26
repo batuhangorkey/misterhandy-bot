@@ -1,3 +1,4 @@
+import configparser
 import datetime
 import logging
 import os
@@ -19,65 +20,73 @@ FORMAT = '%(asctime)s %(levelname)s %(funcName)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 
 if '.heroku' in os.listdir('./'):
-    logging.info('We are in heroku')
+    HEROKU = True
+    load_dotenv()
+    _bot_token = os.getenv('DISCORD_TOKEN')
+    _database_config = {
+        'host': os.getenv('HOST'),
+        'userid': os.getenv('USER_ID'),
+        'password': os.getenv('PASSWORD'),
+        'databasename': os.getenv('DATABASE_NAME')
+    }
 else:
-    logging.info('We are in cnblgn server')
-
-load_dotenv()
-bot_token = os.getenv('DISCORD_TOKEN')
-database_config = {
-    'host': os.getenv('HOST'),
-    'userid': os.getenv('USER_ID'),
-    'password': os.getenv('PASSWORD'),
-    'databasename': os.getenv('DATABASE_NAME')
-}
-
-presences = [
-    'wasteland with sensors offline',
-    'your feelings',
-    'psychedelic space rock',
-    'eternal void',
-    'ancient orders'
-]
-
-adj = {
-    8: 'Efsane',
-    7: 'İnanılmaz',
-    6: 'Şahane',
-    5: 'Muhteşem',
-    4: 'Harika',
-    3: 'Baya iyi',
-    2: 'İyi',
-    1: 'Eh',
-    0: 'Düz',
-    -1: 'Dandik',
-    -2: 'Kötü',
-    -3: 'Rezalet',
-    -4: 'Felaket'
-}
+    HEROKU = False
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    bot_token = config.get('Bot', 'Token')
+    database_config = dict(config.items('Database'))
 
 
 class CustomBot(commands.Bot):
+    presences = [
+        'wasteland with sensors offline',
+        'your feelings',
+        'psychedelic space rock',
+        'eternal void',
+        'ancient orders'
+    ]
+
+    adj = {
+        8: 'Efsane',
+        7: 'İnanılmaz',
+        6: 'Şahane',
+        5: 'Muhteşem',
+        4: 'Harika',
+        3: 'Baya iyi',
+        2: 'İyi',
+        1: 'Eh',
+        0: 'Düz',
+        -1: 'Dandik',
+        -2: 'Kötü',
+        -3: 'Rezalet',
+        -4: 'Felaket'
+    }
+
+    heroku_banned_commands = [
+        'reset'
+    ]
+
     def __init__(self):
         super().__init__(command_prefix='!')
-        self._token = bot_token
-        self._database_config = database_config
 
     @staticmethod
     def get_git_version():
-        return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
+        if HEROKU:
+            return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
+        else:
+            return 'heroku'
 
     @property
     def token(self):
-        return self._token
+        return _bot_token
 
     @property
     def database_config(self):
-        return self._database_config
+        return _database_config
 
     @property
-    def version_name(self):
-        return 'v{}'.format('heroku')
+    def git_hash(self):
+        return self.get_git_version()
 
     def get_pymysql_connection(self):
         conn = pymysql.connect(self.database_config['host'],
@@ -116,7 +125,7 @@ class CustomBot(commands.Bot):
 
     async def default_presence(self):
         await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                             name=random.choice(presences)))
+                                                             name=random.choice(CustomBot.presences)))
 
 
 bot = CustomBot()
@@ -137,7 +146,7 @@ async def on_connect():
 async def on_ready():
     try:
         start = time.process_time()
-        logging.info('Running git hash: {}'.format('heroku'))
+        logging.info('Running git hash: {}'.format(bot.git_hash()))
         logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
 
         async for guild in bot.fetch_guilds():
@@ -196,7 +205,7 @@ async def zar(ctx, modifier: int = 0):
         for _ in range(4)
     ]
     _sum = sum(dice) + modifier
-    await ctx.send(', '.join(map(str, dice)) + ' + {} = {}   **{}**'.format(modifier, _sum, adj[_sum]))
+    await ctx.send(', '.join(map(str, dice)) + ' + {} = {}   **{}**'.format(modifier, _sum, CustomBot.adj[_sum]))
 
 
 @bot.command(help='Tries to purge max 50 messages sent by the bot.')
@@ -218,19 +227,23 @@ async def delete(ctx, limit: int = None):
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
-'''
 @bot.command(help='Refreshes bot.')
 async def reset(ctx):
     await ctx.send("Hoşçakalın")
     logging.info("Going offine")
     exit()
-'''
 
 
 @bot.command(help='Pings bot')
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
     await ctx.send("Elapsed seconds: {}".format(delta.total_seconds()))
+
+
+@bot.check
+def check_command(ctx):
+    if HEROKU:
+        return ctx.command.qualified_name not in CustomBot.heroku_banned_commands
 
 
 bot.run(bot.token)

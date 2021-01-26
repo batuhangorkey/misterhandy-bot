@@ -429,10 +429,10 @@ class Handler:
         return embed
 
     def set_footer(self, embed):
-        footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - {}'
+        footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - v{}'
         embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı',
                                             len(self._random_playlist),
-                                            self.bot.version_name))
+                                            self.bot.git_hash))
         return embed
 
     def attach_queue(self, embed):
