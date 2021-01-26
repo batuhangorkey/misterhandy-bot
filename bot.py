@@ -18,41 +18,39 @@ from modules.youtube_bot import Music
 FORMAT = '%(asctime)s %(levelname)s %(funcName)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-bot_token = config.get('Bot', 'Token')
-database_config = dict(config.items('Database'))
-
-presences = [
-    'wasteland with sensors offline',
-    'your feelings',
-    'psychedelic space rock',
-    'eternal void',
-    'ancient orders'
-]
-
-adj = {
-    8: 'Efsane',
-    7: 'İnanılmaz',
-    6: 'Şahane',
-    5: 'Muhteşem',
-    4: 'Harika',
-    3: 'Baya iyi',
-    2: 'İyi',
-    1: 'Eh',
-    0: 'Düz',
-    -1: 'Dandik',
-    -2: 'Kötü',
-    -3: 'Rezalet',
-    -4: 'Felaket'
-}
-
 
 class CustomBot(commands.Bot):
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    _bot_token = config.get('Bot', 'Token')
+    _database_config = dict(config.items('Database'))
+
+    presences = [
+        'wasteland with sensors offline',
+        'your feelings',
+        'psychedelic space rock',
+        'eternal void',
+        'ancient orders'
+    ]
+
+    adj = {
+        8: 'Efsane',
+        7: 'İnanılmaz',
+        6: 'Şahane',
+        5: 'Muhteşem',
+        4: 'Harika',
+        3: 'Baya iyi',
+        2: 'İyi',
+        1: 'Eh',
+        0: 'Düz',
+        -1: 'Dandik',
+        -2: 'Kötü',
+        -3: 'Rezalet',
+        -4: 'Felaket'
+    }
+
     def __init__(self):
         super().__init__(command_prefix='!')
-        self._token = bot_token
-        self._database_config = database_config
 
     @staticmethod
     def get_git_version():
@@ -60,7 +58,7 @@ class CustomBot(commands.Bot):
 
     @property
     def token(self):
-        return self._token
+        return CustomBot._bot_token
 
     @property
     def database_config(self):
@@ -107,7 +105,7 @@ class CustomBot(commands.Bot):
 
     async def default_presence(self):
         await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                             name=random.choice(presences)))
+                                                             name=random.choice(CustomBot.presences)))
 
 
 bot = CustomBot()
@@ -184,8 +182,9 @@ async def zar(ctx, modifier: int = 0):
         random.choice([-1, -1, 0, 0, 1, 1])
         for _ in range(4)
     ]
-    _sum = sum(dice) + modifier
-    await ctx.send(', '.join(map(str, dice)) + ' + {} = {}   **{}**'.format(modifier, _sum, adj[_sum]))
+    dice_sum = sum(dice) + modifier
+    await ctx.send(', '.join(map(str, dice)) + ' + {} = {}   **{}**'.format(modifier,
+                                                                            dice_sum, CustomBot.adj[dice_sum]))
 
 
 @bot.command(help='Tries to purge max 50 messages sent by the bot.')
