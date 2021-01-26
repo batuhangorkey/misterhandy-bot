@@ -151,7 +151,7 @@ class Music(commands.Cog):
         self.handlers[ctx.guild.id].search_list.clear()
         results = YoutubeSearch(search_string, max_results=10).to_dict()
         embed = discord.Embed(colour=0x8B0000)
-        for _, i in list(enumerate(results)):
+        for i, _ in list(enumerate(results)):
             k = '[{} - {}](https://www.youtube.com{})'
             embed.add_field(name=' - '.join([str(i + 1), _['title']]),
                             value=k.format(_['channel'], _['duration'], _['url_suffix']))
@@ -501,13 +501,14 @@ class Handler:
                 current = await self.queue.get()
                 self._ctx, audio = current
                 if isinstance(audio, YTDLSource):
+                    title = audio.title
                     self.ctx.voice_client.play(audio,
                                                after=lambda e: print('Player error: %s' % e)
                                                if e else self.toggle_next())
                     self.source_start_time = time.time()
                     await self.send_player_embed()
                     await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                             name=audio.title))
+                                                                             name=title))
                     await self.play_next.wait()
             except Exception as error:
                 logging.error(error)
