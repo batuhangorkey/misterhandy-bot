@@ -124,7 +124,8 @@ class CustomBot(commands.Bot):
 
     async def default_presence(self):
         await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                             name=random.choice(CustomBot.presences)))
+                                                             name=random.choice(CustomBot.presences)),
+                                   status=self.git_hash)
 
 
 bot = CustomBot()
