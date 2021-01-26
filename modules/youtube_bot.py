@@ -10,6 +10,7 @@ import time
 
 import discord
 import youtube_dl
+
 from discord.ext import commands
 from youtube_search import YoutubeSearch
 
@@ -430,10 +431,10 @@ class Handler:
         return embed
 
     def set_footer(self, embed):
-        footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - {}'
+        footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - v{}'
         embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı',
                                             len(self._random_playlist),
-                                            self.bot.version_name))
+                                            self.bot.git_hash))
         return embed
 
     def attach_queue(self, embed):
@@ -481,29 +482,25 @@ class Handler:
                 self.time_cursor = 0
                 if len(self.queue_value) != 0:
                     self.queue_value.pop(0)
-                    if self.queue.qsize() == 0:
-                        if self.play_random and self.ctx.voice_client is not None:
-                            async with self.ctx.typing():
-                                audio = await YTDLSource.from_url(self.get_song(),
-                                                                  loop=self.bot.loop,
-                                                                  stream=True)
-                                if audio:
-                                    await self.queue.put((self.ctx, audio))
-                                else:
-                                    await self.ctx.invoke(self.bot.get_command('play_random'))
-                                    await self.ctx.send('Birşeyler kırıldı.')
-                        elif self.last_message:
-                            await self.bot.change_presence(activity=self.bot.default_presence)
-                            embed = self.last_message.embeds[0]
-                            embed.description = 'Video bitti'
-                            await self.last_message.edit(embed=embed)
-            except Exception as error:
-                    logging.error(error)
-            finally:
-                pass
-            try:
-                    current = await self.queue.get()
-                    self._ctx, audio = current
+                if self.queue.qsize() == 0:
+                    if self.play_random and self.ctx.voice_client is not None:
+                        async with self.ctx.typing():
+                            audio = await YTDLSource.from_url(self.get_song(),
+                                                              loop=self.bot.loop,
+                                                              stream=True)
+                            if audio:
+                                await self.queue.put((self.ctx, audio))
+                            else:
+                                await self.ctx.invoke(self.bot.get_command('play_random'))
+                                await self.ctx.send('Birşeyler kırıldı.')
+                    elif self.last_message:
+                        await self.bot.change_presence(activity=self.bot.default_presence)
+                        embed = self.last_message.embeds[0]
+                        embed.description = 'Video bitti'
+                        await self.last_message.edit(embed=embed)
+                current = await self.queue.get()
+                self._ctx, audio = current
+                if isinstance(audio, YTDLSource):
                     self.ctx.voice_client.play(audio,
                                                after=lambda e: print('Player error: %s' % e)
                                                if e else self.toggle_next())
