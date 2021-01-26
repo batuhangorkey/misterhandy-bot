@@ -146,7 +146,7 @@ async def on_connect():
 async def on_ready():
     try:
         start = time.process_time()
-        logging.info('Running git hash: {}'.format(bot.git_hash()))
+        logging.info('Running git hash: {}'.format(bot.git_hash))
         logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
 
         async for guild in bot.fetch_guilds():
@@ -244,6 +244,7 @@ async def ping(ctx):
 def check_command(ctx):
     if HEROKU:
         return ctx.command.qualified_name not in CustomBot.heroku_banned_commands
+    return True
 
 
 bot.run(bot.token)
