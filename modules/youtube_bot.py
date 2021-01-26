@@ -138,8 +138,6 @@ class Music(commands.Cog):
                     return await ctx.send('Bir şeyler yanlış. Bir daha dene')
                 await self.handlers[ctx.guild.id].queue.put((ctx, audio))
                 await self.handlers[ctx.guild.id].send_player_embed(audio)
-        except IndexError:
-            await ctx.send('Video bulamadım. Bir daha dene')
         except Exception as error:
             logging.error(error)
         finally:
@@ -479,6 +477,8 @@ class Handler:
         while True:
             self.play_next.clear()
             self.time_cursor = 0
+            if len(self.queue_value) != 0:
+                self.queue_value.pop(0)
             try:
                 if self.queue.qsize() == 0:
                     if self.play_random and self.ctx.voice_client is not None:
@@ -506,7 +506,6 @@ class Handler:
                 self.ctx.voice_client.play(audio,
                                            after=lambda e: print('Player error: %s' % e)
                                            if e else self.toggle_next())
-                self.queue_value.pop(0)
                 self.source_start_time = time.time()
                 await self.send_player_embed()
 
