@@ -140,7 +140,9 @@ class Music(commands.Cog):
         except Exception as error:
             logging.error(error)
         finally:
-            logging.info('Method: {} | Elapsed time: {}'.format('play', time.process_time() - start))
+            logging.info('Method: {} | Elapsed time: {} | String: {}'.format('play',
+                                                                             time.process_time() - start,
+                                                                             search_string))
 
     @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
@@ -366,7 +368,8 @@ class Events(commands.Cog):
             if index < 1 or 10 < index:
                 return
             music = self.bot.get_cog('Music')
-            await self.ctx.invoke(music.bot.get_command('play'), search_string=music.search_list[index - 1])
+            handler = music.handlers[self.ctx.guild.id]
+            await self.ctx.invoke(music.bot.get_command('play'), search_string=handler.search_list[index - 1])
             music.search_list.clear()
         except ValueError as error:
             logging.error(error)
@@ -473,19 +476,12 @@ class Handler:
         self._ctx = ctx
         if self.queue.empty():
             if self.ctx.voice_client.source:
-                await self.queue.put(source)
                 self.queue_value.append(source.title)
                 await self.send_player_embed()
-            else:
-                self.ctx.voice_client.play(source,
-                                           after=lambda e: print('Player error: %s' % e)
-                                           if e else self.toggle_next())
-                await self.send_player_embed()
-                self.source_start_time = time.time()
         else:
-            await self.queue.put(source)
             self.queue_value.append(source.title)
             await self.send_player_embed()
+        await self.queue.put(source)
 
     async def queue_handler(self):
         while True:
@@ -494,7 +490,7 @@ class Handler:
                 self.time_cursor = 0
                 if len(self.queue_value) != 0:
                     self.queue_value.pop(0)
-                if self.queue.qsize() == 0:
+                if self.queue.empty():
                     if self.play_random and self.ctx.voice_client is not None:
                         async with self.ctx.typing():
                             source = await YTDLSource.from_url(self.get_song(),
