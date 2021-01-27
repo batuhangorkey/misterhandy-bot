@@ -123,9 +123,7 @@ class Music(commands.Cog):
             audio = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
             if audio is None:
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
-            # sıraya ekle
-            await self.handlers[ctx.guild.id].queue.put((ctx, audio))
-            await self.handlers[ctx.guild.id].attach_queue(audio)
+            await self.handlers[ctx.guild.id].source_handler(ctx, audio)
 
     @commands.command(help='Plays the first result from a search string.')
     async def play(self, ctx, *, search_string):
@@ -136,8 +134,7 @@ class Music(commands.Cog):
                 url = 'https://www.youtube.com' + result[0]['url_suffix']
                 audio = await YTDLSource.from_url(url, loop=self.bot.loop)
                 if isinstance(audio, YTDLSource):
-                    await self.handlers[ctx.guild.id].queue.put((ctx, audio))
-                    await self.handlers[ctx.guild.id].attach_queue(audio)
+                    await self.handlers[ctx.guild.id].source_handler(ctx, audio)
                 else:
                     return await ctx.send('Bir şeyler yanlış. Bir daha dene')
         except Exception as error:
@@ -440,21 +437,6 @@ class Handler:
         finally:
             pass
 
-    async def attach_queue(self, source: YTDLSource):
-        if self.ctx.voice_client.source is not None:
-            if self.last_message:
-                embed = self.last_message.embeds[0]
-                for name, value in list(enumerate(self.queue_value)):
-                    embed.add_field(name=str(name + 1), value=value)
-                await self.last_message.edit(embed=embed)
-            else:
-                embed = self.get_player_message_body(source)
-                for name, value in list(enumerate(self.queue_value)):
-                    embed.add_field(name=str(name + 1), value=value)
-                await self.ctx.send(embed=embed)
-        if not self.queue.empty():
-            self.queue_value.append(source.title)
-
     async def send_player_embed(self):
         if self.last_message:
             embed = self.last_message.embeds[0]
@@ -466,6 +448,7 @@ class Handler:
         if self.last_message is not None:
             await self._last_message.delete()
         self._last_message = await self.ctx.send(embed=embed)
+
         if self.play_random:
             for _ in playlist_emojis.values():
                 await self.last_message.add_reaction(_)
