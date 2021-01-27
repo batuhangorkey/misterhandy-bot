@@ -452,7 +452,7 @@ class Handler:
         finally:
             pass
 
-    def update_footer(self):
+    async def update_footer(self):
         try:
             embed = self.last_message.embeds[0]
             embed.set_footer(text=self.footer.format('açık' if self.play_random else 'kapalı',
