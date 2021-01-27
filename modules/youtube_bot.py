@@ -399,7 +399,7 @@ class Handler:
         self.time_setting = 30
 
         self.play_random = False
-        self.footer = None
+        self.footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - v{}'
         self.fancy_format = True
 
         self.reset_db_playlist()
