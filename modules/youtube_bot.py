@@ -406,7 +406,7 @@ class Handler:
     def create_task(self):
         if self.task:
             self.task.cancel()
-        self.task = self.bot.loop.create_task(self.audio_player())
+        self.task = self.bot.loop.create_task(self.queue_handler())
 
     def reset_db_playlist(self):
         self._random_playlist = self.bot.get_random_playlist()
@@ -452,23 +452,18 @@ class Handler:
                 for name, value in list(enumerate(self.queue_value)):
                     embed.add_field(name=str(name + 1), value=value)
                 await self.ctx.send(embed=embed)
-        if self.queue.qsize() != 0:
+        if not self.queue.empty():
             self.queue_value.append(source.title)
 
-    async def send_player_embed(self, audio: YTDLSource = None):
-        if audio:
-            if self.ctx.voice_client.source:
-                source = self.ctx.voice_client.source
-                self.queue_value.append(source.title)
-                embed = self.get_player_message_body(audio)
-            else:
-                embed = self.get_player_message_body(audio)
+    async def send_player_embed(self):
+        if self.last_message:
+            embed = self.last_message.embeds[0]
         else:
             embed = self.get_player_message_body(self.ctx.voice_client.source)
         for i, value in list(enumerate(self.queue_value)):
             embed.add_field(name=str(i + 1), value=value)
 
-        if self._last_message is not None:
+        if self.last_message is not None:
             await self._last_message.delete()
         self._last_message = await self.ctx.send(embed=embed)
         if self.play_random:
@@ -485,7 +480,20 @@ class Handler:
         self.random_playlist.remove(song)
         return song[0]
 
-    async def audio_player(self):
+    async def source_handler(self, ctx, source):
+        self._ctx = ctx
+        if self.queue.empty():
+            self.ctx.voice_client.play(source,
+                                       after=lambda e: print('Player error: %s' % e)
+                                       if e else self.toggle_next())
+            await self.send_player_embed()
+            self.source_start_time = time.time()
+        else:
+            await self.queue.put(source)
+            self.queue_value.append(source.title)
+            await self.send_player_embed()
+
+    async def queue_handler(self):
         while True:
             try:
                 self.play_next.clear()
