@@ -440,10 +440,13 @@ class Handler:
     async def send_player_embed(self):
         if self.last_message:
             embed = self.last_message.embeds[0]
+            for i, value in list(enumerate(self.queue_value)):
+                embed.add_field(name=str(i + 1), value=value)
+             return await self.last_message.edit(embed=embed)
         else:
             embed = self.get_player_message_body(self.ctx.voice_client.source)
-        for i, value in list(enumerate(self.queue_value)):
-            embed.add_field(name=str(i + 1), value=value)
+            for i, value in list(enumerate(self.queue_value)):
+                embed.add_field(name=str(i + 1), value=value)
 
         if self.last_message is not None:
             await self._last_message.delete()
@@ -466,11 +469,16 @@ class Handler:
     async def source_handler(self, ctx, source):
         self._ctx = ctx
         if self.queue.empty():
-            self.ctx.voice_client.play(source,
-                                       after=lambda e: print('Player error: %s' % e)
-                                       if e else self.toggle_next())
-            await self.send_player_embed()
-            self.source_start_time = time.time()
+            if self.ctx.voice_client.source:
+                await self.queue.put(source)
+                self.queue_value.append(source.title)
+                await self.send_player_embed()
+            else:
+                self.ctx.voice_client.play(source,
+                                           after=lambda e: print('Player error: %s' % e)
+                                           if e else self.toggle_next())
+                await self.send_player_embed()
+                self.source_start_time = time.time()
         else:
             await self.queue.put(source)
             self.queue_value.append(source.title)
@@ -486,11 +494,11 @@ class Handler:
                 if self.queue.qsize() == 0:
                     if self.play_random and self.ctx.voice_client is not None:
                         async with self.ctx.typing():
-                            audio = await YTDLSource.from_url(self.get_song(),
-                                                              loop=self.bot.loop,
-                                                              stream=True)
-                            if audio:
-                                await self.queue.put((self.ctx, audio))
+                            source = await YTDLSource.from_url(self.get_song(),
+                                                               loop=self.bot.loop,
+                                                               stream=True)
+                            if source:
+                                await self.queue.put((self.ctx, source))
                             else:
                                 await self.ctx.invoke(self.bot.get_command('play_random'))
                                 await self.ctx.send('Birşeyler kırıldı.')
@@ -500,14 +508,14 @@ class Handler:
                         embed.description = 'Video bitti'
                         await self.last_message.edit(embed=embed)
                 current = await self.queue.get()
-                self._ctx, audio = current
-                self.ctx.voice_client.play(audio,
+                source = current
+                self.ctx.voice_client.play(source,
                                            after=lambda e: print('Player error: %s' % e)
                                            if e else self.toggle_next())
                 await self.send_player_embed()
                 self.source_start_time = time.time()
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                         name=audio.title))
+                                                                         name=source.title))
                 await self.play_next.wait()
             except Exception as error:
                 logging.error(error)
