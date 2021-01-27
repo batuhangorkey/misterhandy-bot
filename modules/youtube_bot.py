@@ -445,7 +445,7 @@ class Handler:
             embed = self.last_message.embeds[0]
             for i, value in list(enumerate(self.queue_value)):
                 embed.add_field(name=str(i + 1), value=value)
-             return await self.last_message.edit(embed=embed)
+            return await self.last_message.edit(embed=embed)
         else:
             embed = self.get_player_message_body(self.ctx.voice_client.source)
             for i, value in list(enumerate(self.queue_value)):
