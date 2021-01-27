@@ -359,18 +359,21 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, msg):
-        if msg.author == self.bot.user:
-            return
         try:
+            if msg.author == self.bot.user:
+                return
             index = int(msg.content)
-        except ValueError:
-            return
-        if index < 1 or 10 < index:
-            return
-        music = self.bot.get_cog('Music')
-        await self.ctx.invoke(music.bot.get_command('play'), url=music.search_list[index - 1])
-        music.search_list.clear()
-        self.bot.remove_cog('Events')
+            if index < 1 or 10 < index:
+                return
+            music = self.bot.get_cog('Music')
+            await self.ctx.invoke(music.bot.get_command('play'), search_string=music.search_list[index - 1])
+            music.search_list.clear()
+        except ValueError as error:
+            logging.error(error)
+        except Exception as error:
+            logging.error(error)
+        finally:
+            self.bot.remove_cog('Events')
 
 
 class Handler:
