@@ -167,14 +167,14 @@ class Music(commands.Cog):
         async with ctx.typing():
             if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
                 if not self.handlers[ctx.guild.id].play_random:
-                    audio = await YTDLSource.from_url(self.handlers[ctx.guild.id].get_song(),
-                                                      loop=self.bot.loop,
-                                                      stream=True)
-                    if audio is None:
+                    source = await YTDLSource.from_url(self.handlers[ctx.guild.id].get_song(),
+                                                       loop=self.bot.loop,
+                                                       stream=True)
+                    if source is None:
                         return await ctx.send('Bir şeyler yanlış. Bir daha dene')
-                    await self.handlers[ctx.guild.id].queue.put((ctx, audio))
+                    await self.handlers[ctx.guild.id].source_handler(ctx, source)
             self.handlers[ctx.guild.id].play_random = not self.handlers[ctx.guild.id].play_random
-        await self.handlers[ctx.guild.id].send_player_embed()
+        await self.handlers[ctx.guild.id].update_footer()
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
@@ -242,7 +242,7 @@ class Music(commands.Cog):
             else:
                 entries = [data]
             for entry in entries:
-                if entry.get('webpage_url') in self.handlers[ctx.guild.id].static_random_playlist:
+                if entry.get('webpage_url') in self.handlers[ctx.guild.id].db_playlist:
                     await ctx.send('Bu şarkı listede var: {}'.format(entry.get('title')))
                     continue
                 with conn.cursor() as cursor:
@@ -251,21 +251,21 @@ class Music(commands.Cog):
 
                     cursor.execute('SELECT url FROM playlist where url="{}"'.format(entry.get('webpage_url')))
                     data = cursor.fetchone()
-
                 if data:
                     added_songs.append(entry.get('title'))
                 else:
                     failed_songs.append(entry.get('title'))
-        except Exception as error:
-            logging.error(error)
-        finally:
-            conn.close()
             await ctx.send('Eklenen şarkılar:\n'
                            '```{}```'.format('\n'.join(added_songs)))
             if len(failed_songs) > 0:
                 await ctx.send('\nBaşına bir şey gelen şarkılar:\n'
                                '```{}```'.format('\n'.join(failed_songs)))
             self.handlers[ctx.guild.id].reset_db_playlist()
+            await self.handlers[ctx.guild.id].update_footer()
+        except Exception as error:
+            logging.error(error)
+        finally:
+            conn.close()
 
     @commands.command(help='Go to the time on the video')
     async def goto(self, ctx, target_time: int):
@@ -385,17 +385,23 @@ class Handler:
         self._random_playlist = []
         self._last_message = None
         self.bot = bot
+
         self.queue = asyncio.Queue(loop=bot.loop)
         self.play_next = asyncio.Event(loop=bot.loop)
+        self.task = None
+
         self.search_list = []
         self.random_playlist = []
         self.queue_value = []
+
         self.source_start_time = None
         self.time_cursor = None
-        self.task = None
         self.time_setting = 30
-        self.fancy_format = True
+
         self.play_random = False
+        self.footer = None
+        self.fancy_format = True
+
         self.reset_db_playlist()
 
     @property
@@ -405,6 +411,10 @@ class Handler:
     @property
     def last_message(self):
         return self._last_message
+
+    @property
+    def db_playlist(self):
+        return self._random_playlist
 
     def create_task(self):
         if self.task:
@@ -421,31 +431,41 @@ class Handler:
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
 
-    def get_player_message_body(self, audio: YTDLSource):
+    def get_player_message_body(self, source: YTDLSource):
         try:
-            if audio.start_time != 0:
+            if source.start_time != 0:
                 description = 'Şimdi oynatılıyor - {} dan başladı'.format(time.strftime('%M:%S',
-                                                                                        time.gmtime(audio.start_time)))
+                                                                                        time.gmtime(source.start_time)))
             else:
                 description = 'Şimdi oynatılıyor'
-            embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(audio),
-                                  url=audio.url,
+            embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(source),
+                                  url=source.url,
                                   description=description,
                                   colour=0x8B0000)
-            footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - v{}'
-            embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı',
-                                                len(self._random_playlist),
-                                                self.bot.git_hash))
-            embed.set_thumbnail(url=audio.thumbnail)
+            embed.set_footer(text=self.footer.format('açık' if self.play_random else 'kapalı',
+                                                     len(self._random_playlist),
+                                                     self.bot.git_hash))
+            embed.set_thumbnail(url=source.thumbnail)
             return embed
         except Exception as error:
             logging.error(error)
         finally:
             pass
 
+    def update_footer(self):
+        try:
+            embed = self.last_message.embeds[0]
+            embed.set_footer(text=self.footer.format('açık' if self.play_random else 'kapalı',
+                                                     len(self._random_playlist),
+                                                     self.bot.git_hash))
+            await self.last_message.edit(embed=embed)
+        finally:
+            pass
+
     async def send_player_embed(self):
         if self.last_message:
-            embed = self.last_message.embeds[0]
+            embed = self.get_player_message_body(self.ctx.voice_client.source)
+            embed.clear_fields()
             for i, value in list(enumerate(self.queue_value)):
                 embed.add_field(name=str(i + 1), value=value)
             return await self.last_message.edit(embed=embed)
