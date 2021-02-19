@@ -13,6 +13,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 from modules.minigame import Minigame
+from modules.secret_hitler import SecretHitler
 from modules.story_teller import Project2
 from modules.youtube_bot import Music
 
@@ -74,7 +75,10 @@ class CustomBot(commands.Bot):
         if HEROKU:
             return 'heroku'
         else:
-            return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
+            try:
+                return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
+            except WindowsError:
+                return 'LocalHost'
 
     @property
     def token(self):
@@ -136,7 +140,7 @@ bot = CustomBot()
 
 # TODO:
 #  Organize all to a single class
-#  Add auto moderation function
+#  Add auto moderation functions
 #  Discord role manupulation
 
 
@@ -149,6 +153,7 @@ async def on_connect():
 async def on_ready():
     try:
         start = time.process_time()
+
         logging.info('Running git hash: {}'.format(bot.git_hash))
         logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
 
@@ -156,16 +161,19 @@ async def on_ready():
             logging.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
 
         await bot.default_presence()
-        bot.add_cog(Project2(bot))
+
+        bot.add_cog(Minigame(bot, user_table=bot.fetch_user_tables()[0]))
         bot.add_cog(Music(bot))
+        bot.add_cog(Project2(bot))
+        bot.add_cog(SecretHitler(bot))
 
         for item in os.listdir('./'):
             if item.endswith(('.webm', '.m4a')):
                 os.remove(item)
-
         logging.info(os.path.abspath(os.path.dirname(__file__)))
         for item in os.listdir('./'):
             logging.info('\t{}'.format(item))
+
         end = time.process_time() - start
         logging.info('Method: {} | Elapsed time: {}'.format('on_ready', end))
     except Exception as e:
@@ -182,17 +190,7 @@ async def on_error(event, *args, **kwargs):
 '''
 
 
-@bot.command(help='Enable minigame')
-async def minigame(ctx):
-    try:
-        if bot.get_cog('Minigame'):
-            bot.remove_cog('Minigame')
-        bot.add_cog(Minigame(bot, user_table=bot.fetch_user_tables()[0]))
-    finally:
-        await ctx.send('Enabled minigame')
-
-
-@bot.command(help='Roll dice.')
+@bot.command(help='Roll dice. <number of dice> <number of sides>')
 async def roll(ctx, number_of_dice: int, number_of_sides: int):
     dice = [
         str(random.choice(range(1, number_of_sides + 1)))
@@ -201,8 +199,8 @@ async def roll(ctx, number_of_dice: int, number_of_sides: int):
     await ctx.send(', '.join(dice))
 
 
-@bot.command(help='FATE zarı atar')
-async def zar(ctx, modifier: int = 0):
+@bot.command(help='FATE dice')
+async def fate(ctx, modifier: int = 0):
     dice = [
         random.choice([-1, -1, 0, 0, 1, 1])
         for _ in range(4)
@@ -234,7 +232,6 @@ async def delete(ctx, limit: int = None):
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
     await ctx.send("Elapsed seconds: {} | v{}".format(delta.total_seconds(), bot.git_hash))
-
 
 '''
 @bot.check

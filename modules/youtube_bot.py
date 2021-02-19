@@ -103,7 +103,7 @@ class Music(commands.Cog):
             return await ctx.author.voice.channel.connect()
         await channel.connect()
 
-    @commands.command(help="Downloads audio from a url.")
+    @commands.command(help="Downloads audio from a Youtube url.")
     async def download(self, ctx, *, url):
         async with ctx.typing():
             logging.info('Requested: {}'.format(url))
@@ -125,7 +125,7 @@ class Music(commands.Cog):
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
             await self.handlers[ctx.guild.id].source_handler(ctx, audio)
 
-    @commands.command(help='Plays the first result from a search string.')
+    @commands.command(help='Plays url and search string from Youtube.')
     async def play(self, ctx, *, search_string):
         start = time.process_time()
         try:
@@ -185,7 +185,7 @@ class Music(commands.Cog):
         ctx.voice_client.source.volume = volume / 100
         await ctx.send('Ses seviyesi %{} oldu.'.format(volume))
 
-    @commands.command(help='Pauses')
+    @commands.command
     async def pause(self, ctx):
         if ctx.voice_client and ctx.voice_client.source:
             ctx.voice_client.pause()
@@ -193,7 +193,7 @@ class Music(commands.Cog):
             embed.description = 'Durduruldu'
             await self.handlers[ctx.guild.id].last_message.edit(embed=embed)
 
-    @commands.command(help='Resumes')
+    @commands.command
     async def resume(self, ctx):
         if ctx.voice_client is not None and ctx.voice_client.source:
             ctx.voice_client.resume()
@@ -225,7 +225,7 @@ class Music(commands.Cog):
             if ctx.voice_client is not None:
                 await ctx.voice_client.disconnect()
 
-    @commands.command(help='Adds song to bot playlist')
+    @commands.command
     async def add_link(self, ctx, url: str):
         try:
             with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
@@ -282,13 +282,13 @@ class Music(commands.Cog):
                 self.handlers[ctx.guild.id].queue.task_done()
                 self.handlers[ctx.guild.id].queue.put_nowait(a)
 
-    @commands.command(help='Set backward forward time value')
+    @commands.command
     async def set_skip_time(self, ctx, time_set: int):
         async with ctx.typing():
             self.handlers[ctx.guild.id].time_setting = time_set
 
     # TODO: Write this method
-    @commands.command(help='Switch fancy player message format')
+    @commands.command
     async def fancy_player(self, ctx):
         pass
 
@@ -316,29 +316,32 @@ class Music(commands.Cog):
     async def on_reaction_add(self, reaction, user):
         if user.bot:
             return
-        guild_id = reaction.message.guild.id
-        if reaction.message.id == self.handlers[guild_id].last_message.id:
-            if reaction.emoji == player_emojis['next_track']:
-                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('skip'))
-            if reaction.emoji == player_emojis['play_pause']:
-                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('pause'))
-            if reaction.emoji == player_emojis['stop']:
-                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('stop'))
-            if reaction.emoji == player_emojis['backward']:
-                delta_time = time.time() - self.handlers[guild_id].source_start_time
-                target_time = self.handlers[guild_id].time_cursor + delta_time - self.handlers[guild_id].time_setting
-                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('goto'),
-                                                                target_time=target_time)
-            if reaction.emoji == player_emojis['forward']:
-                delta_time = time.time() - self.handlers[guild_id].source_start_time
-                target_time = self.handlers[guild_id].time_cursor + delta_time + self.handlers[guild_id].time_setting
-                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('goto'),
-                                                                target_time=target_time)
-            if reaction.emoji == playlist_emojis['dislike']:
-                self.handlers[guild_id].dislike()
-                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('skip'))
-            if reaction.emoji == playlist_emojis['like']:
-                await self.handlers[guild_id].like()
+        if self.handlers.get(reaction.message.guild.id) is not None:
+            guild_id = reaction.message.guild.id
+            if reaction.message.id == self.handlers[guild_id].last_message.id:
+                if reaction.emoji == player_emojis['next_track']:
+                    return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('skip'))
+                if reaction.emoji == player_emojis['play_pause']:
+                    return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('pause'))
+                if reaction.emoji == player_emojis['stop']:
+                    return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('stop'))
+                if reaction.emoji == player_emojis['backward']:
+                    delta_time = time.time() - self.handlers[guild_id].source_start_time
+                    target_time = self.handlers[guild_id]\
+                                      .time_cursor + delta_time - self.handlers[guild_id].time_setting
+                    return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('goto'),
+                                                                    target_time=target_time)
+                if reaction.emoji == player_emojis['forward']:
+                    delta_time = time.time() - self.handlers[guild_id].source_start_time
+                    target_time = self.handlers[guild_id]\
+                                      .time_cursor + delta_time + self.handlers[guild_id].time_setting
+                    return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('goto'),
+                                                                    target_time=target_time)
+                if reaction.emoji == playlist_emojis['dislike']:
+                    self.handlers[guild_id].dislike()
+                    return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('skip'))
+                if reaction.emoji == playlist_emojis['like']:
+                    await self.handlers[guild_id].like()
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
@@ -522,7 +525,7 @@ class Handler:
                                 await self.ctx.invoke(self.bot.get_command('play_random'))
                                 await self.ctx.send('Birşeyler kırıldı.')
                     elif self.last_message:
-                        await self.bot.change_presence(activity=self.bot.default_presence)
+                        await self.bot.default_presence
                         embed = self.last_message.embeds[0]
                         embed.description = 'Video bitti'
                         await self.last_message.edit(embed=embed)
