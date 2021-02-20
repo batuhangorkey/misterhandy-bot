@@ -127,12 +127,9 @@ class CustomBot(commands.Bot):
         return db_playlist
 
     async def default_presence(self):
-        try:
-            await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                 name=random.choice(CustomBot.presences)),
-                                       status=self.git_hash)
-        except Exception as error:
-            logging.error(error)
+        await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
+                                                             name=random.choice(CustomBot.presences)),
+                                   status=self.git_hash)
 
 
 bot = CustomBot()
@@ -190,7 +187,7 @@ async def on_error(event, *args, **kwargs):
 '''
 
 
-@bot.command(help='Roll dice. <number of dice> <number of sides>')
+@bot.command(help='Rolls dice. <number of dice> <number of sides>')
 async def roll(ctx, number_of_dice: int, number_of_sides: int):
     dice = [
         str(random.choice(range(1, number_of_sides + 1)))
@@ -205,8 +202,12 @@ async def fate(ctx, modifier: int = 0):
         random.choice([-1, -1, 0, 0, 1, 1])
         for _ in range(4)
     ]
-    _sum = sum(dice) + modifier
-    await ctx.send(', '.join(map(str, dice)) + ' + {} = {}   **{}**'.format(modifier, _sum, CustomBot.adj[_sum]))
+    sum_ = sum(dice) + modifier
+    if sum_ > 8:
+        sum_ = 8
+    elif sum_ < -4:
+        sum_ = -4
+    await ctx.send(', '.join(map(str, dice)) + ' + {} = {}   **{}**'.format(modifier, sum_, CustomBot.adj[sum_]))
 
 
 @bot.command(help='Tries to purge max 50 messages sent by the bot.')
@@ -228,7 +229,7 @@ async def delete(ctx, limit: int = None):
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
-@bot.command(help='Pings bot')
+@bot.command()
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
     await ctx.send("Elapsed seconds: {} | v{}".format(delta.total_seconds(), bot.git_hash))

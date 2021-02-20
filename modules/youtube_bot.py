@@ -225,7 +225,7 @@ class Music(commands.Cog):
             if ctx.voice_client is not None:
                 await ctx.voice_client.disconnect()
 
-    @commands.command
+    @commands.command()
     async def add_link(self, ctx, url: str):
         try:
             with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
@@ -282,13 +282,13 @@ class Music(commands.Cog):
                 self.handlers[ctx.guild.id].queue.task_done()
                 self.handlers[ctx.guild.id].queue.put_nowait(a)
 
-    @commands.command
+    @commands.command()
     async def set_skip_time(self, ctx, time_set: int):
         async with ctx.typing():
             self.handlers[ctx.guild.id].time_setting = time_set
 
     # TODO: Write this method
-    @commands.command
+    @commands.command()
     async def fancy_player(self, ctx):
         pass
 
