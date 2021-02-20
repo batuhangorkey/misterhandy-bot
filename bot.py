@@ -175,7 +175,7 @@ async def on_ready():
             logging.info('\t{}'.format(item))
 
         end = time.process_time() - start
-        logging.info('Method: {} | Elapsed time: {}'.format('on_ready', end))
+        logging.info('Elapsed time: {}'.format(end))
     except Exception as e:
         logging.error(e)
 

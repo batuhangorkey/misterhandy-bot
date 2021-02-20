@@ -67,9 +67,12 @@ class SecretHitler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        logging.info('Debug')
         if self.bot.user.id == payload.user_id:
+            logging.info('Debug')
             return
         if payload.guild_id is not None:
+            logging.info('Debug')
             guild_id = payload.guild_id
             if self.sessions.get(guild_id) is not None:
                 session = self.sessions[guild_id]
