@@ -164,7 +164,7 @@ async def on_ready():
 
         bot.add_cog(Minigame(bot, user_table=bot.fetch_user_tables()[0]))
         bot.add_cog(Music(bot))
-        bot.add_cog(Project2(bot))
+        # bot.add_cog(Project2(bot))
         bot.add_cog(SecretHitler(bot))
 
         for item in os.listdir('./'):
@@ -232,6 +232,7 @@ async def delete(ctx, limit: int = None):
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
     await ctx.send("Elapsed seconds: {} | v{}".format(delta.total_seconds(), bot.git_hash))
+
 
 '''
 @bot.check
