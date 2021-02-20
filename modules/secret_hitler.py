@@ -34,7 +34,7 @@ class SecretHitler(commands.Cog):
     }
 
     card_emojis = {
-        Card.liberal:  '\U0001F535',
+        Card.liberal: '\U0001F535',
         Card.fascist: '\U0001F534'
     }
 
@@ -49,14 +49,6 @@ class SecretHitler(commands.Cog):
     async def choose(self, ctx):
         if len(ctx.message.mentions) > 0 and self.sessions.get(ctx.guild.id).president.user == ctx.author:
             await self.sessions.get(ctx.guild.id).chancellor_choose(ctx.message.mentions[0])
-
-    @commands.command(name='ja')
-    async def yes(self, ctx):
-        await self.sessions[ctx.guild.id].chancellor_voting(ctx.author, 1)
-
-    @commands.command(name='nein')
-    async def no(self, ctx):
-        await self.sessions[ctx.guild.id].chancellor_voting(ctx.author, -1)
 
     @commands.command()
     async def shoot(self, ctx):
@@ -95,8 +87,12 @@ class SecretHitler(commands.Cog):
                                     await session.channel.send('Oyuncu sayısı uyumsuz.')
                                 else:
                                     await session.start(users)
-                    elif payload.emoji == SecretHitler.emojis['join']:
+                    elif payload.emoji.name == SecretHitler.emojis['join']:
                         pass
+                    elif payload.emoji.name == SecretHitler.emojis['yes']:
+                        await session.chancellor_voting(payload.user_id, 1)
+                    elif payload.emoji.name == SecretHitler.emojis['no']:
+                        await session.chancellor_voting(payload.user_id, -1)
         else:
             for session in self.sessions.values():
                 if session.check_player(payload.user_id):
@@ -137,6 +133,7 @@ class Session:
         self.president = None
         self.president_index = 0
         self.chancellor = None
+        self.hitler = None
 
         self.president_cards = []
         self.deck = []
@@ -156,13 +153,14 @@ class Session:
         self.reset_deck()
         for _ in users:
             self.players.append(Player(_, 'liberal'))
-        num_of_fascists = math.ceil(users.__len__() * 0.5 - 2)
+        num_of_fascists = math.ceil(users.__len__() * 0.5 - 1)
         for _ in random.choices(self.players, k=num_of_fascists):
             _.identity = 'fascist'
-        random.choice([_ for _ in self.players if _.identity == 'liberal']).identity = 'hitler'
-        self.president_index = random.randrange(0, len(self.players))
-        self.president = self.players[self.president_index]
-
+        self.hitler = random.choice([_ for _ in self.players if _.identity == 'fascist'])
+        self.hitler.identity = 'hitler'
+        self.president = random.choice(self.players)
+        self.players.remove(self.president)
+        self.players.insert(self.president, 0)
         await self.channel.send('Cumhurbaşkanlığı sırası: {}'.format(', '.join([_.name for _ in self.players])))
 
         if len(self.players) > 5:
@@ -177,8 +175,12 @@ class Session:
                 await _.user.send('Liberalsin.')
             elif _.identity == 'fascist':
                 await _.user.send('Faşistsin.')
+                if len(self.players) < 6:
+                    await _.user.send('Hitler {}.'.format(self.hitler.name))
             elif _.identity == 'hitler':
                 await _.user.send('Hitler\'sin.')
+                await _.user.send('Faşistler: '
+                                  .format(', '.join([_.name for _ in self.players if _.identity == 'fascist'])))
 
     async def next_president(self):
         self.president_index = (self.president_index + 1) % len(self.players)
@@ -202,7 +204,7 @@ class Session:
         _ = self.policy_table[Card(self.deck[0])]
         _ = _ + 1
         await self.channel.send('{} politika yürürlülüğe koyuldu.'
-                          .format('Faşist' if Card(self.deck[0]) == Card.fascist else 'Liberal'))
+                                .format('Faşist' if Card(self.deck[0]) == Card.fascist else 'Liberal'))
         del (self.deck[0])
         await self.send_policy_table()
         await self.check_events()
@@ -252,16 +254,18 @@ class Session:
         for _ in self.players:
             if user == _.user and self.president != user and self.chancellor != user:
                 self.chancellor = _
-                await self.channel.send('Şansolye {} için açık oylama:'
-                                        ' !ja !nein'.format(user.name))
+                _ = await self.channel.send('Şansolye {} için açık oylama:'
+                                            ' !ja !nein'.format(user.name))
+                await _.add_reaction(SecretHitler.emojis['yes'])
+                await _.add_reaction(SecretHitler.emojis['no'])
         self.status = Status.chancellor_voting
 
-    async def chancellor_voting(self, user, vote):
-        if len([_ for _ in self.players if _ == user]) == 0:
+    async def chancellor_voting(self, user_id, vote):
+        if len([_ for _ in self.players if _ == user_id]) == 0:
             return logging.info('User not in self.players')
         if self.status is not Status.chancellor_voting:
             return logging.info('Status is wrong')
-        self.vote_box[user.id] = vote
+        self.vote_box[user_id] = vote
         if len(self.vote_box) == len(self.players):
             if sum(self.vote_box.values()) > 0:
                 if self.chancellor.identity == 'hitler' and self.policy_table[Card.fascist] > 2:
