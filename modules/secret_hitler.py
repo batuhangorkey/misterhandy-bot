@@ -56,8 +56,6 @@ class SecretHitler(commands.Cog):
             await self.sessions[ctx.guild.id].execution(ctx.author, ctx.message.mentions[0])
 
     @choose.before_invoke
-    @yes.before_invoke
-    @no.before_invoke
     @shoot.before_invoke
     async def ensure_session(self, ctx):
         if self.sessions.get(ctx.guild.id) is None:
@@ -67,49 +65,52 @@ class SecretHitler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        logging.info('Debug')
-        if self.bot.user.id == payload.user_id:
+        try:
             logging.info('Debug')
-            return
-        if payload.guild_id is not None:
-            logging.info('Debug')
-            guild_id = payload.guild_id
-            if self.sessions.get(guild_id) is not None:
-                session = self.sessions[guild_id]
-                if payload.message_id == session.last_message.id:
-                    _ = session.channel.get_partial_message(payload.message_id)
-                    message = await _.fetch()
-                    if payload.emoji.name == SecretHitler.emojis['start']:
-                        for _ in message.reactions:
-                            if _.emoji == SecretHitler.emojis['join']:
-                                users = await _.users().flatten()
-                                users.remove(self.bot.user)
-                                player_count = users.__len__()
-                                logging.info('Attempted to start game with {} players'.format(len(users)))
-                                if player_count < 1 or player_count > 10:
-                                    await session.channel.send('Oyuncu sayısı uyumsuz.')
-                                else:
-                                    await session.start(users)
-                    elif payload.emoji.name == SecretHitler.emojis['join']:
-                        pass
-                    elif payload.emoji.name == SecretHitler.emojis['yes']:
-                        await session.chancellor_voting(payload.user_id, 1)
-                    elif payload.emoji.name == SecretHitler.emojis['no']:
-                        await session.chancellor_voting(payload.user_id, -1)
-        else:
-            for session in self.sessions.values():
-                if session.check_player(payload.user_id):
-                    if session.status == Status.president_eliminating:
-                        if payload.emoji.name == SecretHitler.card_emojis[Card.liberal]:
-                            await session.chancellor_choose_card(Card.liberal)
-                        if payload.emoji.name == SecretHitler.card_emojis[Card.fascist]:
-                            await session.chancellor_choose_card(Card.fascist)
-                    elif session.status == Status.chancellor_choosing:
-                        if payload.emoji.name == SecretHitler.card_emojis[Card.liberal]:
-                            await session.play_card(Card.liberal)
-                        if payload.emoji.name == SecretHitler.card_emojis[Card.fascist]:
-                            await session.play_card(Card.fascist)
-                    break
+            if self.bot.user.id == payload.user_id:
+                logging.info('Debug')
+                return
+            if payload.guild_id is not None:
+                logging.info('Debug')
+                guild_id = payload.guild_id
+                if self.sessions.get(guild_id) is not None:
+                    session = self.sessions[guild_id]
+                    if payload.message_id == session.last_message.id:
+                        _ = session.channel.get_partial_message(payload.message_id)
+                        message = await _.fetch()
+                        if payload.emoji.name == SecretHitler.emojis['start']:
+                            for _ in message.reactions:
+                                if _.emoji == SecretHitler.emojis['join']:
+                                    users = await _.users().flatten()
+                                    users.remove(self.bot.user)
+                                    player_count = users.__len__()
+                                    logging.info('Attempted to start game with {} players'.format(len(users)))
+                                    if player_count < 1 or player_count > 10:
+                                        await session.channel.send('Oyuncu sayısı uyumsuz.')
+                                    else:
+                                        await session.start(users)
+                        elif payload.emoji.name == SecretHitler.emojis['join']:
+                            pass
+                        elif payload.emoji.name == SecretHitler.emojis['yes']:
+                            await session.chancellor_voting(payload.user_id, 1)
+                        elif payload.emoji.name == SecretHitler.emojis['no']:
+                            await session.chancellor_voting(payload.user_id, -1)
+            else:
+                for session in self.sessions.values():
+                    if session.check_player(payload.user_id):
+                        if session.status == Status.president_eliminating:
+                            if payload.emoji.name == SecretHitler.card_emojis[Card.liberal]:
+                                await session.chancellor_choose_card(Card.liberal)
+                            if payload.emoji.name == SecretHitler.card_emojis[Card.fascist]:
+                                await session.chancellor_choose_card(Card.fascist)
+                        elif session.status == Status.chancellor_choosing:
+                            if payload.emoji.name == SecretHitler.card_emojis[Card.liberal]:
+                                await session.play_card(Card.liberal)
+                            if payload.emoji.name == SecretHitler.card_emojis[Card.fascist]:
+                                await session.play_card(Card.fascist)
+                        break
+        except Exception as e:
+            logging.error(e)
 
     '''
     @commands.Cog.listener()
