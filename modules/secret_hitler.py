@@ -187,6 +187,8 @@ class Session:
         self.status = Status.president_choosing_chancellor
 
     async def play_card(self, card):
+        if card.value not in self.president_cards:
+            return
         if card == Card.fascist:
             await self.channel.send('Başbakan {}, faşist bir politika yürürlüğe koydu.'.format(self.chancellor.name))
             self.policy_table[Card.fascist] = self.policy_table[Card.fascist] + 1
