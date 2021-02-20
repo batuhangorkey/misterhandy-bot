@@ -199,7 +199,7 @@ class Session:
     async def play_card_from_top(self):
         _ = self.policy_table[Card(self.deck[0])]
         _ = _ + 1
-        self.channel.send('{} politika yürürlülüğe koyuldu.'
+        await self.channel.send('{} politika yürürlülüğe koyuldu.'
                           .format('Faşist' if Card(self.deck[0]) == Card.fascist else 'Liberal'))
         del (self.deck[0])
         await self.send_policy_table()
@@ -284,7 +284,7 @@ class Session:
         self.status = Status.president_choosing_chancellor
 
     async def president_eliminate_card(self):
-        if len(self.president_cards) < 3:
+        if len(self.deck) < 3:
             self.reset_deck()
             await self.channel.send('Deste karıştırıldı.')
         self.president_cards.extend(self.deck[0:3])
@@ -300,7 +300,7 @@ class Session:
         _ = await self.chancellor.user.send('Kartı seç')
         await _.add_reaction(SecretHitler.card_emojis[Card.liberal])
         await _.add_reaction(SecretHitler.card_emojis[Card.fascist])
-        await self.president.user.send('Kartlar: {}'.format(', '.join([Card(_).name for _ in self.president_cards])))
+        await self.chancellor.user.send('Kartlar: {}'.format(', '.join([Card(_).name for _ in self.president_cards])))
         self.last_message = _
         self.status = Status.chancellor_choosing
 
