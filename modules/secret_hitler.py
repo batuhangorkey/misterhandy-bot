@@ -41,9 +41,10 @@ class SecretHitler(commands.Cog):
     @commands.command(name='secrethitler')
     async def secret_hitler(self, ctx):
         self.sessions[ctx.guild.id] = Session(self.bot, ctx.guild, ctx.channel)
-        self.sessions[ctx.guild.id].last_message = await ctx.send('Oyuncular toplanıyor')
-        await self.sessions[ctx.guild.id].last_message.add_reaction(SecretHitler.emojis['join'])
-        await self.sessions[ctx.guild.id].last_message.add_reaction(SecretHitler.emojis['start'])
+        _ = await ctx.send('Oyuncular toplanıyor')
+        await _.add_reaction(SecretHitler.emojis['join'])
+        await _.add_reaction(SecretHitler.emojis['start'])
+        self.sessions[ctx.guild.id].last_message = _
 
     @commands.command(name='seç')
     async def choose(self, ctx):
