@@ -296,6 +296,7 @@ class Session:
         if len(self.deck) < 3:
             self.reset_deck()
             await self.channel.send('Deste karıştırıldı.')
+        self.president_cards.clear()
         self.president_cards.extend(self.deck[0:3])
         _ = await self.president.user.send('Bir kartı ele')
         await _.add_reaction(SecretHitler.card_emojis[Card.liberal])
