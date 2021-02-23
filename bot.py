@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 from modules.minigame import Minigame
 from modules.secret_hitler import SecretHitler
-from modules.story_teller import Project2
+# from modules.story_teller import Project2
 from modules.youtube_bot import Music
 
 FORMAT = '%(asctime)-15s %(levelname)-5s %(funcName)-10s %(lineno)s %(message)s'
@@ -210,7 +210,8 @@ async def fate(ctx, modifier: int = 0):
         sum_ = 8
     elif sum_ < -4:
         sum_ = -4
-    await ctx.send(', '.join(map(str, dice)) + ' + {} = {}   **{}**'.format(modifier, sum_, CustomBot.adj[sum_]))
+    modifier = '{}'.format('+{}'.format(modifier) if modifier > 0 else modifier) if modifier != 0 else ''
+    await ctx.send('{} {} = {} **{}**'.format(', '.join(map(str, dice)), modifier, sum_, CustomBot.adj[sum_]))
 
 
 @bot.command(help='Tries to purge max 50 messages sent by the bot.')
