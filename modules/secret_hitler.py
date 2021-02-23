@@ -35,15 +35,15 @@ class SecretHitler(commands.Cog):
     }
 
     index_emojis = {
-        u'\u0031': 0,
-        u'\u0032': 1,
-        u'\u0033': 2,
-        u'\u0034': 3,
-        u'\u0035': 4,
-        u'\u0036': 5,
-        u'\u0037': 6,
-        u'\u0038': 7,
-        u'\u0039': 8
+        '1\N{COMBINING ENCLOSING KEYCAP}': 0,
+        '2\N{COMBINING ENCLOSING KEYCAP}': 1,
+        '3\N{COMBINING ENCLOSING KEYCAP}': 2,
+        '4\N{COMBINING ENCLOSING KEYCAP}': 3,
+        '5\N{COMBINING ENCLOSING KEYCAP}': 4,
+        '6\N{COMBINING ENCLOSING KEYCAP}': 5,
+        '7\N{COMBINING ENCLOSING KEYCAP}': 6,
+        '8\N{COMBINING ENCLOSING KEYCAP}': 7,
+        '9\N{COMBINING ENCLOSING KEYCAP}': 8
     }
 
     card_emojis = {
@@ -94,6 +94,8 @@ class SecretHitler(commands.Cog):
                                 await session.chancellor_choose(payload.user_id, self.index_emojis[emoji_submitted])
                             elif session.status is Status.president_executing:
                                 await session.president_execute(payload.user_id, self.index_emojis[emoji_submitted])
+                            elif session.status is Status.president_choosing_chancellor:
+                                await session.chancellor_choose(payload.user_id, self.index_emojis[emoji_submitted])
             else:
                 for session in self.sessions.values():
                     if payload.user_id in session.players:
@@ -168,7 +170,7 @@ class Session:
         self.president = random.choice(self.players)
         self.players.remove(self.president)
         self.players.insert(0, self.president)
-        await self.channel.send('Cumhurbaşkanlığı sırası: {}'.format(', '.join([_.name for _ in self.players])))
+        await self.channel.send('Başkanlık sırası: {}'.format(', '.join([str(_) for _ in self.players])))
 
         if len(self.players) > 5:
             self.policy_table[Card.fascist] = self.policy_table[Card.fascist] + 1
@@ -190,7 +192,6 @@ class Session:
                                   .format(', '.join([_.name for _ in self.players if _.identity == 'fascist'])))
 
     async def next_president(self):
-        self.last_president = self.president
         self.president_index = (self.president_index + 1) % len(self.players)
         self.president = self.players[self.president_index]
         await self.president_choosing_chancellor()
@@ -200,10 +201,10 @@ class Session:
         if card.value not in self.president_cards:
             return
         if card == Card.fascist:
-            await self.channel.send('Başbakan {}, faşist bir politika yürürlüğe koydu.'.format(self.chancellor))
+            await self.channel.send('Şansolye {}, faşist bir politika yürürlüğe koydu.'.format(self.chancellor))
             self.policy_table[Card.fascist] = self.policy_table[Card.fascist] + 1
         elif card == Card.liberal:
-            await self.channel.send('Başbakan {}, liberal bir politika yürürlüğe koydu.'.format(self.chancellor))
+            await self.channel.send('Şansolye {}, liberal bir politika yürürlüğe koydu.'.format(self.chancellor))
             self.policy_table[Card.liberal] = self.policy_table[Card.liberal] + 1
         await self.send_policy_table()
         await self.check_events()
@@ -218,8 +219,8 @@ class Session:
         await self.check_events()
 
     async def send_policy_table(self):
-        await self.channel.send('Liberal politikalar: {_[Card.fascist}\n'
-                                'Faşist politikalar: {_[Card.liberal]}'.format(_=self.policy_table))
+        await self.channel.send('Liberal politikalar: {}\n'
+                                'Faşist politikalar: {}'.format(self.policy_table[Card(0)], self.policy_table[Card(1)]))
 
     async def check_events(self):
         if self.policy_table[Card.fascist] == 6:
@@ -245,7 +246,7 @@ class Session:
         self.status = Status.finish
 
     async def president_executing(self):
-        self.last_message = await self.channel.send('Cumhurbaşkanı {} birisini idam edecek.\n'
+        self.last_message = await self.channel.send('Başkan {} birisini idam edecek.\n'
                                                     '{}'.format(self.president,
                                                                 self.formatted_players(self.players_without_president)))
         await self.add_indexed_reaction(self.players_without_president)
@@ -263,7 +264,7 @@ class Session:
                     self.players.remove(_)
 
     async def president_choosing_chancellor(self):
-        self.last_message = await self.channel.send('Cumhurbaşkanı {}, Şansolyeni seç.\n'
+        self.last_message = await self.channel.send('Başkan {}, Şansolyeni seç.\n'
                                                     '{}'.format(self.president,
                                                                 self.formatted_players(self.eligible_chancellors)))
         await self.add_indexed_reaction(self.eligible_chancellors)
@@ -271,7 +272,7 @@ class Session:
 
     async def add_indexed_reaction(self, list_):
         for _ in range(len(list_)):
-            await self.last_message.add_reaction(list(SecretHitler.index_emojis.values())[_])
+            await self.last_message.add_reaction(list(SecretHitler.index_emojis.keys())[_])
 
     @property
     def eligible_chancellors(self):
@@ -286,7 +287,7 @@ class Session:
 
     @staticmethod
     def formatted_players(list_):
-        return ' '.join(['{} {}'.format(i + 1, _) for i, _ in enumerate(list_)])
+        return ' '.join(['{}. {}'.format(i + 1, _) for i, _ in enumerate(list_)])
 
     async def chancellor_choose(self, author, index):
         user = self.eligible_chancellors[index]
@@ -311,12 +312,15 @@ class Session:
                     await self.channel.send('Hitler şansolye seçildi.')
                     await self.declare_win(Card.fascist)
                 else:
+                    self.last_president = self.president
                     self.last_chancellor = self.chancellor
                     await self.president_eliminate_card()
+                    await self.channel.send('Başkan {} ve Şansolye {} seçimi kazandı.'
+                                            .format(self.president, self.chancellor))
                     self.policy_table['election_tracker'] = 0
                     self.status = Status.president_eliminating
             else:
-                await self.channel.send('Şansolye {} reddedildi.'.format(self.chancellor.user.name))
+                await self.channel.send('Şansolye {} reddedildi.'.format(self.chancellor))
                 self.policy_table['election_tracker'] = self.policy_table['election_tracker'] + 1
                 if self.policy_table['election_tracker'] == 3:
                     await self.channel.send('Üç kez seçim reddedildi. En tepedeki politika oynanıyor.')
