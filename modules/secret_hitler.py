@@ -17,7 +17,7 @@ class Status(Enum):
     president_choosing_chancellor = 1
     chancellor_voting = 2
     president_eliminating = 3
-    chancellor_choosing = 4
+    chancellor_choosing_card = 4
     president_executing = 5
     finish: 6
 
@@ -34,17 +34,9 @@ class SecretHitler(commands.Cog):
         'no': u'\u274C'
     }
 
-    index_emojis = {
-        '1\N{COMBINING ENCLOSING KEYCAP}': 0,
-        '2\N{COMBINING ENCLOSING KEYCAP}': 1,
-        '3\N{COMBINING ENCLOSING KEYCAP}': 2,
-        '4\N{COMBINING ENCLOSING KEYCAP}': 3,
-        '5\N{COMBINING ENCLOSING KEYCAP}': 4,
-        '6\N{COMBINING ENCLOSING KEYCAP}': 5,
-        '7\N{COMBINING ENCLOSING KEYCAP}': 6,
-        '8\N{COMBINING ENCLOSING KEYCAP}': 7,
-        '9\N{COMBINING ENCLOSING KEYCAP}': 8
-    }
+    index_emojis = {}
+    for _ in range(9):
+        index_emojis['{}\N{COMBINING ENCLOSING KEYCAP}'.format(_ + 1)] = _
 
     card_emojis = {
         Card.liberal: '\U0001F535',
@@ -101,10 +93,10 @@ class SecretHitler(commands.Cog):
                     if payload.user_id in session.players:
                         if session.status == Status.president_eliminating:
                             if emoji_submitted == SecretHitler.card_emojis[Card.liberal]:
-                                await session.chancellor_choose_card(Card.liberal)
+                                await session.chancellor_choosing_card(Card.liberal)
                             if emoji_submitted == SecretHitler.card_emojis[Card.fascist]:
-                                await session.chancellor_choose_card(Card.fascist)
-                        elif session.status == Status.chancellor_choosing:
+                                await session.chancellor_choosing_card(Card.fascist)
+                        elif session.status == Status.chancellor_choosing_card:
                             if emoji_submitted == SecretHitler.card_emojis[Card.liberal]:
                                 await session.play_card(Card.liberal)
                             if emoji_submitted == SecretHitler.card_emojis[Card.fascist]:
@@ -112,19 +104,6 @@ class SecretHitler(commands.Cog):
                         break
         except Exception as e:
             logging.error(e)
-
-    '''
-    @commands.Cog.listener()
-    async def on_reaction_remove(self, reaction, user):
-        if user.bot:
-            return
-        guild_id = reaction.message.guild.id
-        if self.sessions.get(guild_id) is None:
-            return
-        if reaction.message.id == self.sessions[guild_id].last_message.id:
-            if reaction.emoji == SecretHitler.emojis['join']:
-                return self.sessions.get(guild_id).players.remove(user.id)
-    '''
 
 
 class Session:
@@ -202,10 +181,10 @@ class Session:
             return
         if card == Card.fascist:
             await self.channel.send('Şansolye {}, faşist bir politika yürürlüğe koydu.'.format(self.chancellor))
-            self.policy_table[Card.fascist] = self.policy_table[Card.fascist] + 1
+            self.policy_table[Card.fascist] += 1
         elif card == Card.liberal:
             await self.channel.send('Şansolye {}, liberal bir politika yürürlüğe koydu.'.format(self.chancellor))
-            self.policy_table[Card.liberal] = self.policy_table[Card.liberal] + 1
+            self.policy_table[Card.liberal] += 1
         await self.send_policy_table()
         await self.check_events()
 
@@ -228,6 +207,7 @@ class Session:
         elif self.policy_table[Card.liberal] == 5:
             await self.declare_win(Card.liberal)
         elif self.policy_table[Card.fascist] == 3:
+            await self.channel.send('Başkan {} destenin en üstündeki kartlara bakıyor.'.format(self.president))
             await self.policy_peek()
         elif self.policy_table[Card.fascist] == 4:
             await self.president_executing()
@@ -237,6 +217,9 @@ class Session:
     async def policy_peek(self):
         await self.president.user.send('Sonraki üç kart: {}'.format(', '.join([Card(_).name for _ in self.deck[0:3]])))
         await self.next_president()
+
+    async def investigate(self):
+        pass
 
     async def declare_win(self, party):
         if party == Card.fascist:
@@ -293,11 +276,9 @@ class Session:
         user = self.eligible_chancellors[index]
         if self.president == author and self.status == Status.president_choosing_chancellor:
             self.chancellor = user
-            _ = await self.channel.send('Şansolye {} için açık oylama:'
-                                        ' !ja !nein'.format(user))
-            await _.add_reaction(SecretHitler.emojis['yes'])
-            await _.add_reaction(SecretHitler.emojis['no'])
-            self.last_message = _
+            self.last_message = await self.channel.send('Şansolye {} için açık oylama:'.format(user))
+            await self.last_message.add_reaction(SecretHitler.emojis['yes'])
+            await self.last_message.add_reaction(SecretHitler.emojis['no'])
         self.status = Status.chancellor_voting
 
     async def chancellor_vote(self, user_id, vote):
@@ -342,14 +323,14 @@ class Session:
         self.last_message = _
         del (self.deck[0:3])
 
-    async def chancellor_choose_card(self, card):
+    async def chancellor_choosing_card(self, card):
         self.president_cards.remove(card.value)
         _ = await self.chancellor.user.send('Kartı seç')
         await _.add_reaction(SecretHitler.card_emojis[Card.liberal])
         await _.add_reaction(SecretHitler.card_emojis[Card.fascist])
         await self.chancellor.user.send('Kartlar: {}'.format(', '.join([Card(_).name for _ in self.president_cards])))
         self.last_message = _
-        self.status = Status.chancellor_choosing
+        self.status = Status.chancellor_choosing_card
 
 
 class Player:
@@ -369,7 +350,3 @@ class Player:
 
     def __str__(self):
         return self.user.name
-
-
-if __name__ == '__main__':
-    pass
