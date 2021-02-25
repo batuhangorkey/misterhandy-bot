@@ -523,7 +523,7 @@ class Handler:
                                 await self.update_footer()
                                 await self.channel.send('Birşeyler kırıldı.')
                     elif self.last_message:
-                        await self.bot.default_presence
+                        await self.bot.default_presence()
                         embed = self.last_message.embeds[0]
                         embed.description = 'Video bitti'
                         await self.last_message.edit(embed=embed)
