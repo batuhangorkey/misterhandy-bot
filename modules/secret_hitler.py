@@ -200,10 +200,12 @@ class Session:
         if card.value not in self.president_cards:
             return
         if card == Policy.fascist:
-            await self.channel.send('Şansolye {}, faşist bir politika yürürlüğe koydu.'.format(self.chancellor))
+            await self.channel.send('Şansolye {}, faşist bir politika yürürlüğe koydu. Kalan kart: {}'
+                                    .format(self.chancellor, len(self.deck)))
             self.policy_table[Policy.fascist] += 1
         elif card == Policy.liberal:
-            await self.channel.send('Şansolye {}, liberal bir politika yürürlüğe koydu.'.format(self.chancellor))
+            await self.channel.send('Şansolye {}, liberal bir politika yürürlüğe koydu. Kalan kart: {}'
+                                    .format(self.chancellor, len(self.deck)))
             self.policy_table[Policy.liberal] += 1
         await self.send_policy_table()
         await self.check_events(card, self.policy_table[card])
