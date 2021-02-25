@@ -99,6 +99,8 @@ class Music(commands.Cog):
     async def join(self, ctx, *, channel: discord.VoiceChannel = None):
         if ctx.voice_client:
             return await ctx.voice_client.move_to(channel)
+        self.handlers[ctx.guild.id] = Handler(self.bot, ctx)
+        self.handlers[ctx.guild.id].create_task()
         if channel is None:
             return await ctx.author.voice.channel.connect()
         await channel.connect()
@@ -140,9 +142,7 @@ class Music(commands.Cog):
         except Exception as error:
             logging.error(error)
         finally:
-            logging.info('Method: {} | Elapsed time: {} | String: {}'.format('play',
-                                                                             time.process_time() - start,
-                                                                             search_string))
+            logging.info('Elapsed time: {} | String: {}'.format('play', time.process_time() - start, search_string))
 
     @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
