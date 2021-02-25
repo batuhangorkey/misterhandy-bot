@@ -129,6 +129,7 @@ class Session:
             Policy.fascist: 0,
             'election_tracker': 0
         }
+        self.veto_power = False
 
         self.status = Status.president_choosing_chancellor
 
@@ -143,6 +144,10 @@ class Session:
     def players_without_president(self):
         return [_ for _ in self.players if _ != self.president]
 
+    @property
+    def fascists(self):
+        return [_ for _ in self.players if _.identity == 'fascist']
+
     @staticmethod
     def formatted_players(list_):
         return ' '.join(['{}. {}'.format(i + 1, _) for i, _ in enumerate(list_)])
@@ -156,33 +161,32 @@ class Session:
             self.players.append(Player(_, 'liberal'))
         random.shuffle(self.players)
         num_of_fascists = math.ceil(len(users) * 0.5 - 1)
-        if num_of_fascists == 0:
-            num_of_fascists = 1
         for _ in random.choices(self.players, k=num_of_fascists):
             _.identity = 'fascist'
-        self.hitler = random.choice([_ for _ in self.players if _.identity == 'fascist'])
+        self.hitler = random.choice(self.fascists)
         self.hitler.identity = 'hitler'
         self.president = self.players[0]
         await self.channel.send('Başkanlık sırası: {}'.format(', '.join([str(_) for _ in self.players])))
         if len(self.players) > 5:
             self.policy_table[Policy.fascist] = 1
         logging.info('Starting game with {} players'.format(len(self.players)))
-        await self.send_identities()
+        self.bot.loop.create_task(self.send_identities())
         await self.status_feedback()
 
     async def send_identities(self):
         try:
+            fascists_ = ', '.join(map(str, self.fascists))
             for _ in self.players:
                 if _.identity == 'liberal':
                     await _.user.send('Liberalsin.')
                 elif _.identity == 'fascist':
                     await _.user.send('Faşistsin.\n'
-                                      'Hitler {}.'.format(self.hitler))
+                                      'Faşistler: {}, '
+                                      'Hitler: {}.'.format(fascists_, self.hitler))
                 elif _.identity == 'hitler':
                     await _.user.send('Hitler\'sin.')
-                    if len(self.players) < 9:
-                        await _.user.send('Faşistler: {}'.format(
-                            ', '.join([str(_) for _ in self.players if _.identity == 'fascist'])))
+                    if len(self.players) < 7:
+                        await _.user.send('Faşistler: {}'.format(fascists_))
         except Exception as e:
             logging.error(e)
 
@@ -236,6 +240,7 @@ class Session:
         elif policy == policy.liberal and value == 5:
             await self.declare_win(Policy.liberal)
         elif policy == policy.fascist and value == 5:
+            self.veto_power = True
             self.status = Status.president_executing
             await self.status_feedback()
         elif policy == policy.fascist and value == 6:

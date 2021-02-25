@@ -185,7 +185,7 @@ class Music(commands.Cog):
         ctx.voice_client.source.volume = volume / 100
         await ctx.send('Ses seviyesi %{} oldu.'.format(volume))
 
-    @commands.command
+    @commands.command()
     async def pause(self, ctx):
         if ctx.voice_client and ctx.voice_client.source:
             ctx.voice_client.pause()
@@ -193,7 +193,7 @@ class Music(commands.Cog):
             embed.description = 'Durduruldu'
             await self.handlers[ctx.guild.id].last_message.edit(embed=embed)
 
-    @commands.command
+    @commands.command()
     async def resume(self, ctx):
         if ctx.voice_client is not None and ctx.voice_client.source:
             ctx.voice_client.resume()
