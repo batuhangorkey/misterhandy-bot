@@ -16,6 +16,7 @@ from modules.minigame import Minigame
 from modules.secret_hitler import SecretHitler
 # from modules.story_teller import Project2
 from modules.youtube_bot import Music
+from modules.codenames import CodeNames
 
 FORMAT = '%(asctime)-15s %(levelname)-5s %(funcName)-10s %(lineno)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
@@ -166,6 +167,7 @@ async def on_ready():
         bot.add_cog(Music(bot))
         # bot.add_cog(Project2(bot))
         bot.add_cog(SecretHitler(bot))
+        bot.add_cog(CodeNames(bot))
 
         for item in os.listdir('./'):
             if item.endswith(('.webm', '.m4a')):
