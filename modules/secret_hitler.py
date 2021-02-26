@@ -3,7 +3,7 @@ import logging
 import math
 import random
 
-from enum import Enum
+from enum import Enum, auto
 from discord.ext import commands
 
 
@@ -13,13 +13,15 @@ class Policy(Enum):
 
 
 class Status(Enum):
-    president_choosing_chancellor = 1
-    chancellor_voting = 2
-    president_eliminating_card = 3
-    chancellor_choosing_card = 4
-    president_executing = 5
-    president_investigating = 6
-    finish: 7
+    president_choosing_chancellor = auto()
+    chancellor_voting = auto()
+    president_eliminating_card = auto()
+    chancellor_choosing_card = auto()
+    president_executing = auto()
+    president_investigating = auto()
+    veto = auto()
+    veto_accepted = auto()
+    finish = auto()
 
 
 class SecretHitler(commands.Cog):
@@ -89,6 +91,9 @@ class SecretHitler(commands.Cog):
                                     elif session.status == Status.president_investigating:
                                         await session.investigate(self.index_emojis[emoji_submitted])
             else:
+                '''
+                DM Channel
+                '''
                 for session in self.sessions.values():
                     if payload.user_id in session.players:
                         if session.status == Status.president_eliminating_card:
@@ -99,8 +104,14 @@ class SecretHitler(commands.Cog):
                         elif session.status == Status.chancellor_choosing_card:
                             if emoji_submitted == SecretHitler.card_emojis[Policy.liberal]:
                                 await session.play_card(Policy.liberal)
-                            if emoji_submitted == SecretHitler.card_emojis[Policy.fascist]:
+                            elif emoji_submitted == SecretHitler.card_emojis[Policy.fascist]:
                                 await session.play_card(Policy.fascist)
+                            elif emoji_submitted == self.emojis['yes']:
+                                if session.status == Status.veto:
+                                    await session.status_feedback()
+                            elif emoji_submitted == self.emojis['no']:
+                                session.status = Status.veto
+                                await session.status_feedback()
                         break
         except Exception as e:
             logging.error(e)
@@ -153,7 +164,8 @@ class Session:
         return ' '.join(['{}. {}'.format(i + 1, _) for i, _ in enumerate(list_)])
 
     def reset_deck(self):
-        self.deck = random.sample([1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 17)
+        self.deck = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        random.shuffle(self.deck)
 
     async def start(self, users):
         self.reset_deck()
@@ -190,12 +202,6 @@ class Session:
         except Exception as e:
             logging.error(e)
 
-    async def next_president(self):
-        self.president_index = (self.president_index + 1) % len(self.players)
-        self.president = self.players[self.president_index]
-        self.status = Status.president_choosing_chancellor
-        await self.status_feedback()
-
     async def play_card(self, card):
         if card.value not in self.president_cards:
             return
@@ -226,6 +232,12 @@ class Session:
         await self.channel.send('Liberal politikalar: {}\n'
                                 'Faşist politikalar: {}'.format(self.policy_table[Policy(1)],
                                                                 self.policy_table[Policy(0)]))
+
+    async def next_president(self):
+        self.president_index = (self.president_index + 1) % len(self.players)
+        self.president = self.players[self.president_index]
+        self.status = Status.president_choosing_chancellor
+        await self.status_feedback()
 
     async def check_events(self, policy, value):
         if policy == Policy.fascist and value == 1 and len(self.players) > 5:
@@ -281,6 +293,14 @@ class Session:
                                                                     self.formatted_players(
                                                                         self.players_without_president)))
             await self.add_indexed_reaction(self.players_without_president)
+        elif self.status is Status.veto:
+            self.last_message = await self.president.user.send('Veto ediyor musun?')
+            await self.last_message.add_reaction(SecretHitler.emojis['yes'])
+            await self.last_message.add_reaction(SecretHitler.emojis['no'])
+        elif self.status == Status.veto_accepted:
+            self.channel.send('Veto {} tarafından kabul edildi.'.format(self.president))
+            self.president_cards.clear()
+            await self.next_president()
 
     async def policy_peek(self):
         await self.channel.send('Başkan {} destenin en üstündeki kartlara bakıyor.'.format(self.president))
@@ -361,10 +381,12 @@ class Session:
 
     async def chancellor_choosing_card(self, card):
         self.president_cards.remove(card.value)
-        _ = await self.chancellor.user.send('Kartı seç')
+        _ = await self.chancellor.send('Kartı seç')
         await _.add_reaction(SecretHitler.card_emojis[Policy.liberal])
         await _.add_reaction(SecretHitler.card_emojis[Policy.fascist])
-        await self.chancellor.user.send('Kartlar: {}'.format(', '.join([Policy(_).name for _ in self.president_cards])))
+        if self.veto_power:
+            await _.add_reaction(SecretHitler.emojis['no'])
+        await self.chancellor.send('Kartlar: {}'.format(', '.join([Policy(_).name for _ in self.president_cards])))
         self.last_message = _
         self.status = Status.chancellor_choosing_card
 
@@ -387,3 +409,7 @@ class Player:
 
     def __str__(self):
         return self.user.name
+
+    @property
+    def send(self):
+        return self.user.send
