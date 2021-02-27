@@ -73,18 +73,19 @@ class CodeNames(commands.Cog):
                     if payload.message_id == session.last_message.id:
                         message = await session.channel.fetch_message(payload.message_id)
                         if emoji_submitted == self.emojis['start']:
-                            logging.info(len(session.last_message.reactions))
+                            players = {}
                             for _ in message.reactions:
-                                if _.emoji == self.emojis['join']:
-                                    users = await _.users().flatten()
-                                    users.remove(self.bot.user)
-                                    player_count = len(users)
-                                    logging.info('Attempted to start game with {} players'.format(len(users)))
-                                    if player_count < 1 or player_count > 10:
-                                        await session.channel.send('Oyuncu sayısı uyumsuz.')
-                                    else:
-                                        await session.start(users)
-
+                                users = await _.users().flatten()
+                                users.remove(self.bot.user)
+                                if _.emoji == self.emojis['join_red']:
+                                    players['red_team'] = users
+                                if _.emoji == self.emojis['join_red_operator']:
+                                    players['red_operators'] = users
+                                if _.emoji == self.emojis['join_blue']:
+                                    players['blue_team'] = users
+                                if _.emoji == self.emojis['join_blue_operator']:
+                                    players['blue_operators'] = users
+                            await session.start(players)
                         if payload.user_id in session.players:
                             if emoji_submitted == self.emojis['yes']:
                                 await session.chancellor_vote(payload.user_id, 1)
@@ -116,11 +117,24 @@ class Session:
         self.players = []
         self.words = []
 
-    async def start(self, red_team, red_operators, blue_team, blue_operators):
-        self.players.extend([Player(_, Color.RED, False) for _ in red_team])
-        self.players.extend([Player(_, Color.RED, True) for _ in red_operators])
-        self.players.extend([Player(_, Color.BLUE, False) for _ in blue_team])
-        self.players.extend([Player(_, Color.BLUE, True) for _ in blue_operators])
+    @staticmethod
+    def get_word_table(word_pool):
+        word_table = ''
+        i = 1
+        for k, element in enumerate(word_pool, 1):
+            if k == 11 or k == 22:
+                i += 1
+            word_table += '{}. {}'.format(i, element).ljust(20)
+            if not k % 5:
+                word_table += '\n'
+            i += 1
+        return word_table
+
+    async def start(self, **kwargs):
+        self.players.extend([Player(_, Color.RED, False) for _ in kwargs['red_team']])
+        self.players.extend([Player(_, Color.RED, True) for _ in kwargs['red_operators']])
+        self.players.extend([Player(_, Color.BLUE, False) for _ in kwargs['blue_team']])
+        self.players.extend([Player(_, Color.BLUE, True) for _ in kwargs['blue_operators']])
 
         if random.getrandbits(1):
             starting_team = Color.RED
@@ -142,14 +156,7 @@ class Session:
         del (raw_words[0])
         random.shuffle(self.words)
 
-        word_list = ''
-        for i, element in enumerate(self.words):
-            if i == 11 or i == 22:
-                continue
-            if i % 5:
-                word_list += '{}. {}\n'.format(i + 1, element)
-            else:
-                word_list += '{}. {}'.format(i + 1, element)
+        word_list = self.get_word_table(raw_words)
 
         await self.channel.send('Sıra {} takımda.\n'
                                 '```{}```'.format('kırmızı' if starting_team == Color.RED else 'mavi',
