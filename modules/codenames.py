@@ -37,9 +37,9 @@ class CodeNames(commands.Cog):
 
     emojis = {
         'join_red': '\U0001F534',
-        'join_red_operator': '',
+        'join_red_operator': '1\N{COMBINING ENCLOSING KEYCAP}',
         'join_blue': '\U0001F535',
-        'join_blue_operator': '',
+        'join_blue_operator': '2\N{COMBINING ENCLOSING KEYCAP}',
         'start': u'\u25B6',
     }
 
