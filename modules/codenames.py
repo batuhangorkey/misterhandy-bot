@@ -55,9 +55,9 @@ class CodeNames(commands.Cog):
         new_session.last_message = message
         self.sessions[ctx.guild.id] = new_session
 
-    @commands.command()
+    @commands.command(name='k')
     async def give(self, ctx, *, word, tries: int):
-        pass
+        logging.info('Word: {} Tries: {}'.format(word, tries))
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
