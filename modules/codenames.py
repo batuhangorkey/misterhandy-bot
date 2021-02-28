@@ -127,7 +127,7 @@ class Session:
             while i in [10, 11, 20, 22]:
                 i += 1
             if operator:
-                word_table += '{}. {} ({})'.format(str(i).rjust(2), element, element.team.value).ljust(20)
+                word_table += '{}. {} ({})'.format(str(i).rjust(2), element.ljust(10), element.team.value).ljust(20)
             else:
                 word_table += '{}. {}'.format(str(i).rjust(2), element).ljust(20)
             if not k % 5:
