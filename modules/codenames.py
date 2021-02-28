@@ -116,6 +116,9 @@ class Session:
         self.players = []
         self.words = []
 
+        self.input = Input()
+        self.tries = 0
+
     @staticmethod
     def get_word_table(word_pool, operator=False):
         word_table = ''
@@ -158,10 +161,15 @@ class Session:
         del raw_words
         random.shuffle(self.words)
         word_list = self.get_word_table(self.words)
-        await self.channel.send('Sıra {} takımda.\n'
-                                '```{}```'.format('kırmızı' if starting_team == Color.RED else 'mavi', word_list))
+        self.last_message = await self.channel.send('Sıra {} takımda.\n```{}```'.format(
+            'kırmızı' if starting_team == Color.RED else 'mavi', word_list))
         for operator in [_ for _ in self.players if _.operator]:
             await operator.send('```{}```'.format(self.get_word_table(self.words, True)))
+
+    async def add_clue(self, tries):
+        self.tries = tries
+        for emoji in CodeNames.index_emojis.keys():
+            await self.last_message.add_reaction(emoji)
 
 
 class Player:
@@ -183,3 +191,23 @@ class Word:
 
     def __str__(self):
         return self.word
+
+
+class Input:
+    def __init__(self, k=None):
+        self.k = k
+
+    def __add__(self, other):
+        if self.k:
+            return Input(k=self.k + other)
+        else:
+            return Input(k=other * 10)
+
+    def remove(self):
+        if self.k and self.k % 10:
+            self.k = self.k - self.k % 10
+        else:
+            self.k = None
+
+    def __int__(self):
+        return self.k if self.k else 0
