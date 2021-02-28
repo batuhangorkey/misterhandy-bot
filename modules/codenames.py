@@ -161,7 +161,7 @@ class Session:
         await self.channel.send('Sıra {} takımda.\n'
                                 '```{}```'.format('kırmızı' if starting_team == Color.RED else 'mavi', word_list))
         for operator in [_ for _ in self.players if _.operator]:
-            await operator.send('```{}```'.format(self.get_word_table((self.words, True))))
+            await operator.send('```{}```'.format(self.get_word_table(self.words, True)))
 
 
 class Player:
