@@ -294,7 +294,7 @@ class Session:
                                                                         self.players_without_president)))
             await self.add_indexed_reaction(self.players_without_president)
         elif self.status is Status.veto:
-            self.last_message = await self.president.user.send('Veto ediyor musun?')
+            self.last_message = await self.president.send('Veto ediyor musun?')
             await self.last_message.add_reaction(SecretHitler.emojis['yes'])
             await self.last_message.add_reaction(SecretHitler.emojis['no'])
         elif self.status == Status.veto_accepted:
@@ -304,14 +304,14 @@ class Session:
 
     async def policy_peek(self):
         await self.channel.send('Başkan {} destenin en üstündeki kartlara bakıyor.'.format(self.president))
-        await self.president.user.send(
+        await self.president.send(
             'Sonraki üç kart: {}'.format(', '.join([Policy(_).name for _ in self.deck[0:3]])))
         await self.next_president()
 
     async def investigate(self, player):
         player = self.players_without_president[player]
         identity = 'faşist' if player.identity == 'fascist' or player.identity == 'hitler' else 'liberal'
-        await self.president.user.send('{}: {}.'.format(player, identity))
+        await self.president.send('{}: {}.'.format(player, identity))
 
     async def special_election(self):
         """

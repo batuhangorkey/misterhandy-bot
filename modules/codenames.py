@@ -1,17 +1,16 @@
 import discord
 import logging
-import math
 import random
 
-from enum import Enum, auto
+from enum import Enum
 from discord.ext import commands
 
 
 class Color(Enum):
-    RED = auto()
-    BLUE = auto()
-    NEUTRAL = auto()
-    BLACK = auto()
+    RED = 'KI'
+    BLUE = 'MA'
+    NEUTRAL = 'NÖ'
+    BLACK = 'SI'
 
 
 class Status(Enum):
@@ -50,11 +49,11 @@ class CodeNames(commands.Cog):
     @commands.command(name='codenames')
     async def code_names(self, ctx):
         new_session = Session(self.bot, ctx.channel)
-        self.sessions[ctx.guild.id] = new_session
         message = await ctx.send('Oyuncular toplanıyor')
-        for _ in self.emojis:
+        for _ in self.emojis.values():
             await message.add_reaction(_)
         new_session.last_message = message
+        self.sessions[ctx.guild.id] = new_session
 
     @commands.command()
     async def give(self, ctx, *, word, tries: int):
@@ -85,7 +84,7 @@ class CodeNames(commands.Cog):
                                     players['blue_team'] = users
                                 if _.emoji == self.emojis['join_blue_operator']:
                                     players['blue_operators'] = users
-                            await session.start(players)
+                            await session.start(**players)
                         if payload.user_id in session.players:
                             if emoji_submitted == self.emojis['yes']:
                                 await session.chancellor_vote(payload.user_id, 1)
@@ -118,13 +117,16 @@ class Session:
         self.words = []
 
     @staticmethod
-    def get_word_table(word_pool):
+    def get_word_table(word_pool, operator=False):
         word_table = ''
         i = 1
         for k, element in enumerate(word_pool, 1):
             if k == 11 or k == 22:
                 i += 1
-            word_table += '{}. {}'.format(i, element).ljust(20)
+            if operator:
+                word_table += '{}. {} ({})'.format(str(i).rjust(2), element, element.value()).ljust(20)
+            else:
+                word_table += '{}. {}'.format(str(i).rjust(2), element).ljust(20)
             if not k % 5:
                 word_table += '\n'
             i += 1
@@ -152,15 +154,14 @@ class Session:
         del (raw_words[0:blue_word_count])
         self.words.extend([Word(_, Color.NEUTRAL) for _ in raw_words[0:7]])
         del (raw_words[0:7])
-        self.words.extend(raw_words[0])
-        del (raw_words[0])
+        self.words.extend(raw_words)
+        del raw_words
         random.shuffle(self.words)
-
-        word_list = self.get_word_table(raw_words)
-
+        word_list = self.get_word_table(self.words)
         await self.channel.send('Sıra {} takımda.\n'
-                                '```{}```'.format('kırmızı' if starting_team == Color.RED else 'mavi',
-                                                  word_list))
+                                '```{}```'.format('kırmızı' if starting_team == Color.RED else 'mavi', word_list))
+        for operator in [_ for _ in self.players if _.operator]:
+            await operator.send('```{}```'.format(self.get_word_table((self.words, True))))
 
 
 class Player:
@@ -169,11 +170,16 @@ class Player:
         self.team = team
         self.operator = operator
 
+    @property
+    def send(self):
+        return self.user.send
+
 
 class Word:
     def __init__(self, word, team):
         self.word = word
         self.team = team
+        self.revealed = False
 
     def __str__(self):
         return self.word
