@@ -124,10 +124,10 @@ class Session:
         word_table = ''
         i = 1
         for k, element in enumerate(word_pool, 1):
-            if k in [10, 11, 20, 22]:
+            while i in [10, 11, 20, 22]:
                 i += 1
             if operator:
-                word_table += '{}. {} ({})'.format(str(i).rjust(2), element, element.value()).ljust(20)
+                word_table += '{}. {} ({})'.format(str(i).rjust(2), element, element.team.value).ljust(20)
             else:
                 word_table += '{}. {}'.format(str(i).rjust(2), element).ljust(20)
             if not k % 5:
@@ -157,14 +157,14 @@ class Session:
         del (raw_words[0:blue_word_count])
         self.words.extend([Word(_, Color.NEUTRAL) for _ in raw_words[0:7]])
         del (raw_words[0:7])
-        self.words.extend(raw_words)
+        self.words.extend([Word(raw_words[0], Color.BLACK)])
         del raw_words
         random.shuffle(self.words)
         word_list = self.get_word_table(self.words)
         self.last_message = await self.channel.send('Sıra {} takımda.\n```{}```'.format(
             'kırmızı' if starting_team == Color.RED else 'mavi', word_list))
         for operator in [_ for _ in self.players if _.operator]:
-            await operator.send('```{}```'.format(self.get_word_table(self.words, True)))
+            await operator.send('```fix\n{}\n```'.format(self.get_word_table(self.words, True)))
 
     async def add_clue(self, tries):
         self.tries = tries
