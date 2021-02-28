@@ -124,7 +124,7 @@ class Session:
         word_table = ''
         i = 1
         for k, element in enumerate(word_pool, 1):
-            if k == 11 or k == 22:
+            if k in [10, 11, 20, 22]:
                 i += 1
             if operator:
                 word_table += '{}. {} ({})'.format(str(i).rjust(2), element, element.value()).ljust(20)
