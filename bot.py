@@ -167,7 +167,7 @@ async def on_ready():
         bot.add_cog(Music(bot))
         # bot.add_cog(Project2(bot))
         bot.add_cog(SecretHitler(bot))
-        bot.add_cog(CodeNames(bot))
+        # bot.add_cog(CodeNames(bot))
 
         for item in os.listdir('./'):
             if item.endswith(('.webm', '.m4a')):
