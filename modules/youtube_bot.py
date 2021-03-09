@@ -10,6 +10,7 @@ import time
 
 import discord
 import youtube_dl
+
 from discord.ext import commands
 from youtube_search import YoutubeSearch
 
@@ -98,11 +99,13 @@ class Music(commands.Cog):
     async def join(self, ctx, *, channel: discord.VoiceChannel = None):
         if ctx.voice_client:
             return await ctx.voice_client.move_to(channel)
+        self.handlers[ctx.guild.id] = Handler(self.bot, ctx)
+        self.handlers[ctx.guild.id].create_task()
         if channel is None:
             return await ctx.author.voice.channel.connect()
         await channel.connect()
 
-    @commands.command(help="Downloads audio from a url.")
+    @commands.command(help="Downloads audio from a Youtube url.")
     async def download(self, ctx, *, url):
         async with ctx.typing():
             logging.info('Requested: {}'.format(url))
@@ -122,11 +125,9 @@ class Music(commands.Cog):
             audio = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
             if audio is None:
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
-            # sıraya ekle
-            await self.handlers[ctx.guild.id].queue.put((ctx, audio))
-            await self.handlers[ctx.guild.id].send_player_embed(audio)
+            await self.handlers[ctx.guild.id].source_handler(ctx, audio)
 
-    @commands.command(help='Plays the first result from a search string.')
+    @commands.command(help='Plays url and search string from Youtube.')
     async def play(self, ctx, *, search_string):
         start = time.process_time()
         try:
@@ -134,14 +135,14 @@ class Music(commands.Cog):
                 result = YoutubeSearch(search_string, max_results=1).to_dict()
                 url = 'https://www.youtube.com' + result[0]['url_suffix']
                 audio = await YTDLSource.from_url(url, loop=self.bot.loop)
-                if audio is None:
+                if isinstance(audio, YTDLSource):
+                    await self.handlers[ctx.guild.id].source_handler(ctx.channel, audio)
+                else:
                     return await ctx.send('Bir şeyler yanlış. Bir daha dene')
-                await self.handlers[ctx.guild.id].queue.put((ctx, audio))
-                await self.handlers[ctx.guild.id].send_player_embed(audio)
         except Exception as error:
             logging.error(error)
         finally:
-            logging.info('Method: {} | Elapsed time: {}'.format('play', time.process_time() - start))
+            logging.info('Elapsed time: {} | String: {}'.format('play', time.process_time() - start, search_string))
 
     @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
@@ -149,7 +150,7 @@ class Music(commands.Cog):
         self.handlers[ctx.guild.id].search_list.clear()
         results = YoutubeSearch(search_string, max_results=10).to_dict()
         embed = discord.Embed(colour=0x8B0000)
-        for _, i in list(enumerate(results)):
+        for i, _ in list(enumerate(results)):
             k = '[{} - {}](https://www.youtube.com{})'
             embed.add_field(name=' - '.join([str(i + 1), _['title']]),
                             value=k.format(_['channel'], _['duration'], _['url_suffix']))
@@ -166,14 +167,14 @@ class Music(commands.Cog):
         async with ctx.typing():
             if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
                 if not self.handlers[ctx.guild.id].play_random:
-                    audio = await YTDLSource.from_url(self.handlers[ctx.guild.id].get_song(),
-                                                      loop=self.bot.loop,
-                                                      stream=True)
-                    if audio is None:
+                    source = await YTDLSource.from_url(self.handlers[ctx.guild.id].get_song(),
+                                                       loop=self.bot.loop,
+                                                       stream=True)
+                    if source is None:
                         return await ctx.send('Bir şeyler yanlış. Bir daha dene')
-                    await self.handlers[ctx.guild.id].queue.put((ctx, audio))
+                    await self.handlers[ctx.guild.id].source_handler(ctx, source)
             self.handlers[ctx.guild.id].play_random = not self.handlers[ctx.guild.id].play_random
-        await self.handlers[ctx.guild.id].send_player_embed()
+        await self.handlers[ctx.guild.id].update_footer()
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
@@ -184,7 +185,7 @@ class Music(commands.Cog):
         ctx.voice_client.source.volume = volume / 100
         await ctx.send('Ses seviyesi %{} oldu.'.format(volume))
 
-    @commands.command(help='Pauses')
+    @commands.command()
     async def pause(self, ctx):
         if ctx.voice_client and ctx.voice_client.source:
             ctx.voice_client.pause()
@@ -192,7 +193,7 @@ class Music(commands.Cog):
             embed.description = 'Durduruldu'
             await self.handlers[ctx.guild.id].last_message.edit(embed=embed)
 
-    @commands.command(help='Resumes')
+    @commands.command()
     async def resume(self, ctx):
         if ctx.voice_client is not None and ctx.voice_client.source:
             ctx.voice_client.resume()
@@ -224,7 +225,7 @@ class Music(commands.Cog):
             if ctx.voice_client is not None:
                 await ctx.voice_client.disconnect()
 
-    @commands.command(help='Adds song to bot playlist')
+    @commands.command()
     async def add_link(self, ctx, url: str):
         try:
             with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
@@ -241,7 +242,7 @@ class Music(commands.Cog):
             else:
                 entries = [data]
             for entry in entries:
-                if entry.get('webpage_url') in self.handlers[ctx.guild.id].static_random_playlist:
+                if entry.get('webpage_url') in self.handlers[ctx.guild.id].db_playlist:
                     await ctx.send('Bu şarkı listede var: {}'.format(entry.get('title')))
                     continue
                 with conn.cursor() as cursor:
@@ -250,19 +251,21 @@ class Music(commands.Cog):
 
                     cursor.execute('SELECT url FROM playlist where url="{}"'.format(entry.get('webpage_url')))
                     data = cursor.fetchone()
-
                 if data:
                     added_songs.append(entry.get('title'))
                 else:
                     failed_songs.append(entry.get('title'))
-        finally:
-            conn.close()
             await ctx.send('Eklenen şarkılar:\n'
                            '```{}```'.format('\n'.join(added_songs)))
             if len(failed_songs) > 0:
                 await ctx.send('\nBaşına bir şey gelen şarkılar:\n'
                                '```{}```'.format('\n'.join(failed_songs)))
             self.handlers[ctx.guild.id].reset_db_playlist()
+            await self.handlers[ctx.guild.id].update_footer()
+        except Exception as error:
+            logging.error(error)
+        finally:
+            conn.close()
 
     @commands.command(help='Go to the time on the video')
     async def goto(self, ctx, target_time: int):
@@ -279,13 +282,13 @@ class Music(commands.Cog):
                 self.handlers[ctx.guild.id].queue.task_done()
                 self.handlers[ctx.guild.id].queue.put_nowait(a)
 
-    @commands.command(help='Set backward forward time value')
+    @commands.command()
     async def set_skip_time(self, ctx, time_set: int):
         async with ctx.typing():
             self.handlers[ctx.guild.id].time_setting = time_set
 
     # TODO: Write this method
-    @commands.command(help='Switch fancy player message format')
+    @commands.command()
     async def fancy_player(self, ctx):
         pass
 
@@ -313,29 +316,32 @@ class Music(commands.Cog):
     async def on_reaction_add(self, reaction, user):
         if user.bot:
             return
-        guild_id = reaction.message.guild.id
-        if reaction.message.id == self.handlers[guild_id].last_message.id:
-            if reaction.emoji == player_emojis['next_track']:
-                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('skip'))
-            if reaction.emoji == player_emojis['play_pause']:
-                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('pause'))
-            if reaction.emoji == player_emojis['stop']:
-                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('stop'))
-            if reaction.emoji == player_emojis['backward']:
-                delta_time = time.time() - self.handlers[guild_id].source_start_time
-                target_time = self.handlers[guild_id].time_cursor + delta_time - self.handlers[guild_id].time_setting
-                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('goto'),
-                                                                target_time=target_time)
-            if reaction.emoji == player_emojis['forward']:
-                delta_time = time.time() - self.handlers[guild_id].source_start_time
-                target_time = self.handlers[guild_id].time_cursor + delta_time + self.handlers[guild_id].time_setting
-                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('goto'),
-                                                                target_time=target_time)
-            if reaction.emoji == playlist_emojis['dislike']:
-                self.handlers[guild_id].dislike()
-                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('skip'))
-            if reaction.emoji == playlist_emojis['like']:
-                await self.handlers[guild_id].like()
+        if self.handlers.get(reaction.message.guild.id) is not None:
+            guild_id = reaction.message.guild.id
+            if reaction.message.id == self.handlers[guild_id].last_message.id:
+                if reaction.emoji == player_emojis['next_track']:
+                    return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('skip'))
+                if reaction.emoji == player_emojis['play_pause']:
+                    return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('pause'))
+                if reaction.emoji == player_emojis['stop']:
+                    return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('stop'))
+                if reaction.emoji == player_emojis['backward']:
+                    delta_time = time.time() - self.handlers[guild_id].source_start_time
+                    target_time = self.handlers[guild_id] \
+                                      .time_cursor + delta_time - self.handlers[guild_id].time_setting
+                    return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('goto'),
+                                                                    target_time=target_time)
+                if reaction.emoji == player_emojis['forward']:
+                    delta_time = time.time() - self.handlers[guild_id].source_start_time
+                    target_time = self.handlers[guild_id] \
+                                      .time_cursor + delta_time + self.handlers[guild_id].time_setting
+                    return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('goto'),
+                                                                    target_time=target_time)
+                if reaction.emoji == playlist_emojis['dislike']:
+                    self.handlers[guild_id].dislike()
+                    return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('skip'))
+                if reaction.emoji == playlist_emojis['like']:
+                    await self.handlers[guild_id].like()
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
@@ -358,51 +364,62 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, msg):
-        if msg.author == self.bot.user:
-            return
         try:
+            if msg.author is self.bot.user and msg.author is not self.ctx.author:
+                return
             index = int(msg.content)
-        except ValueError:
-            return
-        if index < 1 or 10 < index:
-            return
-        music = self.bot.get_cog('Music')
-        await self.ctx.invoke(music.bot.get_command('play'), url=music.search_list[index - 1])
-        music.search_list.clear()
-        self.bot.remove_cog('Events')
+            if index < 1 or 10 < index:
+                return
+            music = self.bot.get_cog('Music')
+            handler = music.handlers[self.ctx.guild.id]
+            await self.ctx.invoke(music.bot.get_command('play'), search_string=handler.search_list[index - 1])
+            music.search_list.clear()
+        except ValueError as error:
+            logging.error(error)
+        except Exception as error:
+            logging.error(error)
+        finally:
+            self.bot.remove_cog('Events')
 
 
 class Handler:
     def __init__(self, bot, ctx):
-        self._ctx = ctx
+        self.channel = ctx.channel
+        self.voice_client = ctx.voice_client
         self._random_playlist = []
         self._last_message = None
         self.bot = bot
+
         self.queue = asyncio.Queue(loop=bot.loop)
         self.play_next = asyncio.Event(loop=bot.loop)
+        self.task = None
+
         self.search_list = []
         self.random_playlist = []
         self.queue_value = []
+
         self.source_start_time = None
         self.time_cursor = None
-        self.task = None
         self.time_setting = 30
-        self.fancy_format = True
-        self.play_random = False
-        self.reset_db_playlist()
 
-    @property
-    def ctx(self):
-        return self._ctx
+        self.play_random = False
+        self.footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - v{}'
+        self.fancy_format = True
+
+        self.reset_db_playlist()
 
     @property
     def last_message(self):
         return self._last_message
 
+    @property
+    def db_playlist(self):
+        return self._random_playlist
+
     def create_task(self):
         if self.task:
             self.task.cancel()
-        self.task = self.bot.loop.create_task(self.audio_player())
+        self.task = self.bot.loop.create_task(self.queue_handler())
 
     def reset_db_playlist(self):
         self._random_playlist = self.bot.get_random_playlist()
@@ -414,52 +431,53 @@ class Handler:
     def toggle_next(self):
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
 
-    def get_player_message_body(self, audio):
-        if audio.start_time != 0:
-            description = 'Şimdi oynatılıyor - {} dan başladı'.format(time.strftime('%M:%S',
-                                                                                    time.gmtime(audio.start_time)))
-        else:
-            description = 'Şimdi oynatılıyor'
-        embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(audio),
-                              url=audio.url,
-                              description=description,
-                              colour=0x8B0000)
-        embed = self.set_footer(embed)
-        embed.set_thumbnail(url=audio.thumbnail)
-        return embed
+    def get_player_message_body(self, source: YTDLSource):
+        try:
+            if source.start_time != 0:
+                description = 'Şimdi oynatılıyor - {} dan başladı'.format(time.strftime('%M:%S',
+                                                                                        time.gmtime(source.start_time)))
+            else:
+                description = 'Şimdi oynatılıyor'
+            embed = discord.Embed(title='{0.title} ({0.duration}) by {0.uploader}'.format(source),
+                                  url=source.url,
+                                  description=description,
+                                  colour=0x8B0000)
+            embed.set_footer(text=self.footer.format('açık' if self.play_random else 'kapalı',
+                                                     len(self._random_playlist),
+                                                     self.bot.git_hash))
+            embed.set_thumbnail(url=source.thumbnail)
+            return embed
+        except Exception as error:
+            logging.error(error)
+        finally:
+            pass
 
-    def set_footer(self, embed):
-        footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - v{}'
-        embed.set_footer(text=footer.format('açık' if self.play_random else 'kapalı',
-                                            len(self._random_playlist),
-                                            self.bot.git_hash))
-        return embed
-
-    def attach_queue(self, embed):
-        for name, value in list(enumerate(self.queue_value)):
-            embed.add_field(name=str(name + 1), value=value)
-        return embed
-
-    async def edit_footer(self):
-        if self.last_message:
-            embed = self.set_footer(self.last_message.embeds[0])
+    async def update_footer(self):
+        try:
+            embed = self.last_message.embeds[0]
+            embed.set_footer(text=self.footer.format('açık' if self.play_random else 'kapalı',
+                                                     len(self._random_playlist),
+                                                     self.bot.git_hash))
             await self.last_message.edit(embed=embed)
-        else:
-            await self.send_player_embed()
+        finally:
+            pass
 
-    async def send_player_embed(self, audio=None):
-        if self.ctx.voice_client.source:
-            self.queue_value.append(audio.title)
-            embed = self.get_player_message_body(self.ctx.voice_client.source)
-        elif audio:
-            embed = self.get_player_message_body(audio)
+    async def send_player_embed(self):
+        if self.last_message:
+            embed = self.get_player_message_body(self.voice_client.source)
+            embed.clear_fields()
+            for i, value in list(enumerate(self.queue_value)):
+                embed.add_field(name=str(i + 1), value=value)
+            return await self.last_message.edit(embed=embed)
         else:
-            return
-        embed = self.attach_queue(embed)
+            embed = self.get_player_message_body(self.voice_client.source)
+            for i, value in list(enumerate(self.queue_value)):
+                embed.add_field(name=str(i + 1), value=value)
 
-        if self._last_message is not None:
+        if self.last_message is not None:
             await self._last_message.delete()
-        self._last_message = await self.ctx.send(embed=embed)
+        self._last_message = await self.channel.send(embed=embed)
+
         if self.play_random:
             for _ in playlist_emojis.values():
                 await self.last_message.add_reaction(_)
@@ -474,57 +492,61 @@ class Handler:
         self.random_playlist.remove(song)
         return song[0]
 
-    async def audio_player(self):
+    async def source_handler(self, channel, source):
+        self.channel = channel
+        if self.queue.empty():
+            if self.voice_client.source:
+                self.queue_value.append(source.title)
+                await self.send_player_embed()
+        else:
+            self.queue_value.append(source.title)
+            await self.send_player_embed()
+        await self.queue.put(source)
+
+    async def queue_handler(self):
         while True:
-            self.play_next.clear()
-            self.time_cursor = 0
-            if len(self.queue_value) != 0:
-                self.queue_value.pop(0)
             try:
-                if self.queue.qsize() == 0:
-                    if self.play_random and self.ctx.voice_client is not None:
-                        async with self.ctx.typing():
-                            audio = await YTDLSource.from_url(self.get_song(),
-                                                              loop=self.bot.loop,
-                                                              stream=True)
-                            if audio:
-                                await self.queue.put((self.ctx, audio))
+                self.play_next.clear()
+                self.time_cursor = 0
+                if len(self.queue_value) != 0:
+                    self.queue_value.pop(0)
+                if self.queue.empty():
+                    if self.play_random and self.voice_client is not None:
+                        async with self.channel.typing():
+                            source = await YTDLSource.from_url(self.get_song(),
+                                                               loop=self.bot.loop,
+                                                               stream=True)
+                            if source:
+                                await self.queue.put((self.channel, source))
                             else:
-                                await self.ctx.invoke(self.bot.get_command('play_random'))
-                                await self.ctx.send('Birşeyler kırıldı.')
+                                self.play_random = False
+                                await self.update_footer()
+                                await self.channel.send('Birşeyler kırıldı.')
                     elif self.last_message:
-                        await self.bot.change_presence(activity=self.bot.default_presence)
+                        await self.bot.default_presence()
                         embed = self.last_message.embeds[0]
                         embed.description = 'Video bitti'
                         await self.last_message.edit(embed=embed)
-            except Exception as error:
-                logging.error(error)
-            finally:
-                pass
-            try:
                 current = await self.queue.get()
-                self._ctx, audio = current
-                if isinstance(audio, YTDLSource):
-                    self.ctx.voice_client.play(audio,
-                                               after=lambda e: print('Player error: %s' % e)
-                                               if e else self.toggle_next())
-                    self.source_start_time = time.time()
-                    await self.send_player_embed()
-
-                    await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                             name=audio.title))
-                else:
-                    logging.error('Source is empty')
+                source = current
+                self.voice_client.play(source,
+                                       after=lambda e: print('Player error: %s' % e)
+                                       if e else self.toggle_next())
+                await self.send_player_embed()
+                self.source_start_time = time.time()
+                await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
+                                                                         name=source.title))
                 await self.play_next.wait()
             except Exception as error:
                 logging.error(error)
+                break
             finally:
                 pass
 
     def dislike(self):
-        if self.ctx.voice_client.source is None:
+        if self.voice_client.source is None:
             return
-        url = self.ctx.voice_client.source.url
+        url = self.voice_client.source.url
         if url not in [url for url, s in self._random_playlist]:
             return
         conn = self.bot.get_pymysql_connection()
@@ -537,11 +559,11 @@ class Handler:
             return
 
     async def like(self):
-        if self.ctx.voice_client.source is None:
+        if self.voice_client.source is None:
             return
-        url = self.ctx.voice_client.source.url
+        url = self.voice_client.source.url
         if url not in [url for url, s in self._random_playlist]:
-            return await self.ctx.send('Sadece şarkı listesindeki şarkılar beğenilebilir.')
+            return await self.channel.send('Sadece şarkı listesindeki şarkılar beğenilebilir.')
         conn = self.bot.get_pymysql_connection()
         try:
             with conn.cursor() as cursor:

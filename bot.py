@@ -13,10 +13,12 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 from modules.minigame import Minigame
-from modules.story_teller import Project2
+from modules.secret_hitler import SecretHitler
+# from modules.story_teller import Project2
 from modules.youtube_bot import Music
+from modules.codenames import CodeNames
 
-FORMAT = '%(asctime)s %(levelname)s %(funcName)s %(message)s'
+FORMAT = '%(asctime)-15s %(levelname)-5s %(funcName)-10s %(lineno)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 
 if '.heroku' in os.listdir('./'):
@@ -33,8 +35,8 @@ else:
     HEROKU = False
     config = configparser.ConfigParser()
     config.read('config.ini')
-    bot_token = config.get('Bot', 'Token')
-    database_config = dict(config.items('Database'))
+    _bot_token = config.get('Bot', 'Token')
+    _database_config = dict(config.items('Database'))
 
 
 class CustomBot(commands.Bot):
@@ -74,7 +76,10 @@ class CustomBot(commands.Bot):
         if HEROKU:
             return 'heroku'
         else:
-            return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
+            try:
+                return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
+            except WindowsError:
+                return 'LocalHost'
 
     @property
     def token(self):
@@ -123,8 +128,12 @@ class CustomBot(commands.Bot):
         return db_playlist
 
     async def default_presence(self):
-        await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                             name=random.choice(CustomBot.presences)))
+        try:
+            await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
+                                                                 name=random.choice(CustomBot.presences)),
+                                       status=self.git_hash)
+        except Exception as e:
+            logging.error(e)
 
 
 bot = CustomBot()
@@ -132,7 +141,7 @@ bot = CustomBot()
 
 # TODO:
 #  Organize all to a single class
-#  Add auto moderation function
+#  Add auto moderation functions
 #  Discord role manupulation
 
 
@@ -152,18 +161,22 @@ async def on_ready():
             logging.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
 
         await bot.default_presence()
-        bot.add_cog(Project2(bot))
+
+        bot.add_cog(Minigame(bot, user_table=bot.fetch_user_tables()[0]))
         bot.add_cog(Music(bot))
+        # bot.add_cog(Project2(bot))
+        bot.add_cog(SecretHitler(bot))
+        bot.add_cog(CodeNames(bot))
 
         for item in os.listdir('./'):
             if item.endswith(('.webm', '.m4a')):
                 os.remove(item)
-
         logging.info(os.path.abspath(os.path.dirname(__file__)))
         for item in os.listdir('./'):
             logging.info('\t{}'.format(item))
+
         end = time.process_time() - start
-        logging.info('Method: {} | Elapsed time: {}'.format('on_ready', end))
+        logging.info('Elapsed time: {}'.format(end))
     except Exception as e:
         logging.error(e)
 
@@ -178,17 +191,7 @@ async def on_error(event, *args, **kwargs):
 '''
 
 
-@bot.command(help='Enable minigame')
-async def minigame(ctx):
-    try:
-        if bot.get_cog('Minigame'):
-            bot.remove_cog('Minigame')
-        bot.add_cog(Minigame(bot, user_table=bot.fetch_user_tables()[0]))
-    finally:
-        await ctx.send('Enabled minigame')
-
-
-@bot.command(help='Roll dice.')
+@bot.command(help='Rolls dice. <number of dice> <number of sides>')
 async def roll(ctx, number_of_dice: int, number_of_sides: int):
     dice = [
         str(random.choice(range(1, number_of_sides + 1)))
@@ -197,14 +200,19 @@ async def roll(ctx, number_of_dice: int, number_of_sides: int):
     await ctx.send(', '.join(dice))
 
 
-@bot.command(help='FATE zarı atar')
-async def zar(ctx, modifier: int = 0):
+@bot.command(help='FATE dice')
+async def fate(ctx, modifier: int = 0):
     dice = [
         random.choice([-1, -1, 0, 0, 1, 1])
         for _ in range(4)
     ]
-    _sum = sum(dice) + modifier
-    await ctx.send(', '.join(map(str, dice)) + ' + {} = {}   **{}**'.format(modifier, _sum, CustomBot.adj[_sum]))
+    sum_ = sum(dice) + modifier
+    if sum_ > 8:
+        sum_ = 8
+    elif sum_ < -4:
+        sum_ = -4
+    modifier = '{}'.format('+{}'.format(modifier) if modifier > 0 else modifier) if modifier != 0 else ''
+    await ctx.send('{} {} = {} **{}**'.format(', '.join(map(str, dice)), modifier, sum_, CustomBot.adj[sum_]))
 
 
 @bot.command(help='Tries to purge max 50 messages sent by the bot.')
@@ -226,17 +234,17 @@ async def delete(ctx, limit: int = None):
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
-@bot.command(help='Refreshes bot.')
-async def reset(ctx):
-    await ctx.send("Hoşçakalın")
-    logging.info("Going offine")
-    exit()
-
-
-@bot.command(help='Pings bot')
+@bot.command()
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
-    await ctx.send("Elapsed seconds: {}".format(delta.total_seconds()))
+    await ctx.send("Elapsed seconds: {} | v{}".format(delta.total_seconds(), bot.git_hash))
+
+
+'''
+@bot.check
+def check_command(ctx):
+    pass
+'''
 
 
 @bot.check
