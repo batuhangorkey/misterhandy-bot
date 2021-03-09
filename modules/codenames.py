@@ -1,9 +1,9 @@
-import discord
+import itertools
 import logging
 import random
-import itertools
-
 from enum import Enum
+
+import discord
 from discord.ext import commands
 
 
@@ -99,6 +99,8 @@ class CodeNames(commands.Cog):
                             '''
                             Session Check
                             '''
+                            if emoji_submitted == self.emojis['end']:
+                                await session.end_turn()
                             if emoji_submitted in self.index_emojis:
                                 if session.team_turn == Color.RED:
                                     logging.info('Reds turn.')
