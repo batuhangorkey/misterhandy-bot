@@ -79,38 +79,42 @@ class CodeNames(commands.Cog):
                 guild_id = payload.guild_id
                 if self.sessions.get(guild_id) is not None:
                     session = self.sessions.get(guild_id)
-                    if payload.message_id == session.last_message.id:
-                        message = await session.channel.fetch_message(payload.message_id)
-                        if emoji_submitted == self.emojis['start']:
-                            players = {}
-                            for _ in message.reactions:
-                                users = await _.users().flatten()
-                                users.remove(self.bot.user)
-                                if _.emoji == self.emojis['join_red']:
-                                    players['red_team'] = [Player(_, Color.RED, False) for _ in users]
-                                if _.emoji == self.emojis['join_red_operator']:
-                                    players['red_operators'] = [Player(_, Color.RED, True) for _ in users]
-                                if _.emoji == self.emojis['join_blue']:
-                                    players['blue_team'] = [Player(_, Color.BLUE, False) for _ in users]
-                                if _.emoji == self.emojis['join_blue_operator']:
-                                    players['blue_operators'] = [Player(_, Color.BLUE, True) for _ in users]
-                            await session.start(**players)
-                        '''
-                        Session Check
-                        '''
-                        if emoji_submitted in self.index_emojis:
-                            if session.turn == Color.RED:
-                                logging.info('Reds turn.')
-                                if payload.user_id in session.players['red_operators']:
-                                    logging.info('User in red team')
-                                    if payload.event_type == 'REACTION_ADD':
-                                        await session.add(self.index_emojis[emoji_submitted])
-                                    if payload.event_type == 'REACTION_REMOVE':
-                                        await session.remove()
-                            elif session.turn == Color.BLUE:
-                                logging.info('Blues turn.')
-                                if payload.user_id in session.players['blue_team']:
-                                    pass
+                    if isinstance(session, Session):
+                        if payload.message_id == session.last_message.id:
+                            message = await session.channel.fetch_message(payload.message_id)
+                            if emoji_submitted == self.emojis['start']:
+                                players = {}
+                                for _ in message.reactions:
+                                    users = await _.users().flatten()
+                                    users.remove(self.bot.user)
+                                    if _.emoji == self.emojis['join_red']:
+                                        players['red_team'] = [Player(_, Color.RED, False) for _ in users]
+                                    if _.emoji == self.emojis['join_red_operator']:
+                                        players['red_operators'] = [Player(_, Color.RED, True) for _ in users]
+                                    if _.emoji == self.emojis['join_blue']:
+                                        players['blue_team'] = [Player(_, Color.BLUE, False) for _ in users]
+                                    if _.emoji == self.emojis['join_blue_operator']:
+                                        players['blue_operators'] = [Player(_, Color.BLUE, True) for _ in users]
+                                await session.start(**players)
+                            '''
+                            Session Check
+                            '''
+                            if emoji_submitted in self.index_emojis:
+                                if session.team_turn == Color.RED:
+                                    logging.info('Reds turn.')
+                                    if payload.user_id in session.players['red_team']:
+                                        logging.info('User in red team')
+                                        if payload.event_type == 'REACTION_ADD':
+                                            await session.add(self.index_emojis[emoji_submitted])
+                                        if payload.event_type == 'REACTION_REMOVE':
+                                            await session.remove()
+                                elif session.team_turn == Color.BLUE:
+                                    logging.info('Blues turn.')
+                                    if payload.user_id in session.players['blue_team']:
+                                        if payload.event_type == 'REACTION_ADD':
+                                            await session.add(self.index_emojis[emoji_submitted])
+                                        if payload.event_type == 'REACTION_REMOVE':
+                                            await session.remove()
             else:
                 '''
                 DM Channel
@@ -127,23 +131,27 @@ class CodeNames(commands.Cog):
             guild_id = payload.guild_id
             if self.sessions.get(guild_id) is not None:
                 session = self.sessions.get(guild_id)
-                if payload.message_id == session.last_message.id:
-                    '''
-                    Session Check
-                    '''
-                    if emoji_submitted in self.index_emojis:
-                        if session.turn == Color.RED:
-                            logging.info('Reds turn.')
-                            if payload.user_id in session.players['red_operators']:
-                                logging.info('User in red team')
-                                if payload.event_type == 'REACTION_ADD':
-                                    await session.add(self.index_emojis[emoji_submitted])
-                                if payload.event_type == 'REACTION_REMOVE':
-                                    await session.remove()
-                        elif session.turn == Color.BLUE:
-                            logging.info('Blues turn.')
-                            if payload.user_id in session.players['blue_team']:
-                                pass
+                if isinstance(session, Session):
+                    if payload.message_id == session.last_message.id:
+                        '''
+                        Session Check
+                        '''
+                        if emoji_submitted in self.index_emojis:
+                            if session.team_turn == Color.RED:
+                                logging.info('Reds turn.')
+                                if payload.user_id in session.players['red_team']:
+                                    logging.info('User in red team')
+                                    if payload.event_type == 'REACTION_ADD':
+                                        await session.add(self.index_emojis[emoji_submitted])
+                                    if payload.event_type == 'REACTION_REMOVE':
+                                        await session.remove()
+                            elif session.team_turn == Color.BLUE:
+                                logging.info('Blues turn.')
+                                if payload.user_id in session.players['blue_team']:
+                                    if payload.event_type == 'REACTION_ADD':
+                                        await session.add(self.index_emojis[emoji_submitted])
+                                    if payload.event_type == 'REACTION_REMOVE':
+                                        await session.remove()
         else:
             '''
             DM Channel
@@ -156,13 +164,18 @@ class Session:
         self.channel = channel
 
         self.last_message = None
+        self.turn_message = None
 
         self.players = {}
         self.words = []
 
         self.input = Input()
         self.tries = 0
-        self.turn = None
+        self.team_turn = None
+        self.team_word_count = {
+            Color.RED: 0,
+            Color.BLUE: 0
+        }
 
     index_table = {}
     i = 1
@@ -173,6 +186,19 @@ class Session:
         i += 1
     del i
     rev_index_table = dict((k, v) for v, k in index_table.items())
+
+    team_names = {
+        Color.RED: 'kırmızı',
+        Color.BLUE: 'mavi'
+    }
+
+    @property
+    def operator_table(self):
+        return self.get_word_table(self.words, True)
+
+    @property
+    def agent_table(self):
+        return self.get_word_table(self.words)
 
     @staticmethod
     def get_word_table(word_pool, operator=False):
@@ -193,36 +219,35 @@ class Session:
 
     async def start(self, **kwargs):
         self.players.update(**kwargs)
-        self.turn = Color.RED if random.getrandbits(1) else Color.BLUE
-        if self.turn == Color.RED:
-            red_word_count = 9
-            blue_word_count = 8
+        self.team_turn = Color.RED if random.getrandbits(1) else Color.BLUE
+        if self.team_turn == Color.RED:
+            self.team_word_count[Color.RED] = 9
+            self.team_word_count[Color.BLUE] = 8
         else:
-            red_word_count = 8
-            blue_word_count = 9
+            self.team_word_count[Color.RED] = 8
+            self.team_word_count[Color.BLUE] = 9
 
         raw_words = random.sample(CodeNames.word_pool, k=25)
-        self.words.extend([Word(_, Color.RED) for _ in raw_words[0:red_word_count]])
-        del (raw_words[0:red_word_count])
-        self.words.extend([Word(_, Color.BLUE) for _ in raw_words[0:blue_word_count]])
-        del (raw_words[0:blue_word_count])
+        self.words.extend([Word(_, Color.RED) for _ in raw_words[0:self.team_word_count[Color.RED]]])
+        del (raw_words[0:self.team_word_count[Color.RED]])
+        self.words.extend([Word(_, Color.BLUE) for _ in raw_words[0:self.team_word_count[Color.BLUE]]])
+        del (raw_words[0:self.team_word_count[Color.BLUE]])
         self.words.extend([Word(_, Color.NEUTRAL) for _ in raw_words[0:7]])
         del (raw_words[0:7])
         self.words.extend([Word(raw_words[0], Color.BLACK)])
         del raw_words
         random.shuffle(self.words)
-        await self.channel.send('Sıra {} takımda.'.format('kırmızı' if self.turn == Color.RED else 'mavi'))
+        self.turn_message = await self.channel.send('Sıra {} takımda.'.format(self.team_names[self.team_turn]))
         self.last_message = await self.channel.send('```{}```'.format(self.agent_table))
         for operator in itertools.chain(self.players['red_operators'], self.players['blue_operators']):
             await operator.send('```fix\n{}\n```'.format(self.operator_table))
 
-    @property
-    def operator_table(self):
-        return self.get_word_table(self.words, True)
-
-    @property
-    def agent_table(self):
-        return self.get_word_table(self.words)
+    async def end_turn(self):
+        if self.team_turn == Color.RED:
+            self.team_turn = Color.BLUE
+        else:
+            self.team_turn = Color.RED
+        await self.turn_message.edit(content='Sıra {} takımda.'.format(self.team_names[self.team_turn]))
 
     async def add(self, i):
         self.input += i
@@ -242,11 +267,29 @@ class Session:
     async def reveal(self, i):
         try:
             logging.info('Revealing word at index: {}'.format(i))
-            self.words[Session.rev_index_table[i] - 1].revealed = True
+            revealed_word = self.words[self.rev_index_table[i] - 1]
+            revealed_word.revealed = True
             if self.last_message is not None:
                 await self.last_message.edit(content='```{}```'.format(self.agent_table))
+            if revealed_word.team == Color.BLACK:
+                if self.team_turn == Color.RED:
+                    await self.declare_win(Color.BLUE)
+                else:
+                    await self.declare_win(Color.RED)
+            if self.team_word_count[self.team_turn] == 0:
+                await self.declare_win(Color.BLUE)
+            if self.team_word_count[self.team_turn] == 0:
+                await self.declare_win(Color.RED)
+            if revealed_word.team == self.team_turn and self.tries != -2:
+                self.tries -= 1
+                self.team_word_count[self.team_turn] -= 1
+            else:
+                await self.end_turn()
         except Exception as e:
             logging.error(e)
+
+    async def declare_win(self, team):
+            await self.channel.send('{} takım kazandı.'.format(self.team_names[team].title()))
 
 
 class Player:
