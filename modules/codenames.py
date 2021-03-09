@@ -1,6 +1,7 @@
 import discord
 import logging
 import random
+import itertools
 
 from enum import Enum
 from discord.ext import commands
@@ -40,24 +41,33 @@ class CodeNames(commands.Cog):
         'join_blue': '\U0001F535',
         'join_blue_operator': '2\N{COMBINING ENCLOSING KEYCAP}',
         'start': u'\u25B6',
+        'end': u'\u274C'
     }
 
     index_emojis = {}
     for _ in range(10):
         index_emojis['{}\N{COMBINING ENCLOSING KEYCAP}'.format(_)] = _
 
+    def get_session(self, guild_id):
+        if self.sessions.get(guild_id) is not None:
+            return self.sessions.get(guild_id)
+        else:
+            return None
+
     @commands.command(name='codenames')
     async def code_names(self, ctx):
         new_session = Session(self.bot, ctx.channel)
         message = await ctx.send('Oyuncular toplanıyor')
-        for _ in self.emojis.values():
+        for _ in list(self.emojis.values())[0:5]:
             await message.add_reaction(_)
         new_session.last_message = message
         self.sessions[ctx.guild.id] = new_session
 
     @commands.command(name='k')
-    async def give(self, ctx, *, word, tries: int):
+    async def give(self, ctx, tries: int, *, word):
+        session = self.get_session(ctx.guild.id)
         logging.info('Word: {} Tries: {}'.format(word, tries))
+        await session.add_clue(tries)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -68,7 +78,7 @@ class CodeNames(commands.Cog):
             if payload.guild_id is not None:
                 guild_id = payload.guild_id
                 if self.sessions.get(guild_id) is not None:
-                    session = self.sessions[guild_id]
+                    session = self.sessions.get(guild_id)
                     if payload.message_id == session.last_message.id:
                         message = await session.channel.fetch_message(payload.message_id)
                         if emoji_submitted == self.emojis['start']:
@@ -77,33 +87,67 @@ class CodeNames(commands.Cog):
                                 users = await _.users().flatten()
                                 users.remove(self.bot.user)
                                 if _.emoji == self.emojis['join_red']:
-                                    players['red_team'] = users
+                                    players['red_team'] = [Player(_, Color.RED, False) for _ in users]
                                 if _.emoji == self.emojis['join_red_operator']:
-                                    players['red_operators'] = users
+                                    players['red_operators'] = [Player(_, Color.RED, True) for _ in users]
                                 if _.emoji == self.emojis['join_blue']:
-                                    players['blue_team'] = users
+                                    players['blue_team'] = [Player(_, Color.BLUE, False) for _ in users]
                                 if _.emoji == self.emojis['join_blue_operator']:
-                                    players['blue_operators'] = users
+                                    players['blue_operators'] = [Player(_, Color.BLUE, True) for _ in users]
                             await session.start(**players)
-                        if payload.user_id in session.players:
-                            if emoji_submitted == self.emojis['yes']:
-                                await session.chancellor_vote(payload.user_id, 1)
-                            elif emoji_submitted == self.emojis['no']:
-                                await session.chancellor_vote(payload.user_id, -1)
-                            elif emoji_submitted in self.index_emojis:
-                                if session.president == payload.user_id:
-                                    if session.status == Status.president_executing:
-                                        await session.president_execute(self.index_emojis[emoji_submitted])
-                                    elif session.status == Status.president_choosing_chancellor:
-                                        await session.chancellor_choose(self.index_emojis[emoji_submitted])
-                                    elif session.status == Status.president_investigating:
-                                        await session.investigate(self.index_emojis[emoji_submitted])
+                        '''
+                        Session Check
+                        '''
+                        if emoji_submitted in self.index_emojis:
+                            if session.turn == Color.RED:
+                                logging.info('Reds turn.')
+                                if payload.user_id in session.players['red_operators']:
+                                    logging.info('User in red team')
+                                    if payload.event_type == 'REACTION_ADD':
+                                        await session.add(self.index_emojis[emoji_submitted])
+                                    if payload.event_type == 'REACTION_REMOVE':
+                                        await session.remove()
+                            elif session.turn == Color.BLUE:
+                                logging.info('Blues turn.')
+                                if payload.user_id in session.players['blue_team']:
+                                    pass
             else:
                 '''
                 DM Channel
                 '''
         except Exception as e:
             logging.error(e)
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
+        if self.bot.user.id == payload.user_id:
+            return
+        emoji_submitted = payload.emoji.name
+        if payload.guild_id is not None:
+            guild_id = payload.guild_id
+            if self.sessions.get(guild_id) is not None:
+                session = self.sessions.get(guild_id)
+                if payload.message_id == session.last_message.id:
+                    '''
+                    Session Check
+                    '''
+                    if emoji_submitted in self.index_emojis:
+                        if session.turn == Color.RED:
+                            logging.info('Reds turn.')
+                            if payload.user_id in session.players['red_operators']:
+                                logging.info('User in red team')
+                                if payload.event_type == 'REACTION_ADD':
+                                    await session.add(self.index_emojis[emoji_submitted])
+                                if payload.event_type == 'REACTION_REMOVE':
+                                    await session.remove()
+                        elif session.turn == Color.BLUE:
+                            logging.info('Blues turn.')
+                            if payload.user_id in session.players['blue_team']:
+                                pass
+        else:
+            '''
+            DM Channel
+            '''
 
 
 class Session:
@@ -113,40 +157,47 @@ class Session:
 
         self.last_message = None
 
-        self.players = []
+        self.players = {}
         self.words = []
 
         self.input = Input()
         self.tries = 0
+        self.turn = None
+
+    index_table = {}
+    i = 1
+    for k in range(1, 26):
+        while i in [10, 11, 20, 22]:
+            i += 1
+        index_table[k] = i
+        i += 1
+    del i
+    rev_index_table = dict((k, v) for v, k in index_table.items())
 
     @staticmethod
     def get_word_table(word_pool, operator=False):
         word_table = ''
-        i = 1
         for k, element in enumerate(word_pool, 1):
-            while i in [10, 11, 20, 22]:
-                i += 1
             if operator:
-                word_table += '{}. {} ({})'.format(str(i).rjust(2), element.ljust(10), element.team.value).ljust(20)
+                word_table += '{}. {} ({})'.format(str(Session.index_table[k]).rjust(2),
+                                                   str(element).ljust(10),
+                                                   element.team.value).ljust(20)
             else:
-                word_table += '{}. {}'.format(str(i).rjust(2), element).ljust(20)
+                revealed_str = '{}'.format(' ({})'.format(element.team.value) if element.revealed else '')
+                word_table += '{}. {}{}'.format(str(Session.index_table[k]).rjust(2),
+                                                str(element).ljust(10), revealed_str).ljust(20)
             if not k % 5:
                 word_table += '\n'
-            i += 1
+        logging.info('Requested table: {}'.format(word_table))
         return word_table
 
     async def start(self, **kwargs):
-        self.players.extend([Player(_, Color.RED, False) for _ in kwargs['red_team']])
-        self.players.extend([Player(_, Color.RED, True) for _ in kwargs['red_operators']])
-        self.players.extend([Player(_, Color.BLUE, False) for _ in kwargs['blue_team']])
-        self.players.extend([Player(_, Color.BLUE, True) for _ in kwargs['blue_operators']])
-
-        if random.getrandbits(1):
-            starting_team = Color.RED
+        self.players.update(**kwargs)
+        self.turn = Color.RED if random.getrandbits(1) else Color.BLUE
+        if self.turn == Color.RED:
             red_word_count = 9
             blue_word_count = 8
         else:
-            starting_team = Color.BLUE
             red_word_count = 8
             blue_word_count = 9
 
@@ -160,16 +211,42 @@ class Session:
         self.words.extend([Word(raw_words[0], Color.BLACK)])
         del raw_words
         random.shuffle(self.words)
-        word_list = self.get_word_table(self.words)
-        self.last_message = await self.channel.send('Sıra {} takımda.\n```{}```'.format(
-            'kırmızı' if starting_team == Color.RED else 'mavi', word_list))
-        for operator in [_ for _ in self.players if _.operator]:
-            await operator.send('```fix\n{}\n```'.format(self.get_word_table(self.words, True)))
+        await self.channel.send('Sıra {} takımda.'.format('kırmızı' if self.turn == Color.RED else 'mavi'))
+        self.last_message = await self.channel.send('```{}```'.format(self.agent_table))
+        for operator in itertools.chain(self.players['red_operators'], self.players['blue_operators']):
+            await operator.send('```fix\n{}\n```'.format(self.operator_table))
+
+    @property
+    def operator_table(self):
+        return self.get_word_table(self.words, True)
+
+    @property
+    def agent_table(self):
+        return self.get_word_table(self.words)
+
+    async def add(self, i):
+        self.input += i
+        logging.info('Input: {}'.format(self.input))
+        if self.input:
+            await self.reveal(int(self.input))
+
+    async def remove(self):
+        self.input.remove()
 
     async def add_clue(self, tries):
         self.tries = tries
         for emoji in CodeNames.index_emojis.keys():
             await self.last_message.add_reaction(emoji)
+        await self.last_message.add_reaction(CodeNames.emojis['end'])
+
+    async def reveal(self, i):
+        try:
+            logging.info('Revealing word at index: {}'.format(i))
+            self.words[Session.rev_index_table[i] - 1].revealed = True
+            if self.last_message is not None:
+                await self.last_message.edit(content='```{}```'.format(self.agent_table))
+        except Exception as e:
+            logging.error(e)
 
 
 class Player:
@@ -177,6 +254,19 @@ class Player:
         self.user = user
         self.team = team
         self.operator = operator
+
+    def __eq__(self, other):
+        if isinstance(other, discord.User):
+            return self.user == other
+        elif isinstance(other, discord.Member):
+            return self.user == other
+        elif isinstance(other, int):
+            return self.user.id == other
+        else:
+            return NotImplemented
+
+    def __str__(self):
+        return self.user.name
 
     @property
     def send(self):
@@ -194,20 +284,24 @@ class Word:
 
 
 class Input:
-    def __init__(self, k=None):
-        self.k = k
+    def __init__(self, k1=None, k2=None):
+        self.k1 = k1
+        self.k2 = k2
 
     def __add__(self, other):
-        if self.k:
-            return Input(k=self.k + other)
+        if self.k1 is not None:
+            return Input(k1=self.k1, k2=other)
         else:
-            return Input(k=other * 10)
+            return Input(k1=other * 10)
 
     def remove(self):
-        if self.k and self.k % 10:
-            self.k = self.k - self.k % 10
+        if self.k1 is not None:
+            self.k2 = None
         else:
-            self.k = None
+            self.k1 = None
 
     def __int__(self):
-        return self.k if self.k else 0
+        return self.k1 + self.k2 if self.k2 else 0
+
+    def __bool__(self):
+        return bool(self.k2)
