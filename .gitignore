@@ -16,3 +16,4 @@ modules/__pycache__/youtube_bot.cpython-37.pyc
 modules/__pycache__/story_teller.cpython-37.pyc
 modules/__pycache__/minigame.cpython-37.pyc
 *.pyc
+.vscode/launch.json
