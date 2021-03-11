@@ -231,7 +231,7 @@ async def delete(ctx, limit: int = None):
         limit = 50
     if limit > 50:
         limit = 50
-    deleted = await ctx.channel.purge(limit=limit)
+    deleted = await ctx.channel.purge(limit=limit + 1)
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
