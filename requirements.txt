@@ -1,4 +1,4 @@
-git+https://github.com/Rapptz/discord.py
+discord.py==1.6.0
 ffmpeg==1.4
 python-dotenv==0.15.0
 pymysql==0.9.3
