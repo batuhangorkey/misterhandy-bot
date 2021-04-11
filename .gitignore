@@ -7,11 +7,14 @@
 __pycache__/minigame.cpython-37.pyc
 .idea/inspectionProfiles/Project_Default.xml
 .idea/dictionaries/Batuhan.xml
+heroku_logs.bat
 __pycache__/bot_data.cpython-37.pyc
 __pycache__/project_2.cpython-37.pyc
 __pycache__/youtube_bot.cpython-37.pyc
+config.ini
 modules/__pycache__/youtube_bot.cpython-37.pyc
 modules/__pycache__/story_teller.cpython-37.pyc
 modules/__pycache__/minigame.cpython-37.pyc
 *.pyc
-config.ini
+.vscode/launch.json
+*.code-workspace
