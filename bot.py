@@ -143,6 +143,7 @@ bot = CustomBot()
 #  Organize all to a single class
 #  Add auto moderation functions
 #  Discord role manupulation
+#  Implement NLP
 
 
 @bot.event
@@ -240,11 +241,14 @@ async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
     await ctx.send("Elapsed seconds: {} | v{}".format(delta.total_seconds(), bot.git_hash), delete_after=3.0)
 
-
+# TODO:
+#  fix none returning user
+'''
 @bot.event
 async def on_command_error(ctx: discord.ext.commands.Context, error):
     admin: discord.User = bot.get_user(int(301067535581970434))
     await admin.send(f'{error}, {ctx.message}')
+'''
 
 
 @bot.check
