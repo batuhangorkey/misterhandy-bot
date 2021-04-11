@@ -143,6 +143,7 @@ bot = CustomBot()
 #  Organize all to a single class
 #  Add auto moderation functions
 #  Discord role manupulation
+#  Implement NLP
 
 
 @bot.event
@@ -154,7 +155,6 @@ async def on_connect():
 async def on_ready():
     try:
         start = time.process_time()
-
         logging.info('Running git hash: {}'.format(bot.git_hash))
         logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
 
@@ -216,31 +216,46 @@ async def fate(ctx, modifier: int = 0):
     await ctx.send('{} {} = {} **{}**'.format(', '.join(map(str, dice)), modifier, sum_, CustomBot.adj[sum_]))
 
 
-@bot.command(help='Tries to purge max 50 messages sent by the bot.')
+@bot.command()
 async def del_bot(ctx):
     def is_me(m):
         return m.author == bot.user
 
     deleted = await ctx.channel.purge(limit=50, check=is_me, bulk=False)
-    await ctx.send(f'Deleted {len(deleted)} message(s).')
+    await ctx.send(f'Deleted my {len(deleted)} message(s).', delete_after=3.0)
 
 
-@bot.command(help='Tries to purge messages.')
-async def delete(ctx, limit: int):
-    deleted = await ctx.channel.purge(limit=limit + 1)
-    await ctx.send(f'Deleted {len(deleted)} message(s).')
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def delete(ctx, limit: int = None):
+    if limit is None:
+        limit = 50
+    if limit > 50:
+        limit = 50
+    deleted = await ctx.channel.purge(limit=limit)
+    await ctx.send(f'Deleted {len(deleted)} message(s).', delete_after=3.0)
 
 
 @bot.command()
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
-    await ctx.send("Elapsed seconds: {} | v{}".format(delta.total_seconds(), bot.git_hash))
+    await ctx.send("Elapsed seconds: {} | v{}".format(delta.total_seconds(), bot.git_hash), delete_after=3.0)
 
-
+# TODO:
+#  fix none returning user
 '''
+@bot.event
+async def on_command_error(ctx: discord.ext.commands.Context, error):
+    admin: discord.User = bot.get_user(int(301067535581970434))
+    await admin.send(f'{error}, {ctx.message}')
+'''
+
+
 @bot.check
-def check_command(ctx):
-    pass
-'''
+def check_heroku_availability(ctx):
+    if HEROKU:
+        return ctx.command.qualified_name not in CustomBot.heroku_banned_commands
+    return True
+
 
 bot.run(bot.token)
