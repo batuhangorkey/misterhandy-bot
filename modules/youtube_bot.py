@@ -100,6 +100,7 @@ class Music(commands.Cog):
         if ctx.voice_client:
             return await ctx.voice_client.move_to(channel)
         self.handlers[ctx.guild.id] = Handler(self.bot, ctx)
+        self.handlers[ctx.guild.id].ctx = ctx
         self.handlers[ctx.guild.id].create_task()
         if channel is None:
             return await ctx.author.voice.channel.connect()
@@ -307,6 +308,7 @@ class Music(commands.Cog):
             if ctx.author.voice:
                 await ctx.author.voice.channel.connect()
                 self.handlers[ctx.guild.id] = Handler(self.bot, ctx)
+                self.handlers[ctx.guild.id].ctx = ctx
                 self.handlers[ctx.guild.id].create_task()
             else:
                 await ctx.send('Ses kanalında değilsin.')
@@ -389,6 +391,7 @@ class Handler:
         self._random_playlist = []
         self._last_message = None
         self.bot = bot
+        self.ctx = None
 
         self.queue = asyncio.Queue(loop=bot.loop)
         self.play_next = asyncio.Event(loop=bot.loop)
