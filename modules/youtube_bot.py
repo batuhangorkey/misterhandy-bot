@@ -457,6 +457,8 @@ class Handler:
 
     async def update_footer(self):
         try:
+            if self.last_message is None:
+                return
             embed = self.last_message.embeds[0]
             embed.set_footer(text=self.footer.format('açık' if self.play_random else 'kapalı',
                                                      len(self._random_playlist),
@@ -520,7 +522,7 @@ class Handler:
                                                                loop=self.bot.loop,
                                                                stream=True)
                             if source:
-                                await self.queue.put((self.channel, source))
+                                await self.queue.put(source)
                             else:
                                 self.play_random = False
                                 await self.update_footer()
