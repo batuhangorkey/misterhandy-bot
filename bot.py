@@ -221,7 +221,7 @@ async def del_bot(ctx):
         return m.author == bot.user
 
     deleted = await ctx.channel.purge(limit=50, check=is_me, bulk=False)
-    await ctx.send(f'Deleted {len(deleted)} message(s).')
+    await ctx.send(f'Deleted {len(deleted)} message(s).', delete_after=3.0)
 
 
 @bot.command()
@@ -231,7 +231,7 @@ async def delete(ctx, limit: int = None):
     if limit > 50:
         limit = 50
     deleted = await ctx.channel.purge(limit=limit)
-    await ctx.send(f'Deleted {len(deleted)} message(s).')
+    await ctx.send(f'Deleted {len(deleted)} message(s).', delete_after=3.0)
 
 
 @bot.command()
