@@ -111,6 +111,7 @@ class CodeNames(commands.Cog):
                                         if payload.event_type == 'REACTION_REMOVE':
                                             await session.remove()
                                 elif session.team_turn == Color.BLUE:
+                                    logging.info('Blues turn.')
                                     if payload.user_id in session.players['blue_team']:
                                         if payload.event_type == 'REACTION_ADD':
                                             await session.add(self.index_emojis[emoji_submitted])
