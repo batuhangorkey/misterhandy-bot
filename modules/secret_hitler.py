@@ -71,7 +71,7 @@ class SecretHitler(commands.Cog):
                                 users.remove(self.bot.user)
                                 player_count = len(users)
                                 logging.info('Attempted to start game with {} players'.format(len(users)))
-                                if player_count < 1 or player_count > 10:
+                                if player_count < 5 or player_count > 10:
                                     await session.channel.send('Oyuncu sayısı uyumsuz.')
                                 else:
                                     await session.start(users)
