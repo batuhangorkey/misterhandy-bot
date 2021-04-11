@@ -95,13 +95,16 @@ class Music(commands.Cog):
         self.bot = bot
         self.handlers = {}
 
+    def create_handler(self, ctx):
+        self.handlers[ctx.guild.id] = Handler(self.bot, ctx)
+        self.handlers[ctx.guild.id].ctx = ctx
+        self.handlers[ctx.guild.id].create_task()
+
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel = None):
         if ctx.voice_client:
             return await ctx.voice_client.move_to(channel)
-        self.handlers[ctx.guild.id] = Handler(self.bot, ctx)
-        self.handlers[ctx.guild.id].ctx = ctx
-        self.handlers[ctx.guild.id].create_task()
+        self.create_handler(ctx)
         if channel is None:
             return await ctx.author.voice.channel.connect()
         await channel.connect()
@@ -307,9 +310,7 @@ class Music(commands.Cog):
         if ctx.voice_client is None:
             if ctx.author.voice:
                 await ctx.author.voice.channel.connect()
-                self.handlers[ctx.guild.id] = Handler(self.bot, ctx)
-                self.handlers[ctx.guild.id].ctx = ctx
-                self.handlers[ctx.guild.id].create_task()
+                self.create_handler(ctx)
             else:
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
