@@ -95,16 +95,12 @@ class Music(commands.Cog):
         self.bot = bot
         self.handlers = {}
 
-    def create_handler(self, ctx):
-        self.handlers[ctx.guild.id] = Handler(self.bot, ctx)
-        self.handlers[ctx.guild.id].ctx = ctx
-        self.handlers[ctx.guild.id].create_task()
-
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel = None):
         if ctx.voice_client:
             return await ctx.voice_client.move_to(channel)
-        self.create_handler(ctx)
+        self.handlers[ctx.guild.id] = Handler(self.bot, ctx)
+        self.handlers[ctx.guild.id].create_task()
         if channel is None:
             return await ctx.author.voice.channel.connect()
         await channel.connect()
@@ -310,7 +306,8 @@ class Music(commands.Cog):
         if ctx.voice_client is None:
             if ctx.author.voice:
                 await ctx.author.voice.channel.connect()
-                self.create_handler(ctx)
+                self.handlers[ctx.guild.id] = Handler(self.bot, ctx)
+                self.handlers[ctx.guild.id].create_task()
             else:
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
@@ -392,7 +389,6 @@ class Handler:
         self._random_playlist = []
         self._last_message = None
         self.bot = bot
-        self.ctx = None
 
         self.queue = asyncio.Queue(loop=bot.loop)
         self.play_next = asyncio.Event(loop=bot.loop)
@@ -458,8 +454,6 @@ class Handler:
 
     async def update_footer(self):
         try:
-            if self.last_message is None:
-                return
             embed = self.last_message.embeds[0]
             embed.set_footer(text=self.footer.format('açık' if self.play_random else 'kapalı',
                                                      len(self._random_playlist),
@@ -523,7 +517,7 @@ class Handler:
                                                                loop=self.bot.loop,
                                                                stream=True)
                             if source:
-                                await self.queue.put(source)
+                                await self.queue.put((self.channel, source))
                             else:
                                 self.play_random = False
                                 await self.update_footer()

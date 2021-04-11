@@ -57,37 +57,39 @@ class SecretHitler(commands.Cog):
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         try:
             if self.bot.user.id == payload.user_id:
-                return False
+                return
             emoji_submitted = payload.emoji.name
-            if payload.guild_id is not None and self.sessions.get(payload.guild_id) is not None:
-                session = self.sessions[payload.guild_id]
-                if payload.message_id == session.last_message.id:
-                    message = await session.channel.fetch_message(payload.message_id)
-                    if emoji_submitted == SecretHitler.emojis['start']:
-                        logging.info(len(session.last_message.reactions))
-                        for _ in message.reactions:
-                            if _.emoji == SecretHitler.emojis['join']:
-                                users = await _.users().flatten()
-                                users.remove(self.bot.user)
-                                player_count = len(users)
-                                logging.info('Attempted to start game with {} players'.format(len(users)))
-                                if player_count < 1 or player_count > 10:
-                                    await session.channel.send('Oyuncu sayısı uyumsuz.')
-                                else:
-                                    await session.start(users)
-                    if payload.user_id in session.players:
-                        if emoji_submitted == self.emojis['yes']:
-                            await session.chancellor_vote(payload.user_id, 1)
-                        elif emoji_submitted == self.emojis['no']:
-                            await session.chancellor_vote(payload.user_id, -1)
-                        elif emoji_submitted in self.index_emojis:
-                            if session.president == payload.user_id:
-                                if session.status == Status.president_executing:
-                                    await session.president_execute(self.index_emojis[emoji_submitted])
-                                elif session.status == Status.president_choosing_chancellor:
-                                    await session.chancellor_choose(self.index_emojis[emoji_submitted])
-                                elif session.status == Status.president_investigating:
-                                    await session.investigate(self.index_emojis[emoji_submitted])
+            if payload.guild_id is not None:
+                guild_id = payload.guild_id
+                if self.sessions.get(guild_id) is not None:
+                    session = self.sessions[guild_id]
+                    if payload.message_id == session.last_message.id:
+                        message = await session.channel.fetch_message(payload.message_id)
+                        if emoji_submitted == SecretHitler.emojis['start']:
+                            logging.info(len(session.last_message.reactions))
+                            for _ in message.reactions:
+                                if _.emoji == SecretHitler.emojis['join']:
+                                    users = await _.users().flatten()
+                                    users.remove(self.bot.user)
+                                    player_count = len(users)
+                                    logging.info('Attempted to start game with {} players'.format(len(users)))
+                                    if player_count < 1 or player_count > 10:
+                                        await session.channel.send('Oyuncu sayısı uyumsuz.')
+                                    else:
+                                        await session.start(users)
+                        if payload.user_id in session.players:
+                            if emoji_submitted == self.emojis['yes']:
+                                await session.chancellor_vote(payload.user_id, 1)
+                            elif emoji_submitted == self.emojis['no']:
+                                await session.chancellor_vote(payload.user_id, -1)
+                            elif emoji_submitted in self.index_emojis:
+                                if session.president == payload.user_id:
+                                    if session.status == Status.president_executing:
+                                        await session.president_execute(self.index_emojis[emoji_submitted])
+                                    elif session.status == Status.president_choosing_chancellor:
+                                        await session.chancellor_choose(self.index_emojis[emoji_submitted])
+                                    elif session.status == Status.president_investigating:
+                                        await session.investigate(self.index_emojis[emoji_submitted])
             else:
                 '''
                 DM Channel
