@@ -221,10 +221,11 @@ async def del_bot(ctx):
         return m.author == bot.user
 
     deleted = await ctx.channel.purge(limit=50, check=is_me, bulk=False)
-    await ctx.send(f'Deleted {len(deleted)} message(s).', delete_after=3.0)
+    await ctx.send(f'Deleted my {len(deleted)} message(s).', delete_after=3.0)
 
 
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def delete(ctx, limit: int = None):
     if limit is None:
         limit = 50
@@ -237,18 +238,17 @@ async def delete(ctx, limit: int = None):
 @bot.command()
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
-    await ctx.send("Elapsed seconds: {} | v{}".format(delta.total_seconds(), bot.git_hash))
+    await ctx.send("Elapsed seconds: {} | v{}".format(delta.total_seconds(), bot.git_hash), delete_after=3.0)
 
 
-'''
+@bot.event
+async def on_command_error(ctx: discord.ext.commands.Context, error):
+    admin: discord.User = bot.get_user(301067535581970434)
+    await admin.send(f'{error}, {ctx.message}')
+
+
 @bot.check
-def check_command(ctx):
-    pass
-'''
-
-
-@bot.check
-def check_command(ctx):
+def check_heroku_availability(ctx):
     if HEROKU:
         return ctx.command.qualified_name not in CustomBot.heroku_banned_commands
     return True
