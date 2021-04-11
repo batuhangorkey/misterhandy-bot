@@ -243,7 +243,7 @@ async def ping(ctx):
 
 @bot.event
 async def on_command_error(ctx: discord.ext.commands.Context, error):
-    admin: discord.User = bot.get_user(301067535581970434)
+    admin: discord.User = bot.get_user(int(301067535581970434))
     await admin.send(f'{error}, {ctx.message}')
 
 
