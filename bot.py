@@ -215,7 +215,7 @@ async def fate(ctx, modifier: int = 0):
     await ctx.send('{} {} = {} **{}**'.format(', '.join(map(str, dice)), modifier, sum_, CustomBot.adj[sum_]))
 
 
-@bot.command(help='Tries to purge max 50 messages sent by the bot.')
+@bot.command()
 async def del_bot(ctx):
     def is_me(m):
         return m.author == bot.user
@@ -224,7 +224,7 @@ async def del_bot(ctx):
     await ctx.send(f'Deleted {len(deleted)} message(s).')
 
 
-@bot.command(help='Tries to purge messages. Max limit 50')
+@bot.command()
 async def delete(ctx, limit: int = None):
     if limit is None:
         limit = 50
