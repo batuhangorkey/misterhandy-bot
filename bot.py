@@ -179,6 +179,8 @@ async def on_ready():
             logging.info('\t{}'.format(item))
 
         end = time.process_time() - start
+        for client in bot.voice_clients:
+            client.disconnect()
         logging.info('Elapsed time: {}'.format(end))
     except Exception as e:
         logging.error(e)
