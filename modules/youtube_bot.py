@@ -125,28 +125,28 @@ class Music(commands.Cog):
 
     @commands.command(help="Streams from a url. Doesn't predownload.")
     async def stream(self, ctx, *, url):
+        start = time.process_time()
         async with ctx.typing():
             audio = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
             if audio is None:
                 return await ctx.send('Birşeyler yanlış. Bir daha dene')
             await self.handlers[ctx.guild.id].source_handler(ctx, audio)
+        logging.info('Elapsed time: {}'.format(time.process_time() - start))
 
     @commands.command(help='Plays url and search string from Youtube.')
-    async def play(self, ctx, *, search_string):
+    async def play(self, ctx, *, search_string: str):
         start = time.process_time()
         try:
             async with ctx.typing():
-                result = YoutubeSearch(search_string, max_results=1).to_dict()
-                url = 'https://www.youtube.com' + result[0]['url_suffix']
-                audio = await YTDLSource.from_url(url, loop=self.bot.loop)
+                audio = await YTDLSource.from_url(search_string, loop=self.bot.loop)
                 if isinstance(audio, YTDLSource):
                     await self.handlers[ctx.guild.id].source_handler(ctx.channel, audio)
                 else:
                     return await ctx.send('Bir şeyler yanlış. Bir daha dene')
         except Exception as error:
-            logging.error(error)
+            logging.error(f'Error: {error} | String: {search_string}')
         finally:
-            logging.info('Elapsed time: {} | String: {}'.format('play', time.process_time() - start, search_string))
+            logging.info(f'Elapsed time: {time.process_time() - start} | String: {search_string}')
 
     @commands.command(help='Searches youtube. 10 results')
     async def search(self, ctx, *, search_string):
