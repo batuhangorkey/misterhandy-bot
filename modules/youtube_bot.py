@@ -531,7 +531,8 @@ class Handler:
                     elif self.last_message:
                         await self.bot.default_presence()
                         embed = self.last_message.embeds[0]
-                        embed.description = 'Video bitti'
+                        embed.description = 'Şarkı bitti'
+                        embed.clear_fields()
                         await self.last_message.edit(embed=embed)
                 current = await self.queue.get()
                 source = current
