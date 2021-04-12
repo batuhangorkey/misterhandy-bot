@@ -111,7 +111,7 @@ class CustomBot(commands.Bot):
             cursor.execute("SELECT * FROM main")
             data = cursor.fetchall()
         conn.close()
-        for _, b, k in data:
+        for _, b in data:
             user_table[int(_)] = int(b)
         return user_table, kaiser_points
 
@@ -162,8 +162,10 @@ async def on_ready():
             logging.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
 
         await bot.default_presence()
-
-        bot.add_cog(Minigame(bot, user_table=bot.fetch_user_tables()[0]))
+        try:
+            bot.add_cog(Minigame(bot, user_table=bot.fetch_user_tables()[0]))
+        except Exception as e:
+            logging.error(e)
         bot.add_cog(Music(bot))
         # bot.add_cog(Project2(bot))
         bot.add_cog(SecretHitler(bot))
