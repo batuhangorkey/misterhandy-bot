@@ -54,7 +54,7 @@ class CodeNames(commands.Cog):
         else:
             return None
 
-    @commands.command(name='codenames')
+    @commands.command(name='codenames', hidden=True)
     async def code_names(self, ctx):
         new_session = Session(self.bot, ctx.channel)
         message = await ctx.send('Oyuncular toplanıyor')
@@ -63,7 +63,7 @@ class CodeNames(commands.Cog):
         new_session.last_message = message
         self.sessions[ctx.guild.id] = new_session
 
-    @commands.command(name='k')
+    @commands.command(name='k', hidden=True)
     async def give(self, ctx, tries: int, *, word):
         session = self.get_session(ctx.guild.id)
         logging.info('Word: {} Tries: {}'.format(word, tries))

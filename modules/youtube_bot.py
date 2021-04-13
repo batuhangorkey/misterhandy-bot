@@ -10,7 +10,7 @@ import time
 
 import discord
 import youtube_dl
-from discord.ext import commands
+from discord.ext import commands, tasks
 from youtube_search import YoutubeSearch
 
 ytdl_format_options = {
@@ -305,6 +305,11 @@ class Music(commands.Cog):
     @play.before_invoke
     @search.before_invoke
     @playrandom.before_invoke
+    @skip.before_invoke
+    @pause.before_invoke
+    @stop.before_invoke
+    @resume.before_invoke
+    @goto.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
@@ -345,12 +350,18 @@ class Music(commands.Cog):
                 if reaction.emoji == playlist_emojis['like']:
                     await self.handlers[guild_id].like()
 
+    @tasks.loop(minutes=5)
+    async def idle_voice_check(self):
+        for _, handler in self.handlers.items():
+            if not handler.is_playing:
+                handler.voice_client.disconnect()
+
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
         if user.bot:
             return
         guild_id = reaction.message.guild.id
-        if reaction.message.id == self.handlers[guild_id].last_message.id:
+        if self.handlers.get(guild_id) is not None and reaction.message.id == self.handlers[guild_id].last_message.id:
             if reaction.emoji == player_emojis['play_pause']:
                 return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('resume'))
 
@@ -387,7 +398,7 @@ class Events(commands.Cog):
 class Handler:
     def __init__(self, bot, ctx):
         self.channel = ctx.channel
-        self.voice_client = ctx.voice_client
+        self.voice_client: discord.VoiceClient = ctx.voice_client
         self._random_playlist = []
         self._last_message = None
         self.bot = bot
@@ -410,6 +421,10 @@ class Handler:
         self.fancy_format = True
 
         self.reset_db_playlist()
+
+    @property
+    def is_playing(self):
+        return self.voice_client.is_playing()
 
     @property
     def last_message(self):
@@ -544,7 +559,7 @@ class Handler:
                                                                          name=source.title))
                 await self.play_next.wait()
             except Exception as error:
-                logging.error(error)
+                logging.error(error.args)
                 break
             finally:
                 pass
