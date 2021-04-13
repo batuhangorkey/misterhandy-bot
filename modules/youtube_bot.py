@@ -93,6 +93,10 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.handlers = {}
+        self.idle_voice_check.start()
+
+    def cog_unload(self):
+        self.idle_voice_check.cancel()
 
     def create_handler(self, ctx):
         self.handlers[ctx.guild.id] = Handler(self.bot, ctx)
