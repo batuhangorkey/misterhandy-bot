@@ -12,11 +12,11 @@ import pymysql
 from discord.ext import commands
 from dotenv import load_dotenv
 
+from modules.codenames import CodeNames
 from modules.minigame import Minigame
 from modules.secret_hitler import SecretHitler
 # from modules.story_teller import Project2
 from modules.youtube_bot import Music
-from modules.codenames import CodeNames
 
 FORMAT = '%(asctime)-15s %(levelname)-5s %(funcName)-10s %(lineno)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
@@ -220,16 +220,16 @@ async def fate(ctx, modifier: int = 0):
     await ctx.send('{} {} = {} **{}**'.format(', '.join(map(str, dice)), modifier, sum_, CustomBot.adj[sum_]))
 
 
-@bot.command()
+@bot.command(hidden=True)
 async def del_bot(ctx):
     def is_me(m):
         return m.author == bot.user
 
     deleted = await ctx.channel.purge(limit=50, check=is_me, bulk=False)
-    await ctx.send(f'Deleted my {len(deleted)} message(s).', delete_after=3.0)
+    await ctx.send(f'Deleted my {len(deleted)} message(s).', delete_after=5.0)
 
 
-@bot.command()
+@bot.command(hidden=True)
 @commands.has_permissions(administrator=True)
 async def delete(ctx, limit: int = None):
     if limit is None:
@@ -237,10 +237,10 @@ async def delete(ctx, limit: int = None):
     if limit > 50:
         limit = 50
     deleted = await ctx.channel.purge(limit=limit)
-    await ctx.send(f'Deleted {len(deleted)} message(s).', delete_after=3.0)
+    await ctx.send(f'Deleted {len(deleted)} message(s).', delete_after=5.0)
 
 
-@bot.command()
+@bot.command(hidden=True)
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
     await ctx.send("Elapsed seconds: {} | v{}".format(delta.total_seconds(), bot.git_hash), delete_after=3.0)

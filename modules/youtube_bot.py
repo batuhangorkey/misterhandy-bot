@@ -10,7 +10,6 @@ import time
 
 import discord
 import youtube_dl
-
 from discord.ext import commands
 from youtube_search import YoutubeSearch
 
@@ -142,7 +141,7 @@ class Music(commands.Cog):
                 if isinstance(audio, YTDLSource):
                     await self.handlers[ctx.guild.id].source_handler(ctx.channel, audio)
                 else:
-                    return await ctx.send('Bir şeyler yanlış. Bir daha dene')
+                    return await ctx.send('Bir şeyler yanlış. @Batuhan#8438')
         except Exception as error:
             logging.error(f'Error: {error} | String: {search_string}')
         finally:
@@ -189,7 +188,7 @@ class Music(commands.Cog):
         ctx.voice_client.source.volume = volume / 100
         await ctx.send('Ses seviyesi %{} oldu.'.format(volume))
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def pause(self, ctx):
         if ctx.voice_client and ctx.voice_client.source:
             ctx.voice_client.pause()
@@ -197,7 +196,7 @@ class Music(commands.Cog):
             embed.description = 'Durduruldu'
             await self.handlers[ctx.guild.id].last_message.edit(embed=embed)
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def resume(self, ctx):
         if ctx.voice_client is not None and ctx.voice_client.source:
             ctx.voice_client.resume()
@@ -229,7 +228,7 @@ class Music(commands.Cog):
             if ctx.voice_client is not None:
                 await ctx.voice_client.disconnect()
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def add_link(self, ctx, url: str):
         try:
             with youtube_dl.YoutubeDL(ytdl_format_options) as ytdl:
@@ -286,13 +285,13 @@ class Music(commands.Cog):
                 self.handlers[ctx.guild.id].queue.task_done()
                 self.handlers[ctx.guild.id].queue.put_nowait(a)
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def set_skip_time(self, ctx, time_set: int):
         async with ctx.typing():
             self.handlers[ctx.guild.id].time_setting = time_set
 
     # TODO: Write this method
-    @commands.command()
+    @commands.command(hidden=True)
     async def fancy_player(self, ctx):
         pass
 
@@ -514,7 +513,7 @@ class Handler:
             try:
                 self.play_next.clear()
                 self.time_cursor = 0
-                if len(self.queue_value) != 0:
+                if len(self.queue_value) > 0:
                     self.queue_value.pop(0)
                 if self.queue.empty():
                     if self.play_random and self.voice_client is not None:
