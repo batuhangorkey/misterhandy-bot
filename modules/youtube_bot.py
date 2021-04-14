@@ -106,11 +106,13 @@ class Music(commands.Cog):
     @commands.command(help='Joins authors voice channel.')
     async def join(self, ctx, *, channel: discord.VoiceChannel = None):
         if ctx.voice_client:
+            self.handlers[ctx.guild.id].channel = channel
             return await ctx.voice_client.move_to(channel)
-        self.create_handler(ctx)
         if channel is None:
-            return await ctx.author.voice.channel.connect()
-        await channel.connect()
+            await ctx.author.voice.channel.connect()
+        else:
+            await channel.connect()
+        self.create_handler(ctx)
 
     @commands.command(help="Downloads audio from a Youtube url.")
     async def download(self, ctx, *, url):
@@ -151,7 +153,7 @@ class Music(commands.Cog):
         finally:
             logging.info(f'Elapsed time: {time.process_time() - start} | String: {search_string}')
 
-    @commands.command(help='Searches youtube. 10 results')
+    @commands.command(help='Searches youtube. 10 results', hidden=True)
     async def search(self, ctx, *, search_string):
         start = time.process_time()
         self.handlers[ctx.guild.id].search_list.clear()
@@ -354,16 +356,17 @@ class Music(commands.Cog):
                 if reaction.emoji == playlist_emojis['like']:
                     await self.handlers[guild_id].like()
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(seconds=30)
     async def idle_voice_check(self):
-        try:
-            logging.info(f'Handlers: {len(self.handlers)}')
-            for handler in self.handlers.values():
-                logging.info(f'Handler info: {handler.voice_client is None}, {handler.is_playing}')
-                if not handler.is_playing:
-                    handler.voice_client.disconnect()
-        except Exception as error:
-            logging.error(error, error.args)
+        logging.info(f'Handlers: {len(self.handlers)}')
+        for handler in self.handlers.values():
+            logging.info(f'Handler info: {handler.voice_client is None}, {handler.is_playing}')
+            if not handler.is_playing:
+                await handler.voice_client.disconnect()
+
+    @idle_voice_check.before_loop
+    async def before_idle(self):
+        await self.bot.wait_until_ready()
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
