@@ -356,11 +356,14 @@ class Music(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def idle_voice_check(self):
-        logging.info(f'Handlers: {len(self.handlers)}')
-        for _, handler in self.handlers.items():
-            logging.info(f'Handler info: {handler.voice_client is None}, {handler.is_playing}')
-            if not handler.is_playing:
-                handler.voice_client.disconnect()
+        try:
+            logging.info(f'Handlers: {len(self.handlers)}')
+            for handler in self.handlers.values():
+                logging.info(f'Handler info: {handler.voice_client is None}, {handler.is_playing}')
+                if not handler.is_playing:
+                    handler.voice_client.disconnect()
+        except Exception as error:
+            logging.error(error, error.args)
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
@@ -565,7 +568,7 @@ class Handler:
                                                                          name=source.title))
                 await self.play_next.wait()
             except Exception as error:
-                logging.error(error.args)
+                logging.error(error, error.args)
                 break
             finally:
                 pass
