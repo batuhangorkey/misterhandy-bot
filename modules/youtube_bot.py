@@ -213,22 +213,18 @@ class Music(commands.Cog):
 
     @commands.command(help='Disconnects the bot from voice channel.')
     async def stop(self, ctx):
-        try:
-            handler = self.handlers.get(ctx.guild.id)
-            if isinstance(handler, Handler):
-                handler.play_random = False
-                handler.reset_playlist()
-                if handler.task:
-                    handler.task.cancel()
-                for _ in range(handler.queue.qsize()):
-                    handler.queue.get_nowait()
-                    handler.queue.task_done()
-            await self.bot.default_presence()
-        except Exception as error:
-            logging.error(error)
-        finally:
-            if ctx.voice_client is not None:
-                await ctx.voice_client.disconnect()
+        handler = self.handlers.get(ctx.guild.id)
+        if handler:
+            handler.play_random = False
+            handler.reset_playlist()
+            for _ in range(handler.queue.qsize()):
+                handler.queue.get_nowait()
+                handler.queue.task_done()
+        await self.bot.default_presence()
+        if ctx.voice_client is not None:
+            await ctx.voice_client.disconnect()
+        if handler.task:
+            handler.task.cancel()
 
     @commands.command(hidden=True)
     async def add_link(self, ctx, url: str):
