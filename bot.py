@@ -185,9 +185,8 @@ async def on_ready():
 
 @bot.event
 async def on_error(event, *args, **kwargs):
-    logging.error(event)
-    logging.error(args)
-    logging.error(kwargs)
+    logging.error(f'Event: {event}, {args}, {kwargs}')
+    logging.error(sys.exc_info())
 
 
 @bot.event

@@ -215,16 +215,18 @@ class Music(commands.Cog):
     async def stop(self, ctx):
         handler = self.handlers.get(ctx.guild.id)
         if handler:
+            if handler.task:
+                handler.task.cancel()
             handler.play_random = False
             handler.reset_playlist()
             for _ in range(handler.queue.qsize()):
                 handler.queue.get_nowait()
                 handler.queue.task_done()
-        await self.bot.default_presence()
-        if ctx.voice_client is not None:
-            await ctx.voice_client.disconnect()
-        if handler.task:
-            handler.task.cancel()
+            await self.bot.default_presence()
+            if ctx.voice_client is not None:
+                await ctx.voice_client.disconnect()
+            await asyncio.sleep(0.1)
+            handler.remove_current()
 
     @commands.command(hidden=True)
     async def add_link(self, ctx, url: str):
@@ -303,11 +305,6 @@ class Music(commands.Cog):
     @play.before_invoke
     @search.before_invoke
     @playrandom.before_invoke
-    @skip.before_invoke
-    @pause.before_invoke
-    @stop.before_invoke
-    @resume.before_invoke
-    @goto.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
@@ -436,6 +433,11 @@ class Handler:
     def is_playing(self):
         return self.voice_client.is_playing()
 
+    def remove_current(self):
+        if self.current:
+            os.remove(self.current.filename)
+            self.current = None
+
     def create_task(self):
         if self.task:
             self.task.cancel()
@@ -528,8 +530,7 @@ class Handler:
     async def queue_handler(self):
         while True:
             try:
-                if self.current:
-                    os.remove(self.current.filename)
+                self.remove_current()
                 self.play_next.clear()
                 self.time_cursor = 0
                 if len(self.queue_value) > 0:
@@ -561,8 +562,7 @@ class Handler:
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
                                                                          name=self.current.title))
                 await self.play_next.wait()
-            except Exception as error:
-                logging.error(error)
+            except asyncio.CancelledError:
                 break
 
     def dislike(self):
