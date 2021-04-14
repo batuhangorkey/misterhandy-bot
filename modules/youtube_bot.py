@@ -356,12 +356,10 @@ class Music(commands.Cog):
                 if reaction.emoji == playlist_emojis['like']:
                     await self.handlers[guild_id].like()
 
-    @tasks.loop(seconds=30)
+    @tasks.loop(minutes=5)
     async def idle_voice_check(self):
-        logging.info(f'Handlers: {len(self.handlers)}')
-        for handler in self.handlers.values():
-            logging.info(f'Handler info: {handler.voice_client is None}, {handler.is_playing}')
-            if not handler.is_playing:
+        for _, handler in self.handlers.items():
+            if handler.voice_client.is_connected() and not handler.is_playing():
                 await handler.voice_client.disconnect()
 
     @idle_voice_check.before_loop
@@ -435,16 +433,15 @@ class Handler:
         self.reset_db_playlist()
 
     @property
-    def is_playing(self):
-        return self.voice_client.is_playing()
-
-    @property
     def last_message(self):
         return self._last_message
 
     @property
     def db_playlist(self):
         return self._random_playlist
+
+    def is_playing(self):
+        return self.voice_client.is_playing()
 
     def create_task(self):
         if self.task:
