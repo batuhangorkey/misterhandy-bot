@@ -40,6 +40,9 @@ else:
 
 
 class CustomBot(commands.Bot):
+    def __init__(self):
+        super().__init__(command_prefix='!')
+        self.admin: discord.User = None
     presences = [
         'wasteland with sensors offline',
         'your feelings',
@@ -47,7 +50,6 @@ class CustomBot(commands.Bot):
         'eternal void',
         'ancient orders'
     ]
-
     adj = {
         8: 'Efsane',
         7: 'İnanılmaz',
@@ -63,13 +65,9 @@ class CustomBot(commands.Bot):
         -3: 'Rezalet',
         -4: 'Felaket'
     }
-
     heroku_banned_commands = [
         'reset'
     ]
-
-    def __init__(self):
-        super().__init__(command_prefix='!')
 
     @staticmethod
     def get_git_version():
@@ -80,6 +78,17 @@ class CustomBot(commands.Bot):
                 return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
             except WindowsError:
                 return 'LocalHost'
+
+    @staticmethod
+    def clean_directory():
+        for item in os.listdir('./'):
+            if item.endswith(('.webm', '.m4a')):
+                try:
+                    os.remove(item)
+                except Exception as error:
+                    logging.error(error)
+                else:
+                    logging.info(f'Successfully deleted {item}')
 
     @property
     def token(self):
@@ -105,9 +114,6 @@ class CustomBot(commands.Bot):
         kaiser_points = {}
         conn = self.get_pymysql_connection()
         with conn.cursor() as cursor:
-            cursor.execute('SELECT VERSION()')
-            data = cursor.fetchone()
-            logging.info(f'Database version: {data[0]}')
             cursor.execute("SELECT * FROM main")
             data = cursor.fetchall()
         conn.close()
@@ -153,47 +159,40 @@ async def on_connect():
 
 @bot.event
 async def on_ready():
+    start = time.process_time()
+    logging.info('Running git hash: {}'.format(bot.git_hash))
+    logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
+    async for guild in bot.fetch_guilds():
+        logging.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
+    for client in bot.voice_clients:
+        client.disconnect()
+    await bot.default_presence()
     try:
-        start = time.process_time()
-        logging.info('Running git hash: {}'.format(bot.git_hash))
-        logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
-
-        async for guild in bot.fetch_guilds():
-            logging.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
-
-        await bot.default_presence()
-        try:
-            bot.add_cog(Minigame(bot, user_table=bot.fetch_user_tables()[0]))
-        except Exception as e:
-            logging.error(e)
-        bot.add_cog(Music(bot))
-        # bot.add_cog(Project2(bot))
-        bot.add_cog(SecretHitler(bot))
-        bot.add_cog(CodeNames(bot))
-
-        for item in os.listdir('./'):
-            if item.endswith(('.webm', '.m4a')):
-                os.remove(item)
-        logging.info(os.path.abspath(os.path.dirname(__file__)))
-        for item in os.listdir('./'):
-            logging.info('\t{}'.format(item))
-
-        end = time.process_time() - start
-        for client in bot.voice_clients:
-            client.disconnect()
-        logging.info('Elapsed time: {}'.format(end))
+        bot.add_cog(Minigame(bot, user_table=bot.fetch_user_tables()[0]))
     except Exception as e:
         logging.error(e)
+    bot.add_cog(Music(bot))
+    bot.add_cog(SecretHitler(bot))
+    bot.add_cog(CodeNames(bot))
+    bot.clean_directory()
+    bot.admin = await bot.fetch_user(301067535581970434)
+    logging.info(os.path.abspath(os.path.dirname(__file__)))
+    for item in os.listdir('./'):
+        logging.info('\t{}'.format(item))
+    end = time.process_time() - start
+    logging.info('Elapsed time: {}'.format(end))
 
 
-'''
 @bot.event
 async def on_error(event, *args, **kwargs):
-    print(event)
-    print(args)
-    print(kwargs)
-    pass
-'''
+    logging.error(event)
+    logging.error(args)
+    logging.error(kwargs)
+
+
+@bot.event
+async def on_command_error(ctx: discord.ext.commands.Context, error):
+    await bot.admin.send(f'{error}, {ctx.message.guild.name}, {ctx.message.content}')
 
 
 @bot.command(help='Rolls dice. <number of dice> <number of sides>')
@@ -244,15 +243,6 @@ async def delete(ctx, limit: int = None):
 async def ping(ctx):
     delta = datetime.datetime.utcnow() - ctx.message.created_at
     await ctx.send("Elapsed seconds: {} | v{}".format(delta.total_seconds(), bot.git_hash), delete_after=3.0)
-
-# TODO:
-#  fix none returning user
-'''
-@bot.event
-async def on_command_error(ctx: discord.ext.commands.Context, error):
-    admin: discord.User = bot.get_user(int(301067535581970434))
-    await admin.send(f'{error}, {ctx.message}')
-'''
 
 
 @bot.check

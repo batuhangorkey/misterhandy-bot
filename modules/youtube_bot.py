@@ -93,10 +93,10 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.handlers = {}
-        self.idle_voice_check.start()
+        self.main_loop.start()
 
     def cog_unload(self):
-        self.idle_voice_check.cancel()
+        self.main_loop.cancel()
 
     def create_handler(self, ctx):
         self.handlers[ctx.guild.id] = Handler(self.bot, ctx)
@@ -108,7 +108,7 @@ class Music(commands.Cog):
         if ctx.voice_client:
             self.handlers[ctx.guild.id].channel = channel
             return await ctx.voice_client.move_to(channel)
-        if channel is None:
+        if channel is None and ctx.author.voice.channel:
             await ctx.author.voice.channel.connect()
         else:
             await channel.connect()
@@ -141,17 +141,13 @@ class Music(commands.Cog):
     @commands.command(help='Plays url and search string from Youtube.')
     async def play(self, ctx, *, search_string: str):
         start = time.process_time()
-        try:
-            async with ctx.typing():
-                audio = await YTDLSource.from_url(search_string, loop=self.bot.loop)
-                if isinstance(audio, YTDLSource):
-                    await self.handlers[ctx.guild.id].source_handler(ctx.channel, audio)
-                else:
-                    return await ctx.send('Bir şeyler yanlış. @Batuhan#8438')
-        except Exception as error:
-            logging.error(f'Error: {error} | String: {search_string}')
-        finally:
-            logging.info(f'Elapsed time: {time.process_time() - start} | String: {search_string}')
+        async with ctx.typing():
+            audio = await YTDLSource.from_url(search_string, loop=self.bot.loop)
+            if isinstance(audio, YTDLSource):
+                await self.handlers[ctx.guild.id].source_handler(ctx.channel, audio)
+            else:
+                return await ctx.send('Bir şeyler yanlış. @Batuhan#8438')
+        logging.info(f'Elapsed time: {time.process_time() - start} | String: {search_string}')
 
     @commands.command(help='Searches youtube. 10 results', hidden=True)
     async def search(self, ctx, *, search_string):
@@ -357,12 +353,12 @@ class Music(commands.Cog):
                     await self.handlers[guild_id].like()
 
     @tasks.loop(minutes=5)
-    async def idle_voice_check(self):
+    async def main_loop(self):
         for _, handler in self.handlers.items():
             if handler.voice_client.is_connected() and not handler.is_playing():
                 await handler.voice_client.disconnect()
 
-    @idle_voice_check.before_loop
+    @main_loop.before_loop
     async def before_idle(self):
         await self.bot.wait_until_ready()
 
@@ -413,6 +409,7 @@ class Handler:
         self._last_message = None
         self.bot = bot
         self.ctx = None
+        self.current = None
 
         self.queue = asyncio.Queue(loop=bot.loop)
         self.play_next = asyncio.Event(loop=bot.loop)
@@ -535,6 +532,8 @@ class Handler:
     async def queue_handler(self):
         while True:
             try:
+                if self.current:
+                    os.remove(self.current.filename)
                 self.play_next.clear()
                 self.time_cursor = 0
                 if len(self.queue_value) > 0:
@@ -557,21 +556,18 @@ class Handler:
                         embed.description = 'Şarkı bitti'
                         embed.clear_fields()
                         await self.last_message.edit(embed=embed)
-                current = await self.queue.get()
-                source = current
-                self.voice_client.play(source,
+                self.current = await self.queue.get()
+                self.voice_client.play(self.current,
                                        after=lambda e: print('Player error: %s' % e)
                                        if e else self.toggle_next())
                 await self.send_player_embed()
                 self.source_start_time = time.time()
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                         name=source.title))
+                                                                         name=self.current.title))
                 await self.play_next.wait()
             except Exception as error:
-                logging.error(error, error.args)
+                logging.error(error)
                 break
-            finally:
-                pass
 
     def dislike(self):
         if self.voice_client.source is None:
