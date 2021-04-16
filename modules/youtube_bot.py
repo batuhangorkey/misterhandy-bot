@@ -385,7 +385,7 @@ class Events(commands.Cog):
             music = self.bot.get_cog('Music')
             handler = music.handlers[self.ctx.guild.id]
             await self.ctx.invoke(music.bot.get_command('play'), search_string=handler.search_list[index - 1])
-            music.search_list.clear()
+            handler.search_list.clear()
         except ValueError as error:
             logging.error(error)
         except Exception as error:
