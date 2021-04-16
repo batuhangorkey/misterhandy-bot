@@ -183,10 +183,8 @@ class Music(commands.Cog):
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
-        await ctx.message.delete()
         if ctx.voice_client is None:
             return await ctx.send('Ses kanalına bağlı değilim.')
-
         ctx.voice_client.source.volume = volume / 100
         await ctx.send('Ses seviyesi %{} oldu.'.format(volume))
 
