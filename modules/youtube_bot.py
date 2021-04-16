@@ -189,19 +189,17 @@ class Music(commands.Cog):
 
     @commands.command(hidden=True)
     async def pause(self, ctx):
-        if ctx.voice_client and ctx.voice_client.source:
-            ctx.voice_client.pause()
-            embed = self.handlers[ctx.guild.id].last_message.embeds[0]
-            embed.description = 'Durduruldu'
-            await self.handlers[ctx.guild.id].last_message.edit(embed=embed)
+        self.handlers.get(ctx.guild.id).pause()
 
     @commands.command(hidden=True)
     async def resume(self, ctx):
-        if ctx.voice_client is not None and ctx.voice_client.source:
-            ctx.voice_client.resume()
-            embed = self.handlers[ctx.guild.id].last_message.embeds[0]
-            embed.description = 'Oynatılıyor'
-            await self.handlers[ctx.guild.id].last_message.edit(embed=embed)
+        self.handlers.get(ctx.guild.id).resume()
+
+    @pause.before_invoke
+    @resume.before_invoke
+    async def check_handler_exists(self, ctx):
+        if self.handlers.get(ctx.guild.id) is None:
+            raise commands.CommandError('No handler exists in this guild')
 
     @commands.command(help='Skips current video.')
     async def skip(self, ctx):
@@ -524,6 +522,22 @@ class Handler:
             self.queue_value.append(source.title)
             await self.send_player_embed()
         await self.queue.put(source)
+
+    async def pause(self):
+        if self.voice_client and self.is_playing():
+            self.voice_client.pause()
+            if self.last_message:
+                embed = self.last_message.embeds[0]
+                embed.description = 'Durduruldu'
+                await self.last_message.edit(embed=embed)
+
+    async def resume(self):
+        if self.voice_client and self.voice_client.source:
+            self.voice_client.resume()
+            if self.last_message:
+                embed = self.last_message.embeds[0]
+                embed.description = 'Oynatılıyor'
+                await self.last_message.edit(embed=embed)
 
     async def queue_handler(self):
         while True:
