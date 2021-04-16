@@ -524,7 +524,7 @@ class Handler:
         await self.queue.put(source)
 
     async def pause(self):
-        if self.voice_client and self.is_playing():
+        if self.voice_client and self.voice_client.is_playing():
             self.voice_client.pause()
             if self.last_message:
                 embed = self.last_message.embeds[0]
@@ -532,7 +532,7 @@ class Handler:
                 await self.last_message.edit(embed=embed)
 
     async def resume(self):
-        if self.voice_client and self.voice_client.source:
+        if self.voice_client and self.voice_client.is_paused():
             self.voice_client.resume()
             if self.last_message:
                 embed = self.last_message.embeds[0]
