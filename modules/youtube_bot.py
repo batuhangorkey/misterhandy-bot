@@ -173,8 +173,7 @@ class Music(commands.Cog):
             if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
                 if not self.handlers[ctx.guild.id].play_random:
                     source = await YTDLSource.from_url(self.handlers[ctx.guild.id].get_song(),
-                                                       loop=self.bot.loop,
-                                                       stream=True)
+                                                       loop=self.bot.loop)
                     if source is None:
                         return await ctx.send('Bir şeyler yanlış. Bir daha dene')
                     await self.handlers[ctx.guild.id].source_handler(ctx, source)
