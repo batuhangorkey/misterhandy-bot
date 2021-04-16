@@ -359,6 +359,7 @@ class Music(commands.Cog):
             return
         guild_id = reaction.message.guild.id
         if self.handlers.get(guild_id) is not None and reaction.message.id == self.handlers[guild_id].last_message.id:
+            logging.info('Debug')
             if reaction.emoji == player_emojis['play_pause']:
                 return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('resume'))
 
