@@ -128,7 +128,7 @@ class Music(commands.Cog):
             finally:
                 logging.info("Deleted {}".format(player.filename))
 
-    @commands.command(help="Streams from a url. Doesn't predownload.")
+    @commands.command(help="Streams from a url. Doesn't predownload.", hidden=True)
     async def stream(self, ctx, *, url):
         start = time.process_time()
         async with ctx.typing():
