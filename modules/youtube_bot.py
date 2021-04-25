@@ -170,6 +170,7 @@ class Music(commands.Cog):
     @commands.command(hidden=True)
     async def loop(self, ctx):
         self.handlers[ctx.guild.id].loop = not self.handlers[ctx.guild.id].loop
+        await ctx.send(f'Döngü {"açık" if self.handlers[ctx.guild.id].loop else "kapalı"}')
 
     @commands.command(help='Plays random songs')
     async def playrandom(self, ctx):
@@ -304,6 +305,7 @@ class Music(commands.Cog):
     @play.before_invoke
     @search.before_invoke
     @playrandom.before_invoke
+    @loop.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
