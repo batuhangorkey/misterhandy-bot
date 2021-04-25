@@ -167,6 +167,10 @@ class Music(commands.Cog):
         self.bot.add_cog(Events(self.bot, ctx))
         print('Method: {} | Elapsed time: {}'.format('search', time.process_time() - start))
 
+    @commands.command(hidden=True)
+    async def loop(self, ctx):
+        self.handlers[ctx.guild.id].loop = not self.handlers[ctx.guild.id].loop
+
     @commands.command(help='Plays random songs')
     async def playrandom(self, ctx):
         async with ctx.typing():
@@ -413,6 +417,7 @@ class Handler:
         self.time_setting = 30
 
         self.play_random = False
+        self.loop = False
         self.footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - v{}'
         self.fancy_format = True
 
@@ -542,7 +547,6 @@ class Handler:
     async def queue_handler(self):
         while True:
             try:
-                self.remove_current()
                 self.play_next.clear()
                 self.time_cursor = 0
                 if len(self.queue_value) > 0:
@@ -565,7 +569,9 @@ class Handler:
                         embed.description = 'Şarkı bitti'
                         embed.clear_fields()
                         await self.last_message.edit(embed=embed)
-                self.current = await self.queue.get()
+                if not self.loop:
+                    self.remove_current()
+                    self.current = await self.queue.get()
                 self.voice_client.play(self.current,
                                        after=lambda e: print('Player error: %s' % e)
                                        if e else self.toggle_next())
