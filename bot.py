@@ -164,6 +164,9 @@ async def on_ready():
     logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
     async for guild in bot.fetch_guilds():
         logging.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
+    target_guild: discord.Guild = bot.fetch_guild(757705485356105749)
+    async for channel in await target_guild.fetch_channels():
+        logging.info(f'Channel: {channel.name}')
     for client in bot.voice_clients:
         client.disconnect()
     await bot.default_presence()
