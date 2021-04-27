@@ -79,10 +79,14 @@ class YTDLSource(discord.PCMVolumeTransformer):
         data['start_time'] = start_time
         data['duration'] = time.strftime('%M:%S', time.gmtime(data.get('duration')))
         if start_time != 0:
-            ffmpeg_options['options'] = '-vn -ss {}'.format(time.strftime('%M:%S', time.gmtime(start_time)))
+            _ffmpeg_options = {'options': '-vn -ss {}'.format(time.strftime('%M:%S', time.gmtime(start_time)))}
         else:
-            ffmpeg_options['options'] = '-vn'
-        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
+            _ffmpeg_options = {'options': '-vn'}
+        return cls(discord.FFmpegPCMAudio(filename, **_ffmpeg_options), data=data)
+
+    @classmethod
+    def from_file(cls, data):
+        return cls(discord.FFmpegPCMAudio(data['filename'], **ffmpeg_options), data=data)
 
 
 # TODO:
@@ -190,6 +194,7 @@ class Music(commands.Cog):
         if ctx.voice_client is None:
             return await ctx.send('Ses kanalına bağlı değilim.')
         ctx.voice_client.source.volume = volume / 100
+        self.handlers[ctx.guild.id].volume = volume
         await ctx.send('Ses seviyesi %{} oldu.'.format(volume))
 
     @commands.command(hidden=True)
@@ -420,6 +425,7 @@ class Handler:
 
         self.play_random = False
         self.loop = False
+        self.volume = 50
         self.footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - v{}'
         self.fancy_format = True
 
@@ -574,6 +580,9 @@ class Handler:
                 if not self.loop:
                     self.remove_current()
                     self.current = await self.queue.get()
+                    self.current.volume = self.volume / 100
+                else:
+                    self.current = YTDLSource.from_file(self.current.data)
                 self.voice_client.play(self.current,
                                        after=lambda e: print('Player error: %s' % e)
                                        if e else self.toggle_next())
