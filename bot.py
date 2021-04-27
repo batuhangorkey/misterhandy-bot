@@ -165,6 +165,20 @@ async def on_ready():
     async for guild in bot.fetch_guilds():
         logging.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
 
+    target_guild: discord.Guild = await bot.fetch_guild(757705485356105749)
+
+    for channel in await target_guild.fetch_channels():
+        logging.info(f'Channel: {channel.name}, ID: {channel.id}')
+
+    # target_channel: discord.TextChannel = await bot.fetch_channel(758818983028719627)
+    #
+    # import datetime
+    # with open('text_log.txt', 'w', encoding='utf-8') as log:
+    #     async for message in target_channel.history(limit=None, after=datetime.datetime(2021, 4, 1)):
+    #         log.write(f'{message.created_at}: '
+    #                   f'{message.author.display_name.rjust(16)}: {message.clean_content}\n')
+    #
+
     for client in bot.voice_clients:
         client.disconnect()
     await bot.default_presence()
@@ -176,7 +190,9 @@ async def on_ready():
     bot.add_cog(SecretHitler(bot))
     bot.add_cog(CodeNames(bot))
     bot.clean_directory()
+
     bot.admin = await bot.fetch_user(301067535581970434)
+
     logging.info(os.path.abspath(os.path.dirname(__file__)))
     for item in os.listdir('./'):
         logging.info('\t{}'.format(item))
