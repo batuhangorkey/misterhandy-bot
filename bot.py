@@ -44,11 +44,11 @@ class CustomBot(commands.Bot):
         super().__init__(command_prefix='!')
         self.admin: discord.User = None
     presences = [
-        'wasteland with sensors offline',
-        'your feelings',
-        'psychedelic space rock',
         'eternal void',
-        'ancient orders'
+        'ancient orders',
+        'nine mouths',
+        'cosmic noise',
+        'storms on titan'
     ]
     adj = {
         8: 'Efsane',

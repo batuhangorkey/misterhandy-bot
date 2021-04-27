@@ -191,8 +191,6 @@ class Music(commands.Cog):
 
     @commands.command(help='Changes volume to the value.')
     async def volume(self, ctx, volume: int):
-        if ctx.voice_client is None:
-            return await ctx.send('Ses kanalına bağlı değilim.')
         ctx.voice_client.source.volume = volume / 100
         self.handlers[ctx.guild.id].volume = volume
         await ctx.send('Ses seviyesi %{} oldu.'.format(volume))
@@ -301,6 +299,7 @@ class Music(commands.Cog):
         pass
 
     @goto.before_invoke
+    @volume.before_invoke
     async def ensure_source(self, ctx):
         if ctx.voice_client.source is None:
             await ctx.send('Ortada ileri alınacak video yok.')
@@ -425,7 +424,7 @@ class Handler:
 
         self.play_random = False
         self.loop = False
-        self.volume = 50
+        self.volume = 25
         self.footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - v{}'
         self.fancy_format = True
 
@@ -580,9 +579,9 @@ class Handler:
                 if not self.loop:
                     self.remove_current()
                     self.current = await self.queue.get()
-                    self.current.volume = self.volume / 100
                 else:
                     self.current = YTDLSource.from_file(self.current.data)
+                self.current.volume = self.volume / 100
                 self.voice_client.play(self.current,
                                        after=lambda e: print('Player error: %s' % e)
                                        if e else self.toggle_next())
