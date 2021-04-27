@@ -165,11 +165,11 @@ async def on_ready():
     async for guild in bot.fetch_guilds():
         logging.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
 
-    target_guild: discord.Guild = await bot.fetch_guild(757705485356105749)
-
-    for channel in await target_guild.fetch_channels():
-        logging.info(f'Channel: {channel.name}, ID: {channel.id}')
-
+    # target_guild: discord.Guild = await bot.fetch_guild(757705485356105749)
+    #
+    # for channel in await target_guild.fetch_channels():
+    #     logging.info(f'Channel: {channel.name}, ID: {channel.id}')
+    #
     # target_channel: discord.TextChannel = await bot.fetch_channel(758818983028719627)
     #
     # import datetime
