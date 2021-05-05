@@ -142,7 +142,7 @@ class Music(commands.Cog):
             await self.handlers[ctx.guild.id].source_handler(ctx, audio)
         logging.info('Elapsed time: {}'.format(time.process_time() - start))
 
-    @commands.command(help='Plays url and search string from Youtube.')
+    @commands.command(help='Plays requested song')
     async def play(self, ctx, *, search_string: str):
         start = time.process_time()
         async with ctx.typing():
@@ -171,12 +171,12 @@ class Music(commands.Cog):
         self.bot.add_cog(Events(self.bot, ctx))
         print('Method: {} | Elapsed time: {}'.format('search', time.process_time() - start))
 
-    @commands.command(hidden=True)
+    @commands.command(help='Switch loop')
     async def loop(self, ctx):
         self.handlers[ctx.guild.id].loop = not self.handlers[ctx.guild.id].loop
         await ctx.send(f'Döngü {"açık" if self.handlers[ctx.guild.id].loop else "kapalı"}')
 
-    @commands.command(help='Plays random songs')
+    @commands.command(help='Play random')
     async def playrandom(self, ctx):
         async with ctx.typing():
             if not ctx.voice_client.is_playing() or not ctx.voice_client.is_paused():
@@ -188,12 +188,6 @@ class Music(commands.Cog):
                     await self.handlers[ctx.guild.id].source_handler(ctx, source)
             self.handlers[ctx.guild.id].play_random = not self.handlers[ctx.guild.id].play_random
         await self.handlers[ctx.guild.id].update_footer()
-
-    @commands.command(help='Changes volume to the value.')
-    async def volume(self, ctx, volume: int):
-        ctx.voice_client.source.volume = volume / 100
-        self.handlers[ctx.guild.id].volume = volume
-        await ctx.send('Ses seviyesi %{} oldu.'.format(volume))
 
     @commands.command(hidden=True)
     async def pause(self, ctx):
@@ -264,7 +258,7 @@ class Music(commands.Cog):
             await ctx.send('Eklenen şarkılar:\n'
                            '```{}```'.format('\n'.join(added_songs)))
             if len(failed_songs) > 0:
-                await ctx.send('\nBaşına bir şey gelen şarkılar:\n'
+                await ctx.send('\nHata alan şarkılar:\n'
                                '```{}```'.format('\n'.join(failed_songs)))
             self.handlers[ctx.guild.id].reset_db_playlist()
             await self.handlers[ctx.guild.id].update_footer()
@@ -288,6 +282,19 @@ class Music(commands.Cog):
                 self.handlers[ctx.guild.id].queue.task_done()
                 self.handlers[ctx.guild.id].queue.put_nowait(a)
 
+    @commands.command(help='Changes volume to the value.')
+    async def volume(self, ctx, volume: int):
+        ctx.voice_client.source.volume = volume / 100
+        self.handlers[ctx.guild.id].volume = volume
+        await ctx.send('Ses seviyesi %{} oldu.'.format(volume))
+
+    @goto.before_invoke
+    @volume.before_invoke
+    async def ensure_source(self, ctx):
+        if ctx.voice_client.source is None:
+            await ctx.send('Ortada ileri alınacak video yok.')
+            raise commands.CommandError('Audio source empty.')
+
     @commands.command(hidden=True)
     async def set_skip_time(self, ctx, time_set: int):
         async with ctx.typing():
@@ -297,13 +304,6 @@ class Music(commands.Cog):
     @commands.command(hidden=True)
     async def fancy_player(self, ctx):
         pass
-
-    @goto.before_invoke
-    @volume.before_invoke
-    async def ensure_source(self, ctx):
-        if ctx.voice_client.source is None:
-            await ctx.send('Ortada ileri alınacak video yok.')
-            raise commands.CommandError('Audio source empty.')
 
     @stream.before_invoke
     @play.before_invoke
@@ -318,6 +318,16 @@ class Music(commands.Cog):
             else:
                 await ctx.send('Ses kanalında değilsin.')
                 raise commands.CommandError('Author not connected to a voice channel.')
+
+    @tasks.loop(minutes=5)
+    async def main_loop(self):
+        for _, handler in self.handlers.items():
+            if handler.voice_client.is_connected() and not handler.is_playing():
+                await handler.voice_client.disconnect()
+
+    @main_loop.before_loop
+    async def before_idle(self):
+        await self.bot.wait_until_ready()
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
@@ -350,23 +360,14 @@ class Music(commands.Cog):
                 if reaction.emoji == playlist_emojis['like']:
                     await self.handlers[guild_id].like()
 
-    @tasks.loop(minutes=5)
-    async def main_loop(self):
-        for _, handler in self.handlers.items():
-            if handler.voice_client.is_connected() and not handler.is_playing():
-                await handler.voice_client.disconnect()
-
-    @main_loop.before_loop
-    async def before_idle(self):
-        await self.bot.wait_until_ready()
-
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
         if user.bot:
             return
         guild_id = reaction.message.guild.id
         if self.handlers.get(guild_id) is not None and reaction.message.id == self.handlers[guild_id].last_message.id:
-            logging.info('Debug')
+            if reaction.emoji == player_emojis['next_track']:
+                return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('skip'))
             if reaction.emoji == player_emojis['play_pause']:
                 return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('resume'))
 
@@ -458,7 +459,9 @@ class Handler:
     def reset_playlist(self):
         self.random_playlist = self._random_playlist.copy()
 
-    def toggle_next(self):
+    def toggle_next(self, error):
+        if error:
+            logging.error(error)
         self.bot.loop.call_soon_threadsafe(self.play_next.set)
 
     def get_player_message_body(self, source: YTDLSource):
@@ -583,8 +586,7 @@ class Handler:
                     self.current = YTDLSource.from_file(self.current.data)
                 self.current.volume = self.volume / 100
                 self.voice_client.play(self.current,
-                                       after=lambda e: print('Player error: %s' % e)
-                                       if e else self.toggle_next())
+                                       after=self.toggle_next)
                 await self.send_player_embed()
                 self.source_start_time = time.time()
                 await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,

@@ -164,7 +164,6 @@ async def on_ready():
     logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
     async for guild in bot.fetch_guilds():
         logging.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
-
     # target_guild: discord.Guild = await bot.fetch_guild(757705485356105749)
     #
     # for channel in await target_guild.fetch_channels():
@@ -178,7 +177,6 @@ async def on_ready():
     #         log.write(f'{message.created_at}: '
     #                   f'{message.author.display_name.rjust(16)}: {message.clean_content}\n')
     #
-
     for client in bot.voice_clients:
         client.disconnect()
     await bot.default_presence()
@@ -190,9 +188,7 @@ async def on_ready():
     bot.add_cog(SecretHitler(bot))
     bot.add_cog(CodeNames(bot))
     bot.clean_directory()
-
     bot.admin = await bot.fetch_user(301067535581970434)
-
     logging.info(os.path.abspath(os.path.dirname(__file__)))
     for item in os.listdir('./'):
         logging.info('\t{}'.format(item))
