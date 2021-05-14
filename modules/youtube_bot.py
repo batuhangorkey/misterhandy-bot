@@ -448,7 +448,7 @@ class Handler:
             self.current = None
 
     def create_task(self):
-        if self.task:
+        if not self.task.cancelled():
             self.task.cancel()
         self.task = self.bot.loop.create_task(self.queue_handler())
 
