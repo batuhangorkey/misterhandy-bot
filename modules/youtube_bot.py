@@ -444,13 +444,19 @@ class Handler:
         return self.voice_client.is_playing()
 
     def remove_current(self):
-        if self.current:
-            os.remove(self.current.filename)
-            self.current = None
+        try:
+            if self.current:
+                logging.info(f'Trying to remove {self.current.filename}')
+                os.remove(self.current.filename)
+                self.current = None
+        except Exception as e:
+            logging.info(e)
 
     def create_task(self):
         if self.task:
             self.task.cancel()
+            if self.task:
+                logging.info('Task still running')
         self.task = self.bot.loop.create_task(self.queue_handler())
 
     def reset_db_playlist(self):
