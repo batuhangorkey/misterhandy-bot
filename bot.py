@@ -49,7 +49,8 @@ class CustomBot(commands.Bot):
         'ancient orders',
         'nine mouths',
         'cosmic noise',
-        'storms on titan'
+        'storms on titan',
+        '!play'
     ]
     adj = {
         8: 'Efsane',
