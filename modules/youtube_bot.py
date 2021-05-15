@@ -147,10 +147,10 @@ class Music(commands.Cog):
         start = time.process_time()
         async with ctx.typing():
             audio = await YTDLSource.from_url(search_string, loop=self.bot.loop)
-            if isinstance(audio, YTDLSource):
-                await self.handlers[ctx.guild.id].source_handler(ctx.channel, audio)
-            else:
-                return await ctx.send('Bir şeyler yanlış. @Batuhan#8438')
+        if isinstance(audio, YTDLSource):
+            await self.handlers[ctx.guild.id].source_handler(ctx.channel, audio)
+        else:
+            return await ctx.send('Bir şeyler yanlış. @Batuhan#8438')
         logging.info(f'Elapsed time: {time.process_time() - start} | String: {search_string}')
 
     @commands.command(help='Searches youtube. 10 results', hidden=True)
@@ -367,6 +367,7 @@ class Music(commands.Cog):
             return
         guild_id = reaction.message.guild.id
         if self.handlers.get(guild_id) is not None and reaction.message.id == self.handlers[guild_id].last_message.id:
+            logging.info('Reaction removed')
             if reaction.emoji == player_emojis['next_track']:
                 return await self.handlers[guild_id].ctx.invoke(self.bot.get_command('skip'))
             if reaction.emoji == player_emojis['play_pause']:
@@ -450,7 +451,7 @@ class Handler:
                 os.remove(self.current.filename)
                 self.current = None
         except Exception as e:
-            logging.info(e)
+            logging.error(e)
 
     def create_task(self):
         if self.task:
