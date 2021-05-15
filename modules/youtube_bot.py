@@ -509,8 +509,6 @@ class Handler:
             for i, value in list(enumerate(self.queue_value)):
                 embed.add_field(name=str(i + 1), value=value)
 
-        if self.last_message is not None:
-            await self._last_message.delete()
         self._last_message = await self.channel.send(embed=embed)
 
         if self.play_random:
@@ -589,8 +587,6 @@ class Handler:
                                        after=self.toggle_next)
                 await self.send_player_embed()
                 self.source_start_time = time.time()
-                await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                         name=self.current.title))
                 await self.play_next.wait()
             except asyncio.CancelledError:
                 break
