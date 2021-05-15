@@ -321,6 +321,7 @@ class Music(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def main_loop(self):
+        await self.bot.default_presence()
         for _, handler in self.handlers.items():
             if handler.voice_client.is_connected() and not handler.is_playing():
                 await handler.voice_client.disconnect()

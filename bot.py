@@ -44,6 +44,13 @@ class CustomBot(commands.Bot):
         super().__init__(command_prefix='!')
         self.admin: discord.User = None
 
+    presences = [
+        'eternal void',
+        'ancient orders',
+        'nine mouths',
+        'cosmic noise',
+        'storms on titan'
+    ]
     adj = {
         8: 'Efsane',
         7: 'İnanılmaz',
@@ -130,7 +137,7 @@ class CustomBot(commands.Bot):
     async def default_presence(self):
         try:
             await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                 name='!play'),
+                                                                 name=random.choice(CustomBot.presences)),
                                        status=self.git_hash)
         except Exception as e:
             logging.error(e)
