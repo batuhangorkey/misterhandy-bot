@@ -211,12 +211,8 @@ async def on_command_error(ctx: discord.ext.commands.Context, error):
 
 @bot.command(hidden=True)
 async def run(ctx, *, command: str):
-    output = subprocess.check_output(command.split())
+    output = subprocess.check_output(command.split()).strip().decode('ascii')
     await ctx.send(output)
-    await ctx.send(output.args)
-    await ctx.send(output.returncode)
-    await ctx.send(output.stdout)
-    await ctx.send(output.stderr)
 
 
 @bot.command(help='Rolls dice. <number of dice> <number of sides>')
