@@ -211,7 +211,7 @@ async def on_command_error(ctx: discord.ext.commands.Context, error):
 
 @bot.command(hidden=True)
 async def run(ctx, *, command: str):
-    output = subprocess.run(command.split())
+    output = subprocess.check_output(command.split())
     await ctx.send(output)
     await ctx.send(output.args)
     await ctx.send(output.returncode)
