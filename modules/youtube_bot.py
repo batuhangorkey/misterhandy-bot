@@ -428,7 +428,7 @@ class Handler:
         self.play_random = False
         self.loop = False
         self.volume = 25
-        self.footer = 'Rastgele çalma {} | Müzik listesi uzunluğu ({}) - v{}'
+        self.footer = 'Radyo {} | Yeniden oynatma {} | ({}) - v{}'
         self.fancy_format = True
 
         self.reset_db_playlist()
@@ -484,6 +484,7 @@ class Handler:
                                   description=description,
                                   colour=0x8B0000)
             embed.set_footer(text=self.footer.format('açık' if self.play_random else 'kapalı',
+                                                     'açık' if self.loop else 'kapalı',
                                                      len(self._random_playlist),
                                                      self.bot.git_hash))
             embed.set_thumbnail(url=source.thumbnail)
@@ -499,6 +500,7 @@ class Handler:
                 return
             embed = self.last_message.embeds[0]
             embed.set_footer(text=self.footer.format('açık' if self.play_random else 'kapalı',
+                                                     'açık' if self.loop else 'kapalı',
                                                      len(self._random_playlist),
                                                      self.bot.git_hash))
             await self.last_message.edit(embed=embed)
@@ -582,7 +584,7 @@ class Handler:
                     elif self.last_message:
                         await self.bot.default_presence()
                         embed = self.last_message.embeds[0]
-                        embed.description = 'Şarkı bitti'
+                        embed.description = 'End of the show'
                         embed.clear_fields()
                         await self.last_message.edit(embed=embed)
                 if not self.loop:

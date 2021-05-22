@@ -1,0 +1,20 @@
+{
+  "ftbacademymod:root": {
+    "criteria": {
+      "entered_school": "2021-03-02 19:21:42 +0300"
+    },
+    "done": true
+  },
+  "astralsorcery:root": {
+    "criteria": {
+      "astralsorcery_present": "2021-03-02 19:21:42 +0300"
+    },
+    "done": true
+  },
+  "minecraft:adventure/adventuring_time": {
+    "criteria": {
+      "plains": "2021-03-02 19:21:42 +0300"
+    },
+    "done": false
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "type": "dynamictrees:oakseed",
+  "version": 2,
+  "ref": {
+    "a": {
+      "name": "dynamictrees:oakbranch",
+      "meta": 2
+    },
+    "b": {
+      "name": "dynamictrees:leaves0",
+      "meta": 3
+    },
+    "c": {
+      "name": "dynamictrees:leaves0",
+      "meta": 0
+    },
+    "d": {
+      "name": "dynamictrees:leaves0",
+      "meta": 2
+    },
+    "e": {
+      "name": "dynamictrees:leaves0",
+      "meta": 1
+    },
+    "f": {
+      "name": "dynamictrees:oakbranch",
+      "meta": 0
+    },
+    "g": {
+      "name": "dynamictrees:oakbranch",
+      "meta": 1
+    },
+    "h": {
+      "name": "dynamictrees:rootydirt",
+      "meta": 15
+    },
+    "i": {
+      "name": "dynamictrees:oakbranch",
+      "meta": 5
+    },
+    "j": {
+      "name": "dynamictrees:oakbranch",
+      "meta": 4
+    },
+    "k": {
+      "name": "dynamictrees:oakbranch",
+      "meta": 3
+    }
+  },
+  "shape": [
+    [
+      "       ",
+      "       ",
+      "       ",
+      "       ",
+      "   c   ",
+      "  ccc  ",
+      "  cc   ",
+      "       ",
+      "       ",
+      "       ",
+      "       "
+    ],
+    [
+      "       ",
+      "       ",
+      "       ",
+      "   c   ",
+      "  cec  ",
+      " cedec ",
+      " cdbc  ",
+      "  c    ",
+      "       ",
+      "       ",
+      "       "
+    ],
+    [
+      "       ",
+      "   ccc ",
+      "   ccc ",
+      "  cccc ",
+      " cedec ",
+      " cdbd  ",
+      " cbfb  ",
+      "   g   ",
+      "       ",
+      "       ",
+      "       "
+    ],
+    [
+      "   ccc ",
+      "  cedec",
+      "  cdbdc",
+      " ceccec",
+      "cedbd  ",
+      " c fb  ",
+      "    f  ",
+      "   g   ",
+      "       ",
+      "       ",
+      "       "
+    ],
+    [
+      "   ccc ",
+      "  cdbdc",
+      " cebfbc",
+      "cedagdc",
+      "cdba bc",
+      "cbfk f ",
+      "   jgg ",
+      "   j   ",
+      "   i   ",
+      "   i   ",
+      "   h   "
+    ],
+    [
+      "   ccc ",
+      "  cedec",
+      " cdbbdc",
+      " cbfbec",
+      "cedb   ",
+      " c b   ",
+      "   f   ",
+      "       ",
+      "       ",
+      "       ",
+      "       "
+    ],
+    [
+      "       ",
+      "  cccc ",
+      " cedec ",
+      " cdbdc ",
+      " cedec ",
+      "       ",
+      "       ",
+      "       ",
+      "       ",
+      "       ",
+      "       "
+    ],
+    [
+      "       ",
+      "       ",
+      "  ccc  ",
+      "  ccc  ",
+      "  ccc  ",
+      "       ",
+      "       ",
+      "       ",
+      "       ",
+      "       ",
+      "       "
+    ]
+  ]
+}

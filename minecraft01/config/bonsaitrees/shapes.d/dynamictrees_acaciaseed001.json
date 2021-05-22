@@ -1,0 +1,112 @@
+{
+  "type": "dynamictrees:acaciaseed",
+  "version": 2,
+  "ref": {
+    "a": {
+      "name": "dynamictrees:leaves1",
+      "meta": 0
+    },
+    "b": {
+      "name": "dynamictrees:leaves1",
+      "meta": 1
+    },
+    "c": {
+      "name": "dynamictrees:acaciabranch",
+      "meta": 1
+    },
+    "d": {
+      "name": "dynamictrees:acaciabranch",
+      "meta": 2
+    },
+    "e": {
+      "name": "dynamictrees:acaciabranch",
+      "meta": 0
+    },
+    "f": {
+      "name": "dynamictrees:rootydirt",
+      "meta": 15
+    },
+    "g": {
+      "name": "dynamictrees:leaves1",
+      "meta": 2
+    },
+    "h": {
+      "name": "dynamictrees:leaves1",
+      "meta": 3
+    }
+  },
+  "shape": [
+    [
+      "        ",
+      "  aaa   ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        "
+    ],
+    [
+      "  aaa   ",
+      " abbba  ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        "
+    ],
+    [
+      " abbba  ",
+      "abghgba ",
+      "    e   ",
+      "        ",
+      "        ",
+      "        ",
+      "        "
+    ],
+    [
+      " abbbba ",
+      "abhehgba",
+      "   cd   ",
+      "    d   ",
+      "    d   ",
+      "    d   ",
+      "    f   "
+    ],
+    [
+      " abbbba ",
+      "abghehba",
+      "    ce  ",
+      "        ",
+      "        ",
+      "        ",
+      "        "
+    ],
+    [
+      "  abbba ",
+      " abghgba",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        "
+    ],
+    [
+      "   aaa  ",
+      "  abbba ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        "
+    ],
+    [
+      "        ",
+      "   aaa  ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        "
+    ]
+  ]
+}

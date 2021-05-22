@@ -43,6 +43,7 @@ class CustomBot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix='!')
         self.admin: discord.User = None
+        self.minecraft_pipe = None
 
     presences = [
         'eternal void',
@@ -213,6 +214,27 @@ async def on_command_error(ctx: discord.ext.commands.Context, error):
 async def run(ctx, *, command: str):
     output = subprocess.check_output(command.split()).strip().decode('ascii')
     await ctx.send(output)
+
+
+@bot.group(hidden=True)
+async def minecraft(ctx):
+    if ctx.invoked_subcommand:
+        return
+    if bot.minecraft_pipe:
+        await ctx.send('Server running...')
+    else:
+        await ctx.send('Starting server...')
+        bot.minecraft_pipe = subprocess.Popen('cmd.exe', stdin=subprocess.PIPE)
+        bot.minecraft_pipe.stdin.write('cd ./minecraft01'.encode('ascii'))
+        bot.minecraft_pipe.stdin.write('java -Xmx8192M -Xms1024M '
+                                       '-jar forge-1.12.2-14.23.5.2854.jar '
+                                       'nogui'.encode('ascii'))
+
+
+@minecraft.command()
+async def stop(ctx):
+    await ctx.send('Stopping now...')
+    bot.minecraft_pipe.stdin.write('stop')
 
 
 @bot.command(help='Rolls dice. <number of dice> <number of sides>')

@@ -4,3 +4,4 @@ config.ini
 *.pyc
 .vscode/*
 *.code-workspace
+text_log.txt

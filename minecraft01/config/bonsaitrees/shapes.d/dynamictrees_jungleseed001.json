@@ -1,0 +1,204 @@
+{
+  "type": "dynamictrees:jungleseed",
+  "version": 2,
+  "ref": {
+    "a": {
+      "name": "dynamictrees:leaves0",
+      "meta": 13
+    },
+    "b": {
+      "name": "dynamictrees:leaves0",
+      "meta": 12
+    },
+    "c": {
+      "name": "dynamictrees:junglebranch",
+      "meta": 1
+    },
+    "d": {
+      "name": "dynamictrees:leaves0",
+      "meta": 14
+    },
+    "e": {
+      "name": "dynamictrees:leaves0",
+      "meta": 15
+    },
+    "f": {
+      "name": "dynamictrees:junglebranch",
+      "meta": 0
+    },
+    "g": {
+      "name": "dynamictrees:rootydirt",
+      "meta": 15
+    },
+    "h": {
+      "name": "dynamictrees:junglebranch",
+      "meta": 5
+    },
+    "i": {
+      "name": "dynamictrees:junglebranch",
+      "meta": 4
+    },
+    "j": {
+      "name": "dynamictrees:junglebranch",
+      "meta": 2
+    },
+    "k": {
+      "name": "dynamictrees:junglebranch",
+      "meta": 3
+    }
+  },
+  "shape": [
+    [
+      "        ",
+      "    bbb ",
+      "    bbb ",
+      "        ",
+      "        ",
+      "        ",
+      " bb     ",
+      " bb     ",
+      " bb     ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        "
+    ],
+    [
+      "    bbb ",
+      "   badab",
+      "   bdedb",
+      "    bbb ",
+      "        ",
+      " bb     ",
+      "badb    ",
+      "bdeb    ",
+      "badb    ",
+      "        ",
+      "        ",
+      "  bb    ",
+      "  bb    ",
+      "  bb    ",
+      "        ",
+      "        ",
+      "        "
+    ],
+    [
+      "    bbb ",
+      "   bdedb",
+      "   befeb",
+      "    bcb ",
+      "     c  ",
+      " bb  c  ",
+      "bdeb c  ",
+      "befccj  ",
+      "bdeb j  ",
+      "  b  k  ",
+      "  bb k  ",
+      " badbk  ",
+      " bdebi  ",
+      " badbi  ",
+      "  b  i  ",
+      "     h  ",
+      "     g  "
+    ],
+    [
+      "    bbb ",
+      "   badab",
+      "   bdedb",
+      "    bbb ",
+      "        ",
+      " bb     ",
+      "badb    ",
+      "bdeb    ",
+      "badb    ",
+      "  b     ",
+      "  bb    ",
+      " bdeb   ",
+      " befcj  ",
+      " bdeb   ",
+      "  b     ",
+      "        ",
+      "        "
+    ],
+    [
+      "        ",
+      "    bbb ",
+      "    bbb ",
+      "        ",
+      "        ",
+      "        ",
+      " bb     ",
+      " bb     ",
+      " bb     ",
+      "        ",
+      "  bbb   ",
+      " badabb ",
+      " bdedcb ",
+      " badabb ",
+      "        ",
+      "        ",
+      "        "
+    ],
+    [
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "   bbbb ",
+      "  badedb",
+      " badefeb",
+      "  badedb",
+      "        ",
+      "        ",
+      "        "
+    ],
+    [
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "    bbb ",
+      "   badab",
+      "  badedb",
+      "   badab",
+      "        ",
+      "        ",
+      "        "
+    ],
+    [
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "        ",
+      "    bbb ",
+      "   bbbb ",
+      "    bbb ",
+      "        ",
+      "        ",
+      "        "
+    ]
+  ]
+}

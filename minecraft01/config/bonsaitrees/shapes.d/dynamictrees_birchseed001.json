@@ -1,0 +1,124 @@
+{
+  "type": "dynamictrees:birchseed",
+  "version": 2,
+  "ref": {
+    "a": {
+      "name": "dynamictrees:birchbranch",
+      "meta": 1
+    },
+    "b": {
+      "name": "dynamictrees:leaves0",
+      "meta": 9
+    },
+    "c": {
+      "name": "dynamictrees:birchbranch",
+      "meta": 0
+    },
+    "d": {
+      "name": "dynamictrees:leaves0",
+      "meta": 8
+    },
+    "e": {
+      "name": "dynamictrees:leaves0",
+      "meta": 11
+    },
+    "f": {
+      "name": "dynamictrees:leaves0",
+      "meta": 10
+    },
+    "g": {
+      "name": "dynamictrees:rootydirt",
+      "meta": 15
+    },
+    "h": {
+      "name": "dynamictrees:birchbranch",
+      "meta": 2
+    }
+  },
+  "shape": [
+    [
+      "       ",
+      "   d   ",
+      "  ddd  ",
+      " ddddd ",
+      "       ",
+      "       ",
+      "       ",
+      "       ",
+      "       ",
+      "       "
+    ],
+    [
+      "   d   ",
+      "  dbd  ",
+      " dbfbd ",
+      "dbfefbd",
+      " dd dd ",
+      "       ",
+      "       ",
+      "       ",
+      "       ",
+      "       "
+    ],
+    [
+      "  ddd  ",
+      " dbfbd ",
+      "dbfefbd",
+      "dfecefd",
+      " d e d ",
+      "   c   ",
+      "       ",
+      "       ",
+      "       ",
+      "       "
+    ],
+    [
+      " ddddd ",
+      "dbfefbd",
+      "dfecefd",
+      "decaced",
+      "   he  ",
+      "   hc  ",
+      "   h   ",
+      "   h   ",
+      "   h   ",
+      "   g   "
+    ],
+    [
+      "  ddd  ",
+      " dbfbd ",
+      "dbfefbd",
+      "dfecefd",
+      " d e d ",
+      "   c   ",
+      "       ",
+      "       ",
+      "       ",
+      "       "
+    ],
+    [
+      "   d   ",
+      "  dbd  ",
+      " dbfbd ",
+      "dbfefbd",
+      " dd dd ",
+      "       ",
+      "       ",
+      "       ",
+      "       ",
+      "       "
+    ],
+    [
+      "       ",
+      "   d   ",
+      "  ddd  ",
+      " ddddd ",
+      "       ",
+      "       ",
+      "       ",
+      "       ",
+      "       ",
+      "       "
+    ]
+  ]
+}
