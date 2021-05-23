@@ -132,14 +132,17 @@ class CustomBot(commands.Bot):
     def save_server(self):
         self.minecraft_pipe = subprocess.Popen([GIT_PATH,
                                                 'add', '-A'],
-                                               stdin=subprocess.PIPE)
+                                               stdin=subprocess.PIPE,
+                                               stdout=sys.stdout)
         self.minecraft_pipe.wait()
         self.minecraft_pipe = subprocess.Popen([GIT_PATH,
                                                 'commit', '-am', 'save'],
-                                               stdin=subprocess.PIPE)
+                                               stdin=subprocess.PIPE,
+                                               stdout=sys.stdout)
         self.minecraft_pipe.wait()
         self.minecraft_pipe = subprocess.Popen([GIT_PATH, 'push'],
-                                               stdin=subprocess.PIPE)
+                                               stdin=subprocess.PIPE,
+                                               stdout=sys.stdout)
         self.minecraft_pipe.wait()
 
     def get_random_playlist(self):
@@ -246,6 +249,7 @@ async def minecraft(ctx):
                                                '-jar', 'forge-1.12.2-14.23.5.2854.jar',
                                                'nogui'],
                                               stdin=subprocess.PIPE,
+                                              stdout=sys.stdout,
                                               cwd='./minecraft01')
         bot.ssh_tunnel = ngrok.connect(25565, 'tcp')
         await ctx.send(f'Server address: {bot.ssh_tunnel}')
