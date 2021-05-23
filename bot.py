@@ -249,7 +249,7 @@ async def minecraft(ctx):
                                                   '-jar', 'forge-1.12.2-14.23.5.2854.jar',
                                                   'nogui'],
                                                  stdin=subprocess.PIPE,
-                                                 stdout=sys.stdout,
+                                                 stdout=subprocess.STDOUT,
                                                  cwd='./minecraft01')
         bot.ssh_tunnel = ngrok.connect(25565, 'tcp')
         await ctx.send(f'Server address: {bot.ssh_tunnel}')
