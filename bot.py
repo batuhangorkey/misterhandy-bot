@@ -262,8 +262,12 @@ async def stop(ctx):
 @minecraft.command()
 async def save(ctx):
     await ctx.send('Manual save started...')
-    bot.minecraft_pipe = subprocess.Popen(['C:/Program Files/Git/bin/git.exe', 'commit',
-                                           '-am', 'save'],
+    bot.minecraft_pipe = subprocess.Popen(['C:/Program Files/Git/bin/git.exe',
+                                           'add', '-A'],
+                                          stdin=subprocess.PIPE)
+    bot.minecraft_pipe.wait()
+    bot.minecraft_pipe = subprocess.Popen(['C:/Program Files/Git/bin/git.exe',
+                                          'commit', '-am', 'save'],
                                           stdin=subprocess.PIPE)
     bot.minecraft_pipe.wait()
     bot.minecraft_pipe = subprocess.Popen(['C:/Program Files/Git/bin/git.exe', 'push'],
