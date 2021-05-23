@@ -247,7 +247,7 @@ async def stop(ctx):
     await ctx.send('Stopping now...')
     bot.minecraft_pipe.communicate(input=b'stop')
     bot.minecraft_pipe.wait()
-    bot.minecraft_pipe.communicate(input=b'git commit')
+    bot.minecraft_pipe.communicate(input=b'git commit -a')
     bot.minecraft_pipe.communicate(input=b'git push')
     await ctx.send('Stopped')
     ngrok.disconnect(bot.ssh_tunnel)
