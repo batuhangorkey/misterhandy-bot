@@ -257,6 +257,11 @@ async def status(ctx):
 
 
 @minecraft.command()
+async def address(ctx):
+    await ctx.send(f'Server address: {bot.ssh_tunnel}')
+
+
+@minecraft.command()
 async def stop(ctx):
     await ctx.send('Stopping now...')
     bot.minecraft_pipe.communicate(input=b'stop')
