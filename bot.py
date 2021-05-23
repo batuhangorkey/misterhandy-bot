@@ -252,7 +252,7 @@ async def minecraft(ctx):
                                                      stdin=subprocess.PIPE,
                                                      stdout=subprocess.STDOUT,
                                                      cwd='/home/cnblgnserver'
-                                                         '/Desktop/FalloutBot/minecraft01')
+                                                         '/Desktop/FalloutBot/minecraft01/')
         except Exception as e:
             print(e)
         bot.ssh_tunnel = ngrok.connect(25565, 'tcp')
