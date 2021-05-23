@@ -245,12 +245,15 @@ async def minecraft(ctx):
         await ctx.send('Server running...')
     else:
         await ctx.send('Starting server...')
-        bot.minecraft_process = subprocess.Popen(['java', '-Xmx8192M', '-Xms1024M',
-                                                  '-jar', 'forge-1.12.2-14.23.5.2854.jar',
-                                                  'nogui'],
-                                                 stdin=subprocess.PIPE,
-                                                 stdout=subprocess.STDOUT,
-                                                 cwd='./minecraft01')
+        try:
+            bot.minecraft_process = subprocess.Popen(['java', '-Xmx8192M', '-Xms1024M',
+                                                      '-jar', 'forge-1.12.2-14.23.5.2854.jar',
+                                                      'nogui'],
+                                                     stdin=subprocess.PIPE,
+                                                     stdout=subprocess.STDOUT,
+                                                     cwd='./minecraft01')
+        except Exception as e:
+            print(e)
         bot.ssh_tunnel = ngrok.connect(25565, 'tcp')
         await ctx.send(f'Server address: {bot.ssh_tunnel}')
 
