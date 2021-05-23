@@ -19,6 +19,7 @@ from modules.secret_hitler import SecretHitler
 from modules.youtube_bot import Music
 
 GIT_PATH = 'git'
+NGROK_AUTHTOKEN = '1b81bCvZI7UeSsvrghTftoTgqLx_3S8Jvjk38EJZy7cfqHATs'
 FORMAT = '%(asctime)-15s %(levelname)-5s %(funcName)-10s %(lineno)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 
@@ -244,7 +245,9 @@ async def minecraft(ctx):
                                                'nogui'],
                                               stdin=subprocess.PIPE,
                                               cwd='./minecraft01')
-        bot.ssh_tunnel = ngrok.connect(25565, 'tcp', region='eu')
+        bot.ssh_tunnel = ngrok.connect(25565, 'tcp',
+                                       auth_token=NGROK_AUTHTOKEN,
+                                       region='eu')
         await ctx.send(f'Server address: {bot.ssh_tunnel}')
 
 
@@ -258,7 +261,9 @@ async def status(ctx):
 
 @minecraft.command()
 async def connect(ctx):
-    bot.ssh_tunnel = ngrok.connect(25565, 'tcp', region='eu')
+    bot.ssh_tunnel = ngrok.connect(25565, 'tcp',
+                                   auth_token=NGROK_AUTHTOKEN,
+                                   region='eu')
     await ctx.send(f'Server address: {bot.ssh_tunnel}')
 
 
