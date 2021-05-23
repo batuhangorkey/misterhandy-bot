@@ -257,6 +257,18 @@ async def status(ctx):
 
 
 @minecraft.command()
+async def connect(ctx):
+    bot.ssh_tunnel = ngrok.connect(25565, 'tcp', region='eu')
+    await ctx.send(f'Server address: {bot.ssh_tunnel}')
+
+
+@minecraft.command()
+async def disconnect(ctx):
+    ngrok.disconnect(bot.ssh_tunnel)
+    await ctx.send('Tunnel closed')
+
+
+@minecraft.command()
 async def address(ctx):
     await ctx.send(f'Server address: {bot.ssh_tunnel}')
 
