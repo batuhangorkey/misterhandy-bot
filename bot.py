@@ -11,11 +11,11 @@ import discord
 import pymysql
 from discord.ext import commands
 from dotenv import load_dotenv
+from pyngrok import ngrok
 
 from modules.codenames import CodeNames
 from modules.minigame import Minigame
 from modules.secret_hitler import SecretHitler
-# from modules.story_teller import Project2
 from modules.youtube_bot import Music
 
 FORMAT = '%(asctime)-15s %(levelname)-5s %(funcName)-10s %(lineno)s %(message)s'
@@ -42,8 +42,9 @@ else:
 class CustomBot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix='!')
+        self.ssh_tunnel: ngrok = None
         self.admin: discord.User = None
-        self.minecraft_pipe = None
+        self.minecraft_pipe: subprocess.Popen = None
 
     presences = [
         'eternal void',
@@ -220,21 +221,34 @@ async def run(ctx, *, command: str):
 async def minecraft(ctx):
     if ctx.invoked_subcommand:
         return
-    if bot.minecraft_pipe:
+    if bot.minecraft_pipe and bot.minecraft_pipe.returncode != 0:
         await ctx.send('Server running...')
     else:
         await ctx.send('Starting server...')
-        bot.minecraft_pipe = subprocess.Popen('cmd.exe', stdin=subprocess.PIPE)
-        bot.minecraft_pipe.stdin.write('cd ./minecraft01'.encode('ascii'))
-        bot.minecraft_pipe.stdin.write('java -Xmx8192M -Xms1024M '
-                                       '-jar forge-1.12.2-14.23.5.2854.jar '
-                                       'nogui'.encode('ascii'))
+        bot.minecraft_pipe = subprocess.Popen(['java', '-Xmx8192M', '-Xms1024M',
+                                               '-jar', 'forge-1.12.2-14.23.5.2854.jar',
+                                               'nogui'],
+                                              stdin=subprocess.PIPE,
+                                              cwd='./minecraft01')
+        bot.ssh_tunnel = ngrok.connect(25565, 'tcp')
+        await ctx.send(f'Server address: {bot.ssh_tunnel}')
+
+
+@minecraft.command()
+async def status(ctx):
+    if bot.minecraft_pipe and bot.minecraft_pipe.returncode != 0:
+        await ctx.send('Server running...')
+    else:
+        await ctx.send('Server offline')
 
 
 @minecraft.command()
 async def stop(ctx):
     await ctx.send('Stopping now...')
-    bot.minecraft_pipe.stdin.write('stop')
+    bot.minecraft_pipe.communicate(input=b'stop')
+    bot.minecraft_pipe.wait()
+    await ctx.send('Stopped')
+    ngrok.disconnect(bot.ssh_tunnel)
 
 
 @bot.command(help='Rolls dice. <number of dice> <number of sides>')

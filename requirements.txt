@@ -1,3 +1,4 @@
+pyngrok
 discord.py==1.7.1
 ffmpeg==1.4
 python-dotenv==0.15.0
