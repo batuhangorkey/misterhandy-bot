@@ -18,6 +18,7 @@ from modules.minigame import Minigame
 from modules.secret_hitler import SecretHitler
 from modules.youtube_bot import Music
 
+GIT_PATH = 'git'
 FORMAT = '%(asctime)-15s %(levelname)-5s %(funcName)-10s %(lineno)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 
@@ -124,6 +125,19 @@ class CustomBot(commands.Bot):
         for _, b in data:
             user_table[int(_)] = int(b)
         return user_table, kaiser_points
+
+    def save_server(self):
+        self.minecraft_pipe = subprocess.Popen([GIT_PATH,
+                                                'add', '-A'],
+                                               stdin=subprocess.PIPE)
+        self.minecraft_pipe.wait()
+        self.minecraft_pipe = subprocess.Popen([GIT_PATH,
+                                                'commit', '-am', 'save'],
+                                               stdin=subprocess.PIPE)
+        self.minecraft_pipe.wait()
+        self.minecraft_pipe = subprocess.Popen([GIT_PATH, 'push'],
+                                               stdin=subprocess.PIPE)
+        self.minecraft_pipe.wait()
 
     def get_random_playlist(self):
         conn = self.get_pymysql_connection()
@@ -248,13 +262,7 @@ async def stop(ctx):
     bot.minecraft_pipe.communicate(input=b'stop')
     bot.minecraft_pipe.wait()
     await ctx.send('Stopped')
-    bot.minecraft_pipe = subprocess.Popen(['C:/Program Files/Git/bin/git.exe', 'commit',
-                                           '-am', 'save'],
-                                          stdin=subprocess.PIPE)
-    bot.minecraft_pipe.wait()
-    bot.minecraft_pipe = subprocess.Popen(['C:/Program Files/Git/bin/git.exe', 'push'],
-                                          stdin=subprocess.PIPE)
-    bot.minecraft_pipe.wait()
+    bot.save_server()
     await ctx.send('World saved')
     ngrok.disconnect(bot.ssh_tunnel)
 
@@ -262,17 +270,7 @@ async def stop(ctx):
 @minecraft.command()
 async def save(ctx):
     await ctx.send('Manual save started...')
-    bot.minecraft_pipe = subprocess.Popen(['C:/Program Files/Git/bin/git.exe',
-                                           'add', '-A'],
-                                          stdin=subprocess.PIPE)
-    bot.minecraft_pipe.wait()
-    bot.minecraft_pipe = subprocess.Popen(['C:/Program Files/Git/bin/git.exe',
-                                          'commit', '-am', 'save'],
-                                          stdin=subprocess.PIPE)
-    bot.minecraft_pipe.wait()
-    bot.minecraft_pipe = subprocess.Popen(['C:/Program Files/Git/bin/git.exe', 'push'],
-                                          stdin=subprocess.PIPE)
-    bot.minecraft_pipe.wait()
+    bot.save_server()
     await ctx.send('World saved')
 
 
