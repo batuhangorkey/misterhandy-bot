@@ -248,12 +248,14 @@ async def stop(ctx):
     bot.minecraft_pipe.communicate(input=b'stop')
     bot.minecraft_pipe.wait()
     await ctx.send('Stopped')
-    bot.minecraft_pipe = subprocess.Popen(['git', 'commit', '-a'],
+    bot.minecraft_pipe = subprocess.Popen(['C:/Program Files/Git/bin/git.exe', 'commit',
+                                           '-am', 'save'],
                                           stdin=subprocess.PIPE)
     bot.minecraft_pipe.wait()
-    bot.minecraft_pipe = subprocess.Popen(['git', 'push'],
+    bot.minecraft_pipe = subprocess.Popen(['C:/Program Files/Git/bin/git.exe', 'push'],
                                           stdin=subprocess.PIPE)
     bot.minecraft_pipe.wait()
+    await ctx.send('World saved')
     ngrok.disconnect(bot.ssh_tunnel)
 
 
@@ -267,6 +269,7 @@ async def save(ctx):
     bot.minecraft_pipe = subprocess.Popen(['C:/Program Files/Git/bin/git.exe', 'push'],
                                           stdin=subprocess.PIPE)
     bot.minecraft_pipe.wait()
+    await ctx.send('World saved')
 
 
 @bot.command(help='Rolls dice. <number of dice> <number of sides>')

@@ -143,6 +143,12 @@
     },
     "done": true
   },
+  "botania:main/brew_pickup": {
+    "criteria": {
+      "vial": "2021-05-23 21:03:18 +0300"
+    },
+    "done": true
+  },
   "minecraft:recipes/redstone/trapdoor": {
     "criteria": {
       "has_planks": "2021-05-17 03:20:37 +0300"
@@ -346,6 +352,7 @@
       "cooked_porkchop": "2021-05-17 22:04:10 +0300",
       "bread": "2021-05-19 00:37:23 +0300",
       "golden_apple": "2021-05-19 03:42:15 +0300",
+      "rotten_flesh": "2021-05-23 21:17:23 +0300",
       "cooked_chicken": "2021-05-17 21:57:39 +0300"
     },
     "done": false
@@ -1073,6 +1080,12 @@
     },
     "done": true
   },
+  "botania:main/rune_pickup": {
+    "criteria": {
+      "rune": "2021-05-23 20:44:58 +0300"
+    },
+    "done": true
+  },
   "botania:main/flower_pickup": {
     "criteria": {
       "flower": "2021-05-18 01:17:03 +0300"
@@ -1319,6 +1332,12 @@
     },
     "done": true
   },
+  "minecraft:recipes/misc/coal": {
+    "criteria": {
+      "has_coal_block": "2021-05-23 20:21:52 +0300"
+    },
+    "done": true
+  },
   "minecraft:recipes/redstone/noteblock": {
     "criteria": {
       "has_redstone": "2021-05-18 21:31:27 +0300"
@@ -1413,6 +1432,12 @@
     },
     "done": true
   },
+  "minecraft:recipes/misc/book": {
+    "criteria": {
+      "has_paper": "2021-05-23 20:38:50 +0300"
+    },
+    "done": true
+  },
   "minecraft:recipes/building_blocks/pink_stained_hardened_clay": {
     "criteria": {
       "has_hardened_clay": "2021-05-17 23:41:04 +0300"
@@ -1488,6 +1513,12 @@
   "minecraft:recipes/transportation/jungle_boat": {
     "criteria": {
       "entered_water": "2021-05-17 03:16:09 +0300"
+    },
+    "done": true
+  },
+  "botania:main/bauble_wear": {
+    "criteria": {
+      "code_triggered": "2021-05-23 20:54:27 +0300"
     },
     "done": true
   },
