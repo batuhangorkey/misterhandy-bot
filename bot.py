@@ -48,7 +48,7 @@ class CustomBot(commands.Bot):
         super().__init__(command_prefix='!')
         self.ssh_tunnel: ngrok = None
         self.admin: discord.User = None
-        self.minecraft_pipe: subprocess.Popen = None
+        self.minecraft_process: subprocess.Popen = None
 
     presences = [
         'eternal void',
@@ -130,20 +130,20 @@ class CustomBot(commands.Bot):
         return user_table, kaiser_points
 
     def save_server(self):
-        self.minecraft_pipe = subprocess.Popen([GIT_PATH,
-                                                'add', '-A'],
-                                               stdin=subprocess.PIPE,
-                                               stdout=sys.stdout)
-        self.minecraft_pipe.wait()
-        self.minecraft_pipe = subprocess.Popen([GIT_PATH,
-                                                'commit', '-am', 'save'],
-                                               stdin=subprocess.PIPE,
-                                               stdout=sys.stdout)
-        self.minecraft_pipe.wait()
-        self.minecraft_pipe = subprocess.Popen([GIT_PATH, 'push'],
-                                               stdin=subprocess.PIPE,
-                                               stdout=sys.stdout)
-        self.minecraft_pipe.wait()
+        self.minecraft_process = subprocess.Popen([GIT_PATH,
+                                                   'add', '-A'],
+                                                  stdin=subprocess.PIPE,
+                                                  stdout=sys.stdout)
+        self.minecraft_process.wait()
+        self.minecraft_process = subprocess.Popen([GIT_PATH,
+                                                   'commit', '-am', 'save'],
+                                                  stdin=subprocess.PIPE,
+                                                  stdout=sys.stdout)
+        self.minecraft_process.wait()
+        self.minecraft_process = subprocess.Popen([GIT_PATH, 'push'],
+                                                  stdin=subprocess.PIPE,
+                                                  stdout=sys.stdout)
+        self.minecraft_process.wait()
 
     def get_random_playlist(self):
         conn = self.get_pymysql_connection()
@@ -241,23 +241,23 @@ async def run(ctx, *, command: str):
 async def minecraft(ctx):
     if ctx.invoked_subcommand:
         return
-    if bot.minecraft_pipe and bot.minecraft_pipe.returncode != 0:
+    if bot.minecraft_process and bot.minecraft_process.returncode != 0:
         await ctx.send('Server running...')
     else:
         await ctx.send('Starting server...')
-        bot.minecraft_pipe = subprocess.Popen(['java', '-Xmx8192M', '-Xms1024M',
-                                               '-jar', 'forge-1.12.2-14.23.5.2854.jar',
-                                               'nogui'],
-                                              stdin=subprocess.PIPE,
-                                              stdout=sys.stdout,
-                                              cwd='./minecraft01')
+        bot.minecraft_process = subprocess.Popen(['java', '-Xmx8192M', '-Xms1024M',
+                                                  '-jar', 'forge-1.12.2-14.23.5.2854.jar',
+                                                  'nogui'],
+                                                 stdin=subprocess.PIPE,
+                                                 stdout=sys.stdout,
+                                                 cwd='./minecraft01')
         bot.ssh_tunnel = ngrok.connect(25565, 'tcp')
         await ctx.send(f'Server address: {bot.ssh_tunnel}')
 
 
 @minecraft.command()
 async def status(ctx):
-    if bot.minecraft_pipe and bot.minecraft_pipe.returncode != 0:
+    if bot.minecraft_process and bot.minecraft_process.returncode != 0:
         await ctx.send('Server running...')
     else:
         await ctx.send('Server offline')
@@ -283,8 +283,8 @@ async def address(ctx):
 @minecraft.command()
 async def stop(ctx):
     await ctx.send('Stopping now...')
-    bot.minecraft_pipe.communicate(input=b'stop')
-    bot.minecraft_pipe.wait()
+    bot.minecraft_process.communicate(input=b'stop')
+    bot.minecraft_process.wait()
     await ctx.send('Stopped')
     bot.save_server()
     await ctx.send('World saved')
