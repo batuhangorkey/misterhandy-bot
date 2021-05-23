@@ -247,8 +247,15 @@ async def stop(ctx):
     await ctx.send('Stopping now...')
     bot.minecraft_pipe.communicate(input=b'stop')
     bot.minecraft_pipe.wait()
+    bot.minecraft_pipe.communicate(input=b'git commit')
+    bot.minecraft_pipe.communicate(input=b'git push')
     await ctx.send('Stopped')
     ngrok.disconnect(bot.ssh_tunnel)
+
+
+@minecraft.command()
+async def save(ctx):
+    await ctx.send('Manual save started...')
 
 
 @bot.command(help='Rolls dice. <number of dice> <number of sides>')
