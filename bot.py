@@ -246,7 +246,8 @@ async def minecraft(ctx):
     else:
         await ctx.send('Starting server...')
         try:
-            bot.minecraft_process = subprocess.Popen(['java', '-Xmx8192M', '-Xms1024M',
+            bot.minecraft_process = subprocess.Popen(['/usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java',
+                                                      '-Xmx6048M', '-Xms1024M',
                                                       '-jar', 'forge-1.12.2-14.23.5.2854.jar',
                                                       'nogui'],
                                                      stdin=subprocess.PIPE,
