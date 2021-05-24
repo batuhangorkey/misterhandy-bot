@@ -1,3 +1,4 @@
+import atexit
 import configparser
 import datetime
 import logging
@@ -9,7 +10,7 @@ import time
 
 import discord
 import pymysql
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from pyngrok import conf, ngrok
 
@@ -49,6 +50,7 @@ class CustomBot(commands.Bot):
         self.ssh_tunnel: ngrok = None
         self.admin: discord.User = None
         self.minecraft_process: subprocess.Popen = None
+        self.minecraft_autosave.start()
 
     presences = [
         'eternal void',
@@ -165,6 +167,10 @@ class CustomBot(commands.Bot):
         except Exception as e:
             logging.error(e)
 
+    @tasks.loop(minutes=15)
+    async def minecraft_autosave(self):
+        self.save_server()
+
 
 bot = CustomBot()
 
@@ -237,6 +243,11 @@ async def run(ctx, *, command: str):
     await ctx.send(output)
 
 
+'''
+START OF MINECRAFT
+'''
+
+
 @bot.group(hidden=True)
 async def minecraft(ctx):
     if ctx.invoked_subcommand:
@@ -303,6 +314,11 @@ async def save(ctx):
     await ctx.send('World saved')
 
 
+'''
+END OF MINECRAFT
+'''
+
+
 @bot.command(help='Rolls dice. <number of dice> <number of sides>')
 async def roll(ctx, number_of_dice: int, number_of_sides: int):
     dice = [
@@ -360,4 +376,9 @@ def check_heroku_availability(ctx):
     return True
 
 
+def exit_handler():
+    bot.save_server()
+
+
+atexit.register(exit_handler)
 bot.run(bot.token)
