@@ -244,7 +244,7 @@ async def run(ctx, *, command: str):
 
 
 '''
-START OF MINECRAFT
+START OF MINECRAFT COMMANDS
 '''
 
 
@@ -377,6 +377,11 @@ def check_heroku_availability(ctx):
 
 
 def exit_handler():
+    if bot.minecraft_process:
+        bot.minecraft_process.communicate(input=b'stop')
+        bot.minecraft_process.wait()
+    if bot.ssh_tunnel:
+        ngrok.disconnect(bot.ssh_tunnel)
     bot.save_server()
 
 

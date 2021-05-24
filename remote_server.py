@@ -52,7 +52,7 @@ def start():
 
 def stop():
     global active_process
-    if active_process != "":
+    if isinstance(active_process, subprocess.Popen):
         active_process.terminate()
         print("The application has been stoped")
         active_process = ""
