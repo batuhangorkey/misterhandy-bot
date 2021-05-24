@@ -45,7 +45,7 @@ def start():
     global active_process
     bash_command = APP
     f = open("/home/cnblgnserver/Desktop/cloud_project/htdocs/falloutbot_logger.txt", "w+")
-    process = subprocess.Popen(bash_command.split(), stdout=f)
+    process = subprocess.Popen(bash_command.split(), stdout=f, stderr=f)
     active_process = process
     output, error = process.communicate()
 
