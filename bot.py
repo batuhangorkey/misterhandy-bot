@@ -251,6 +251,7 @@ async def minecraft(ctx):
                                                       'nogui'],
                                                      stdin=subprocess.PIPE,
                                                      stdout=sys.stdout,
+                                                     stderr=sys.stdout,
                                                      cwd='minecraft01')
         except Exception as e:
             print(e)
