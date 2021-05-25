@@ -47,7 +47,7 @@ else:
 class CustomBot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix='!')
-        self.ssh_tunnel: ngrok = None
+        self.ssh_tunnel: ngrok.NgrokTunnel = None
         self.admin: discord.User = None
         self.minecraft_process: subprocess.Popen = None
         self.minecraft_autosave.start()
@@ -281,19 +281,22 @@ async def status(ctx):
 
 @minecraft.command()
 async def connect(ctx):
-    bot.ssh_tunnel = ngrok.connect(25565, 'tcp')
-    await ctx.send(f'Server address: {bot.ssh_tunnel}')
+    if bot.ssh_tunnel is None:
+        bot.ssh_tunnel = ngrok.connect(25565, 'tcp')
+    await ctx.send(f'Server address: {bot.ssh_tunnel.public_url}')
 
 
 @minecraft.command()
 async def disconnect(ctx):
-    ngrok.disconnect(bot.ssh_tunnel)
-    await ctx.send('Tunnel closed')
+    if bot.ssh_tunnel:
+        ngrok.disconnect(bot.ssh_tunnel.public_url)
+        ngrok.kill(bot.ssh_tunnel.pyngrok_config)
+        await ctx.send('Tunnel closed')
 
 
 @minecraft.command()
 async def address(ctx):
-    await ctx.send(f'Server address: {bot.ssh_tunnel}')
+    await ctx.send(f'Server address: {bot.ssh_tunnel.public_url}')
 
 
 @minecraft.command()
@@ -304,7 +307,7 @@ async def stop(ctx):
     await ctx.send('Stopped')
     bot.save_server()
     await ctx.send('World saved')
-    ngrok.disconnect(bot.ssh_tunnel)
+    ngrok.disconnect(bot.ssh_tunnel.public_url)
 
 
 @minecraft.command()
@@ -315,7 +318,7 @@ async def save(ctx):
 
 
 '''
-END OF MINECRAFT
+END OF MINECRAFT COMMANDS
 '''
 
 
@@ -344,11 +347,11 @@ async def fate(ctx, modifier: int = 0):
 
 
 @bot.command(hidden=True)
-async def del_bot(ctx):
+async def del_bot(ctx, limit=50):
     def is_me(m):
         return m.author == bot.user
 
-    deleted = await ctx.channel.purge(limit=50, check=is_me, bulk=False)
+    deleted = await ctx.channel.purge(limit=limit, check=is_me, bulk=False)
     await ctx.send(f'Deleted my {len(deleted)} message(s).', delete_after=5.0)
 
 
@@ -381,7 +384,8 @@ def exit_handler():
         bot.minecraft_process.communicate(input=b'stop')
         bot.minecraft_process.wait()
     if bot.ssh_tunnel:
-        ngrok.disconnect(bot.ssh_tunnel)
+        ngrok.disconnect(bot.ssh_tunnel.public_url)
+        ngrok.kill(bot.ssh_tunnel.pyngrok_config)
     bot.save_server()
 
 

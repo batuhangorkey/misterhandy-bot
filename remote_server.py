@@ -5,65 +5,60 @@ import threading
 PORT = 20002
 APP = "python3 bot.py"
 BUFFER = 128
-active_process = ""
 
 
-def main():
-    global active_process
-    s = socket.socket()
-    print("Socket successfully created...")
+class RemoteServer:
+    active_process = None
+    log_file = None
 
-    s.bind(('', PORT))
-    print("Socket binded to {}".format(PORT))
+    @classmethod
+    def run(cls):
+        s = socket.socket()
+        print("Socket successfully created...")
 
-    s.listen(5)
-    print("Socket is listening...")
+        s.bind(('', PORT))
+        print("Socket binded to {}".format(PORT))
 
-    while True:
-        c, addr = s.accept()
-        print("Got connection from {}".format(addr))
-        rec = c.recv(BUFFER).decode()
-        print("received {}".format(rec))
+        s.listen(5)
+        print("Socket is listening...")
 
-        if "start" in rec:
-            if active_process == "":
-                start_process = threading.Thread(target=start)
-                start_process.start()
+        while True:
+            c, addr = s.accept()
+            print("Got connection from {}".format(addr))
+            rec = c.recv(BUFFER).decode()
+            print("received {}".format(rec))
 
-            else:
-                print("The application is already running...")
+            if "start" in rec:
+                if cls.active_process.poll():
+                    print("The application is already running...")
+                else:
+                    start_process = threading.Thread(target=cls.start)
+                    start_process.start()
+            elif "stop" in rec:
+                cls.stop()
+            elif "status" in rec:
+                c.send(cls.status().encode())
+            c.close()
 
-        elif "stop" in rec:
-            stop()
-        elif "status" in rec:
-            c.send(status().encode())
+    @classmethod
+    def start(cls):
+        bash_command = APP
+        cls.log_file = open("/home/cnblgnserver/Desktop/cloud_project/htdocs/falloutbot_logger.txt", "w+")
+        cls.active_process = subprocess.Popen(bash_command.split(), stdout=cls.log_file, stderr=cls.log_file)
 
-        c.close()
+    @classmethod
+    def stop(cls):
+        if cls.active_process.poll():
+            cls.active_process.terminate()
+            cls.log_file.close()
+            print("The application has been stoped")
 
-
-def start():
-    global active_process
-    bash_command = APP
-    f = open("/home/cnblgnserver/Desktop/cloud_project/htdocs/falloutbot_logger.txt", "w+")
-    process = subprocess.Popen(bash_command.split(), stdout=f, stderr=f)
-    active_process = process
-    output, error = process.communicate()
-
-
-def stop():
-    global active_process
-    if isinstance(active_process, subprocess.Popen):
-        active_process.terminate()
-        print("The application has been stoped")
-        active_process = ""
-
-
-def status():
-    global active_process
-    if active_process == "":
-        return "App is not working\n"
-    else:
-        return "App is working\n"
+    @classmethod
+    def status(cls):
+        if cls.active_process.poll():
+            return "App is working\n"
+        else:
+            return "App is not working\n"
 
 
-main()
+RemoteServer.run()
