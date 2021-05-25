@@ -207,8 +207,8 @@ async def on_ready():
     #         log.write(f'{message.created_at}: '
     #                   f'{message.author.display_name.rjust(16)}: {message.clean_content}\n')
     #
-    ngrok.get_tunnels()
-    ngrok.kill()
+    for tunnel in ngrok.get_tunnels():
+        ngrok.disconnect(tunnel.public_url)
 
     for client in bot.voice_clients:
         client.disconnect()
