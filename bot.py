@@ -209,9 +209,10 @@ async def on_ready():
     #
     try:
         for tunnel in ngrok.get_tunnels():
+            print(tunnel.public_url)
             ngrok.disconnect(tunnel.public_url)
     except Exception as e:
-        logging.error(e)
+        print(e)
 
     for client in bot.voice_clients:
         client.disconnect()
