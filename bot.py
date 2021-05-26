@@ -20,6 +20,7 @@ from modules.secret_hitler import SecretHitler
 from modules.youtube_bot import Music
 
 GIT_PATH = 'git'
+JAVA_PATH = '/usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java'
 NGROK_AUTHTOKEN = '1t4WBWrdsA4dPK9UXp6rQSrFRMn_4qxt7cWQJsTPaFc8pRzPf'
 conf.get_default().auth_token = NGROK_AUTHTOKEN
 conf.get_default().region = 'eu'
@@ -207,28 +208,28 @@ async def on_ready():
     #         log.write(f'{message.created_at}: '
     #                   f'{message.author.display_name.rjust(16)}: {message.clean_content}\n')
     #
-    try:
-        for tunnel in ngrok.get_tunnels():
-            print(tunnel.public_url)
-            ngrok.disconnect(tunnel.public_url)
-    except Exception as e:
-        print(e)
-
     for client in bot.voice_clients:
         client.disconnect()
+
     await bot.default_presence()
+
     try:
         bot.add_cog(Minigame(bot, user_table=bot.fetch_user_tables()[0]))
     except Exception as e:
         logging.error(e)
+
     bot.add_cog(Music(bot))
     bot.add_cog(SecretHitler(bot))
     bot.add_cog(CodeNames(bot))
+
     bot.clean_directory()
+
     bot.admin = await bot.fetch_user(301067535581970434)
+
     logging.info(os.path.abspath(os.path.dirname(__file__)))
     for item in os.listdir('./'):
         logging.info('\t{}'.format(item))
+
     end = time.process_time() - start
     logging.info('Elapsed time: {}'.format(end))
 
@@ -264,7 +265,7 @@ async def minecraft(ctx):
     else:
         await ctx.send('Starting server...')
         try:
-            bot.minecraft_process = subprocess.Popen(['/usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java',
+            bot.minecraft_process = subprocess.Popen([JAVA_PATH,
                                                       '-Xmx6048M', '-Xms1024M',
                                                       '-jar', 'forge-1.12.2-14.23.5.2854.jar',
                                                       'nogui'],
@@ -391,7 +392,6 @@ def exit_handler():
         bot.minecraft_process.wait()
     if bot.ssh_tunnel:
         ngrok.disconnect(bot.ssh_tunnel.public_url)
-        ngrok.kill(bot.ssh_tunnel.pyngrok_config)
     bot.save_server()
 
 
