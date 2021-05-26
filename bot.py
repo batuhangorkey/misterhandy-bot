@@ -241,8 +241,10 @@ async def on_error(event, *args, **kwargs):
 
 
 @bot.event
-async def on_command_error(ctx: discord.ext.commands.Context, error):
-    await bot.admin.send(f'{error}, {ctx.message.guild.name}, {ctx.message.content}')
+async def on_command_error(ctx: discord.ext.commands.Context, error: Exception):
+    if error is AttributeError:
+        logging.error(error)
+    await bot.admin.send(f'{error}, {ctx.message.guild.name}, {ctx.channel}, {ctx.message.content}')
 
 
 @bot.command(hidden=True)
