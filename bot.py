@@ -22,8 +22,6 @@ from modules.youtube_bot import Music
 GIT_PATH = 'git'
 JAVA_PATH = '/usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java'
 JAVA_OPTIONS = [JAVA_PATH, '-Xmx6048M', '-Xms1024M', '-jar', 'forge-1.12.2-14.23.5.2854.jar', 'nogui']
-NGROK_AUTHTOKEN = '1t4fmTjCp3n3Z7puJfuctXRJ362_2JoQGYKsnLpja7wTVpHff'
-conf.get_default().auth_token = NGROK_AUTHTOKEN
 conf.get_default().region = 'eu'
 FORMAT = '%(asctime)-15s %(levelname)-5s %(funcName)-10s %(lineno)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
