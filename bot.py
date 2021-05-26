@@ -289,8 +289,10 @@ async def connect(ctx):
 async def disconnect(ctx):
     if bot.ssh_tunnel:
         ngrok.disconnect(bot.ssh_tunnel.public_url)
-        del bot.ssh_tunnel
+        bot.ssh_tunnel = None
         await ctx.send('Tunnel closed')
+    else:
+        await ctx.send('No tunnel open')
 
 
 @minecraft.command()
