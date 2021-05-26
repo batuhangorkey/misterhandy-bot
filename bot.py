@@ -21,8 +21,9 @@ from modules.youtube_bot import Music
 
 GIT_PATH = 'git'
 JAVA_PATH = '/usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java'
-NGROK_AUTHTOKEN = '1t4WBWrdsA4dPK9UXp6rQSrFRMn_4qxt7cWQJsTPaFc8pRzPf'
+NGROK_AUTHTOKEN = '1t4fmTjCp3n3Z7puJfuctXRJ362_2JoQGYKsnLpja7wTVpHff'
 conf.get_default().auth_token = NGROK_AUTHTOKEN
+conf.get_default().region = 'eu'
 FORMAT = '%(asctime)-15s %(levelname)-5s %(funcName)-10s %(lineno)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 
@@ -100,6 +101,15 @@ class CustomBot(commands.Bot):
                 else:
                     logging.info(f'Successfully deleted {item}')
 
+    @staticmethod
+    def save_server():
+        process = subprocess.Popen([GIT_PATH, 'add', '-A'], stdin=subprocess.PIPE, stdout=sys.stdout)
+        process.wait()
+        process = subprocess.Popen([GIT_PATH, 'commit', '-am', 'Update'], stdin=subprocess.PIPE, stdout=sys.stdout)
+        process.wait()
+        process = subprocess.Popen([GIT_PATH, 'push'], stdin=subprocess.PIPE, stdout=sys.stdout)
+        process.wait()
+
     @property
     def token(self):
         return _bot_token
@@ -130,22 +140,6 @@ class CustomBot(commands.Bot):
         for _, b in data:
             user_table[int(_)] = int(b)
         return user_table, kaiser_points
-
-    def save_server(self):
-        self.minecraft_process = subprocess.Popen([GIT_PATH,
-                                                   'add', '-A'],
-                                                  stdin=subprocess.PIPE,
-                                                  stdout=sys.stdout)
-        self.minecraft_process.wait()
-        self.minecraft_process = subprocess.Popen([GIT_PATH,
-                                                   'commit', '-am', 'save'],
-                                                  stdin=subprocess.PIPE,
-                                                  stdout=sys.stdout)
-        self.minecraft_process.wait()
-        self.minecraft_process = subprocess.Popen([GIT_PATH, 'push'],
-                                                  stdin=subprocess.PIPE,
-                                                  stdout=sys.stdout)
-        self.minecraft_process.wait()
 
     def get_random_playlist(self):
         conn = self.get_pymysql_connection()
