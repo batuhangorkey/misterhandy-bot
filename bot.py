@@ -207,8 +207,11 @@ async def on_ready():
     #         log.write(f'{message.created_at}: '
     #                   f'{message.author.display_name.rjust(16)}: {message.clean_content}\n')
     #
-    for tunnel in ngrok.get_tunnels():
-        ngrok.disconnect(tunnel.public_url)
+    try:
+        for tunnel in ngrok.get_tunnels():
+            ngrok.disconnect(tunnel.public_url)
+    except Exception as e:
+        logging.error(e)
 
     for client in bot.voice_clients:
         client.disconnect()
