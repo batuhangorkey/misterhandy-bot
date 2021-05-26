@@ -22,7 +22,7 @@ from modules.youtube_bot import Music
 GIT_PATH = 'git'
 JAVA_PATH = '/usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java'
 NGROK_AUTHTOKEN = '1t4WBWrdsA4dPK9UXp6rQSrFRMn_4qxt7cWQJsTPaFc8pRzPf'
-conf.get_default().auth_token = NGROK_AUTHTOKEN
+ngrok.set_auth_token = NGROK_AUTHTOKEN
 conf.get_default().region = 'eu'
 FORMAT = '%(asctime)-15s %(levelname)-5s %(funcName)-10s %(lineno)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
