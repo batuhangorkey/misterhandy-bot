@@ -80,6 +80,14 @@ class CustomBot(commands.Bot):
         'reset'
     ]
 
+    @property
+    def token(self):
+        return _bot_token
+
+    @property
+    def git_hash(self):
+        return self.get_git_version()
+
     @staticmethod
     def get_git_version():
         if HEROKU:
@@ -110,29 +118,19 @@ class CustomBot(commands.Bot):
         process = subprocess.Popen([GIT_PATH, 'push'], stdin=subprocess.PIPE, stdout=sys.stdout)
         process.wait()
 
-    @property
-    def token(self):
-        return _bot_token
-
-    @property
-    def database_config(self):
-        return _database_config
-
-    @property
-    def git_hash(self):
-        return self.get_git_version()
-
-    def get_pymysql_connection(self):
-        conn = pymysql.connect(self.database_config['host'],
-                               self.database_config['userid'],
-                               self.database_config['password'],
-                               self.database_config['databasename'])
+    @staticmethod
+    def get_pymysql_connection():
+        conn = pymysql.connect(_database_config['host'],
+                               _database_config['userid'],
+                               _database_config['password'],
+                               _database_config['databasename'])
         return conn
 
-    def fetch_user_tables(self):
+    @classmethod
+    def fetch_user_tables(cls):
         user_table = {}
         kaiser_points = {}
-        conn = self.get_pymysql_connection()
+        conn = cls.get_pymysql_connection()
         with conn.cursor() as cursor:
             cursor.execute("SELECT * FROM main")
             data = cursor.fetchall()
@@ -141,8 +139,9 @@ class CustomBot(commands.Bot):
             user_table[int(_)] = int(b)
         return user_table, kaiser_points
 
-    def get_random_playlist(self):
-        conn = self.get_pymysql_connection()
+    @classmethod
+    def get_random_playlist(cls):
+        conn = cls.get_pymysql_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT url, dislike, like_count FROM playlist")
@@ -178,13 +177,12 @@ bot = CustomBot()
 
 @bot.event
 async def on_connect():
-    pass
+    logging.info('Running git hash: {}'.format(bot.git_hash))
 
 
 @bot.event
 async def on_ready():
     start = time.process_time()
-    logging.info('Running git hash: {}'.format(bot.git_hash))
     logging.info('{0.name} with id: {0.id} is ready on Discord'.format(bot.user))
     async for guild in bot.fetch_guilds():
         logging.info('\tOperating on {} with id: {}'.format(guild.name, guild.id))
@@ -291,12 +289,16 @@ async def connect(ctx):
 async def disconnect(ctx):
     if bot.ssh_tunnel:
         ngrok.disconnect(bot.ssh_tunnel.public_url)
+        del bot.ssh_tunnel
         await ctx.send('Tunnel closed')
 
 
 @minecraft.command()
 async def address(ctx):
-    await ctx.send(f'Server address: {bot.ssh_tunnel.public_url}')
+    if bot.ssh_tunnel:
+        await ctx.send(f'Server address: {bot.ssh_tunnel.public_url}')
+    else:
+        await ctx.send('No tunnel open')
 
 
 @minecraft.command()
