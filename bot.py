@@ -20,7 +20,7 @@ from modules.secret_hitler import SecretHitler
 from modules.youtube_bot import Music
 
 GIT_PATH = 'git'
-NGROK_AUTHTOKEN = '1b81bCvZI7UeSsvrghTftoTgqLx_3S8Jvjk38EJZy7cfqHATs'
+NGROK_AUTHTOKEN = '1t4WBWrdsA4dPK9UXp6rQSrFRMn_4qxt7cWQJsTPaFc8pRzPf'
 conf.get_default().auth_token = NGROK_AUTHTOKEN
 conf.get_default().region = 'eu'
 FORMAT = '%(asctime)-15s %(levelname)-5s %(funcName)-10s %(lineno)s %(message)s'
@@ -293,7 +293,6 @@ async def connect(ctx):
 async def disconnect(ctx):
     if bot.ssh_tunnel:
         ngrok.disconnect(bot.ssh_tunnel.public_url)
-        ngrok.kill(bot.ssh_tunnel.pyngrok_config)
         await ctx.send('Tunnel closed')
 
 
