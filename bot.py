@@ -225,12 +225,6 @@ async def on_ready():
 
 
 @bot.event
-async def on_error(event, *args, **kwargs):
-    logging.error(f'Event: {event}, {args}, {kwargs}')
-    logging.error(sys.exc_info())
-
-
-@bot.event
 async def on_command_error(ctx: discord.ext.commands.Context, error: Exception):
     await bot.admin.send(f'{error}, {ctx.message.guild.name}, {ctx.channel}, {ctx.message.content}')
 
