@@ -3,8 +3,9 @@ import subprocess
 import threading
 
 PORT = 20002
-APP = "python3 bot.py"
 BUFFER = 128
+APP = "python3 bot.py"
+LOG_PATH = "/home/cnblgnserver/Desktop/cloud_project/htdocs/falloutbot_logger.txt"
 
 
 class RemoteServer:
@@ -43,7 +44,7 @@ class RemoteServer:
     @classmethod
     def start(cls):
         bash_command = APP
-        cls.log_file = open("/home/cnblgnserver/Desktop/cloud_project/htdocs/falloutbot_logger.txt", "w+")
+        cls.log_file = open(LOG_PATH, "w+")
         cls.active_process = subprocess.Popen(bash_command.split(), stdout=cls.log_file, stderr=cls.log_file)
 
     @classmethod
