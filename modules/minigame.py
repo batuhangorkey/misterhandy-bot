@@ -2,6 +2,9 @@ import random
 import discord
 from discord.ext import commands
 
+'''
+    FINISHED
+'''
 
 class Scene:
     def __init__(self, filtered_list, difficulty):
