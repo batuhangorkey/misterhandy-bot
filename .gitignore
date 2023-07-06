@@ -7,3 +7,4 @@ config.ini
 text_log.txt
 minecraft01/*
 !minecraft01/world
+.env
