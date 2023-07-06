@@ -19,10 +19,10 @@ from modules.minigame import Minigame
 from modules.secret_hitler import SecretHitler
 from modules.youtube_bot import Music
 
-GIT_PATH = 'git'
-JAVA_PATH = '/usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java'
-JAVA_OPTIONS = [JAVA_PATH, '-Xmx6048M', '-Xms1024M', '-jar', 'forge-1.12.2-14.23.5.2854.jar', 'nogui']
-conf.get_default().region = 'eu'
+# GIT_PATH = 'git'
+# JAVA_PATH = '/usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java'
+# JAVA_OPTIONS = [JAVA_PATH, '-Xmx6048M', '-Xms1024M', '-jar', 'forge-1.12.2-14.23.5.2854.jar', 'nogui']
+# conf.get_default().region = 'eu'
 FORMAT = '%(asctime)-15s %(levelname)-5s %(funcName)-10s %(lineno)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO, stream=sys.stdout)
 
@@ -43,126 +43,8 @@ else:
     _bot_token = config.get('Bot', 'Token')
     _database_config = dict(config.items('Database'))
 
-
-class CustomBot(commands.Bot):
-    def __init__(self):
-        super().__init__(command_prefix='!')
-        self.ssh_tunnel: ngrok.NgrokTunnel = None
-        self.admin: discord.User = None
-        self.minecraft_process: subprocess.Popen = None
-        self.minecraft_autosave.start()
-
-    presences = [
-        'eternal void',
-        'ancient orders',
-        'nine mouths',
-        'cosmic noise',
-        'storms on titan',
-        '!play'
-    ]
-    adj = {
-        8: 'Efsane',
-        7: 'İnanılmaz',
-        6: 'Şahane',
-        5: 'Muhteşem',
-        4: 'Harika',
-        3: 'Baya iyi',
-        2: 'İyi',
-        1: 'Eh',
-        0: 'Düz',
-        -1: 'Dandik',
-        -2: 'Kötü',
-        -3: 'Rezalet',
-        -4: 'Felaket'
-    }
-    heroku_banned_commands = [
-        'reset'
-    ]
-
-    @property
-    def token(self):
-        return _bot_token
-
-    @property
-    def git_hash(self):
-        return self.get_git_version()
-
-    @staticmethod
-    def get_git_version():
-        if HEROKU:
-            return 'heroku'
-        else:
-            try:
-                return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('ascii')
-            except WindowsError:
-                return 'LocalHost'
-
-    @staticmethod
-    def clean_directory():
-        for item in os.listdir('./'):
-            if item.endswith(('.webm', '.m4a')):
-                try:
-                    os.remove(item)
-                except Exception as error:
-                    logging.error(error)
-                else:
-                    logging.info(f'Successfully deleted {item}')
-
-    @staticmethod
-    def save_server():
-        process = subprocess.Popen([GIT_PATH, 'add', '-A'], stdin=subprocess.PIPE, stdout=sys.stdout)
-        process.wait()
-        process = subprocess.Popen([GIT_PATH, 'commit', '-am', 'Update'], stdin=subprocess.PIPE, stdout=sys.stdout)
-        process.wait()
-        process = subprocess.Popen([GIT_PATH, 'push'], stdin=subprocess.PIPE, stdout=sys.stdout)
-        process.wait()
-
-    @staticmethod
-    def get_pymysql_connection():
-        conn = pymysql.connect(_database_config['host'],
-                               _database_config['userid'],
-                               _database_config['password'],
-                               _database_config['databasename'])
-        return conn
-
-    @classmethod
-    def fetch_user_tables(cls):
-        user_table = {}
-        kaiser_points = {}
-        conn = cls.get_pymysql_connection()
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM main")
-            data = cursor.fetchall()
-        conn.close()
-        for _, b in data:
-            user_table[int(_)] = int(b)
-        return user_table, kaiser_points
-
-    @classmethod
-    def get_random_playlist(cls):
-        conn = cls.get_pymysql_connection()
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT url, dislike, like_count FROM playlist")
-                data = cursor.fetchall()
-        finally:
-            conn.close()
-        db_playlist = [t for t in data]
-        db_playlist = [(url, int(like / dislike)) for url, dislike, like in db_playlist]
-        return db_playlist
-
-    async def default_presence(self):
-        try:
-            await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening,
-                                                                 name=random.choice(CustomBot.presences)),
-                                       status=self.git_hash)
-        except Exception as e:
-            logging.error(e)
-
-    @tasks.loop(minutes=15)
-    async def minecraft_autosave(self):
-        self.save_server()
-
+intents = discord.Intents.default()
+intents.message_content = True
 
 bot = CustomBot()
 
