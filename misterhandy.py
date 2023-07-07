@@ -63,8 +63,7 @@ class CustomBot(commands.Bot):
                 activity=discord.Activity(
                     type=discord.ActivityType.listening,
                     name=random.choice(CustomBot.presences),
-                ),
-                status=self.git_hash,
+                )
             )
         except Exception as e:
             logging.error(e)
