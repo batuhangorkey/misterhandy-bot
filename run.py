@@ -9,7 +9,7 @@ import sys
 import time
 import nest_asyncio
 import asyncio
-
+import re
 import discord
 import discord.ext.commands
 from discord.ext import commands, tasks
@@ -43,6 +43,18 @@ intents.message_content = True
 
 CHUNK_SIZE = 2000
 
+BANNED_WORDS = [
+    r"\bmalum\w*\b",
+    r"\w*yar*ak",
+    r"\bkarı",
+    r"\bbayan",
+    r"\bobjektif",
+    r"\bjahrein",
+    r"\btoksik",
+    r"\bayak",
+    r"\bakp",
+]
+
 bot = CustomBot(intents)
 
 
@@ -63,8 +75,8 @@ def split_string(text, chunk_size):
 
 
 async def generate_response(prompt):
-    post = f"Answer the following question acting as Mister Handy from Fallout 4. \
-            {prompt}"
+    # post = f"Answer the following question acting as Mister Handy from Fallout 4. {prompt}"
+    post = f"{prompt}"
     try:
         response = g4f.ChatCompletion.create(
             model=g4f.Model.gpt_4,
@@ -80,7 +92,7 @@ async def generate_response(prompt):
     try:
         response = g4f.ChatCompletion.create(
             model=g4f.Model.gpt_35_turbo,
-            provider=Provider.Aichat,
+            provider=Provider.DeepAi,
             messages=[{"role": "user", "content": post}],
             stream=False,
         )
@@ -112,6 +124,13 @@ async def generate_response_fast(prompt):
 
 @bot.command()
 async def meme(ctx: commands.Context):
+    response = await generate_response_fast(
+        f"Write a sarcastic joke against the decision about banning a discord bot \
+          that has command that writes jokes from recent conversations because it shares discord messages with third party \
+          Write in Turkish"
+    )
+
+    return await ctx.send(response)
     message = ctx.message
     if message.mentions:
         for mention in message.mentions:
@@ -182,4 +201,24 @@ async def ask(ctx: commands.Context, *, prompt: str):
         await ctx.send("Zort")
 
 
-bot.run(_bot_token)
+@bot.event
+async def on_message(message: discord.Message):
+    if message.author == bot.user:
+        return
+    # Find matches using regex in the message content
+    found_keywords = []
+    for keyword in BANNED_WORDS:
+        match = re.search(keyword, message.content, re.IGNORECASE)
+        if match:
+            found_keywords.append(match.group())
+    if len(found_keywords) == 1:
+        response = (
+            f'"{found_keywords[0]}" yasaklı kelime, {message.author.mention} su iç!'
+        )
+        await message.channel.send(response)
+    elif len(found_keywords) > 1:
+        response = f' {", ".join(found_keywords)} yasaklı kelimeler, {message.author.mention} su iç!'
+        await message.channel.send(response)
+
+
+bot.run(_bot_token)  # type: ignore
