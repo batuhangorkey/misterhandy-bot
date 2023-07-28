@@ -44,8 +44,8 @@ intents.message_content = True
 CHUNK_SIZE = 2000
 
 BANNED_WORDS = [
-    r"\bmalum\w*\b",
-    r"\w*yar*ak",
+    r"\bmalum",
+    r"\b\w*yar*ak",
     r"\bkarı",
     r"\bbayan",
     r"\bobjektif",
@@ -53,6 +53,10 @@ BANNED_WORDS = [
     r"\btoksik",
     r"\bayak",
     r"\bakp",
+    r"\bvukuat",
+    r"\bamk",
+    r"\baq",
+    r"\bismi lazım değil",
 ]
 
 bot = CustomBot(intents)
