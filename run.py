@@ -208,7 +208,7 @@ async def ask(ctx: commands.Context, *, prompt: str):
 @bot.event
 async def on_message(message: discord.Message):
     if message.author == bot.user:
-        return
+        return 
     # Find matches using regex in the message content
     found_keywords = []
     for keyword in BANNED_WORDS:
@@ -223,6 +223,8 @@ async def on_message(message: discord.Message):
     elif len(found_keywords) > 1:
         response = f' {", ".join(found_keywords)} yasaklı kelimeler, {message.author.mention} su iç!'
         await message.channel.send(response)
+
+    await bot.process_commands(message)
 
 
 bot.run(_bot_token)  # type: ignore
