@@ -31,7 +31,7 @@ streamlit-chat@https://github.com/AI-Yash/st-chat/archive/refs/pull/24/head.zip
 tls-client
 tornado>=6.3.2 # not directly required, pinned by Snyk to avoid a vulnerability
 twocaptcha
-urllib3==1.26.5
+urllib3==1.26.17
 websocket-client
 youtube-dl==2021.04.07
 youtube-search==1.1.1
